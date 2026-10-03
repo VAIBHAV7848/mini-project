@@ -140,8 +140,8 @@ Formal Gate 1 approval recorded on 2026-10-02. Stage S1 requirements baseline is
 ## UI/UX Transformation Phase
 - [x] Initial UI/UX Audit complete (`docs/ui-ux/ux-audit.md`, `visual-audit.md`, etc.)
 - [x] Design direction and design system established
-- [ ] Navigation and App Shell implementation
-- [ ] Core primitives and token implementation
-- [ ] Transaction feedback system
-- [ ] Role-specific dashboards redesign
-- [ ] Responsive and Accessibility refinement
+- [x] Navigation and App Shell implementation
+- [x] Core primitives and token implementation
+- [x] Transaction feedback system
+- [x] Role-specific dashboards redesign
+- [x] Responsive and Accessibility refinement
