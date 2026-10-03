@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useRole } from '@/components/layout/RoleContext';
-import { Layers, Loader2, FolderOpen, ExternalLink } from 'lucide-react';
+import { Layers, Loader2, FolderOpen, ExternalLink, Star } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -69,44 +69,98 @@ export default function ProjectsPage() {
             <p className="text-sm text-paper-muted mt-1.5 text-center">There are currently no open projects in the marketplace.</p>
           </div>
         ) : (
-          <div className="grid gap-6">
-            {projects.map((project) => (
-              <div key={project.id} className="card p-0 overflow-hidden group">
-                <div className="p-6 flex flex-col sm:flex-row justify-between gap-6 hover:bg-surface-highlight/30 transition-colors">
-                  <div className="space-y-4 flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-display text-xl font-bold text-white group-hover:text-brand-light transition-colors">{project.title}</h3>
-                      <span className="badge badge-brand">
-                        {project.status}
-                      </span>
-                    </div>
-                    <p className="text-[14px] text-paper-muted max-w-2xl leading-relaxed">{project.description}</p>
-                    <div className="flex items-center gap-6 text-[13px] text-paper-muted font-medium pt-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Posted By</span>
-                        <span className="text-white">{project.client?.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Proposals</span>
-                        <span className="font-mono2 font-bold text-white">{project._count?.proposals || 0}</span>
-                      </div>
-                    </div>
-                  </div>
+          <div className="space-y-10">
+            {projects.filter(p => p.budget >= 2500).length > 0 && (
+              <section>
+                <h3 className="eyebrow mb-4 text-brand-base flex items-center gap-2">
+                  <Star className="w-3 h-3" /> High Value Projects
+                </h3>
+                <div className="grid gap-4">
+                  {projects.filter(p => p.budget >= 2500).map((project) => (
+                    <div key={project.id} className="card p-0 overflow-hidden group">
+                      <div className="p-6 flex flex-col sm:flex-row justify-between gap-6 hover:bg-surface-highlight/30 transition-colors">
+                        <div className="space-y-4 flex-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-display text-xl font-bold text-white group-hover:text-brand-light transition-colors">{project.title}</h3>
+                            <span className="badge badge-brand">
+                              {project.status}
+                            </span>
+                          </div>
+                          <p className="text-[14px] text-paper-muted max-w-2xl leading-relaxed">{project.description}</p>
+                          <div className="flex items-center gap-6 text-[13px] text-paper-muted font-medium pt-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Posted By</span>
+                              <span className="text-white">{project.client?.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Proposals</span>
+                              <span className="font-mono2 font-bold text-white">{project._count?.proposals || 0}</span>
+                            </div>
+                          </div>
+                        </div>
 
-                  <div className="flex flex-col sm:items-end justify-between min-w-[140px] gap-4 sm:gap-0">
-                    <div className="text-right">
-                      <span className="eyebrow block mb-1">Budget</span>
-                      <div className="font-display text-2xl font-bold text-white">
-                        ₹{project.budget.toFixed(2)}
+                        <div className="flex flex-col sm:items-end justify-between min-w-[140px] gap-4 sm:gap-0">
+                          <div className="text-right">
+                            <span className="eyebrow block mb-1">Budget</span>
+                            <div className="font-display text-2xl font-bold text-white">
+                              ₹{project.budget.toFixed(2)}
+                            </div>
+                          </div>
+                          <button className="btn btn-secondary w-full sm:w-auto">
+                            <ExternalLink className="w-4 h-4" /> Details
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <button className="btn btn-secondary w-full sm:w-auto">
-                      <ExternalLink className="w-4 h-4" /> Details
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              </div>
-            ))}
+              </section>
+            )}
+
+            {projects.filter(p => p.budget < 2500).length > 0 && (
+              <section>
+                <h3 className="eyebrow mb-4">Standard Projects</h3>
+                <div className="grid gap-4">
+                  {projects.filter(p => p.budget < 2500).map((project) => (
+                    <div key={project.id} className="card p-0 overflow-hidden group">
+                      <div className="p-6 flex flex-col sm:flex-row justify-between gap-6 hover:bg-surface-highlight/30 transition-colors">
+                        <div className="space-y-4 flex-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-display text-xl font-bold text-white group-hover:text-brand-light transition-colors">{project.title}</h3>
+                            <span className="badge badge-brand">
+                              {project.status}
+                            </span>
+                          </div>
+                          <p className="text-[14px] text-paper-muted max-w-2xl leading-relaxed">{project.description}</p>
+                          <div className="flex items-center gap-6 text-[13px] text-paper-muted font-medium pt-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Posted By</span>
+                              <span className="text-white">{project.client?.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Proposals</span>
+                              <span className="font-mono2 font-bold text-white">{project._count?.proposals || 0}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:items-end justify-between min-w-[140px] gap-4 sm:gap-0">
+                          <div className="text-right">
+                            <span className="eyebrow block mb-1">Budget</span>
+                            <div className="font-display text-2xl font-bold text-white">
+                              ₹{project.budget.toFixed(2)}
+                            </div>
+                          </div>
+                          <button className="btn btn-secondary w-full sm:w-auto">
+                            <ExternalLink className="w-4 h-4" /> Details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </div>

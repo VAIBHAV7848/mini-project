@@ -69,7 +69,8 @@ export default function GigsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {gigs.map((gig) => (
-              <div key={gig.id} className="card p-0 overflow-hidden flex flex-col group">
+              <div key={gig.id} className="card p-0 overflow-hidden flex flex-col group relative transition-all duration-[200ms] hover:border-brand-base/50">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-base opacity-0 group-hover:opacity-100 transition-opacity duration-[200ms]" aria-hidden />
                 <div className="p-6 flex flex-col flex-1 gap-4 group-hover:bg-surface-highlight/30 transition-colors">
                   <div className="flex items-start justify-between">
                     <span className="text-[10px] uppercase tracking-wider font-mono2 px-2 py-1 rounded-md bg-surface-elevated text-paper-faint border border-line">

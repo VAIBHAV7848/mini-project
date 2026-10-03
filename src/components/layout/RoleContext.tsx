@@ -5,10 +5,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 export type Role = 'CLIENT' | 'FREELANCER' | 'REVIEWER' | 'ADMIN';
 
 export const PERSONAS = {
-  CLIENT: { id: 'usr-client-alice', name: 'Alice Client', email: 'client1@escrow.local' },
-  FREELANCER: { id: 'usr-dev-charlie', name: 'Charlie Developer', email: 'dev1@escrow.local' },
-  REVIEWER: { id: 'usr-reviewer-judge', name: 'Judge Reviewer', email: 'reviewer1@escrow.local' },
-  ADMIN: { id: 'usr-admin-system', name: 'System Auditor', email: 'admin@escrow.local' },
+  CLIENT: { id: '9d640d0c-137c-47dd-a118-084d7e2ec807', name: 'Alice Client', email: 'client1@escrow.local' },
+  FREELANCER: { id: 'a7a09030-f1c7-4d58-82db-e7a556871fc4', name: 'Charlie Developer', email: 'dev1@escrow.local' },
+  REVIEWER: { id: '54da6e71-a111-49f9-ac18-e25817066cbf', name: 'Judge Reviewer', email: 'reviewer1@escrow.local' },
+  ADMIN: { id: '233616fd-2260-4131-882a-bb9e50f295b1', name: 'System Auditor', email: 'admin@escrow.local' },
 };
 
 interface RoleContextType {

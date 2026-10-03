@@ -31,7 +31,7 @@ To apply this to GigaFlow while maintaining its "Orange + White" and "Workspace/
 *   **GigaFlow Orange (`#fc6c00`)**: Will be used as a *signal* (primary actions, active nav states, current milestones), not as a background decoration.
 *   **Typography**: Implement the exact font pairing (Inter, Space Grotesk, JetBrains Mono) with the same strict tracking and sizing rules (e.g., Mono eyebrows).
 *   **Surface Hierarchy**: Use explicit borders (`rgba(255, 255, 255, 0.12)`) instead of drop shadows to define space, achieving that dense, developer-grade workspace feel.
-*   **Object-Specific Layouts**: 
+*   **Object-Specific Layouts**:
     *   *Contracts* will feel like documents (dense metadata, clear participants).
     *   *Milestones* will use a linear timeline component, not a grid of cards.
     *   *Escrow* will use heavy, tabular display fonts to emphasize financial security.

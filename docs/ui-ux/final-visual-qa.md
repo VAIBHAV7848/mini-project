@@ -1,34 +1,38 @@
-# Final Visual QA Checklist & Notes
+# Final Visual QA & Implementations
 
-## 1. Scope and Responsiveness
-- **Mobile (`360x800`, `390x844`):**
-  - AppShell sidebar properly collapses behind a mobile hamburger menu.
-  - Milestone timelines wrap gracefully without overflowing viewport bounds.
-  - Dispute case grids switch to single-column stacking.
-- **Tablet (`768x1024`, `1024x768`):**
-  - Two-column dashboard layouts adapt correctly.
-- **Desktop (`1280x800`, `1440x900`):**
-  - Escrow rails become sticky on the right sidebar.
-  - Max-width constraints on readable text are respected.
+## Implementation Summary
 
-## 2. Browser Verification (Simulated)
-- Verified active state of sidebar navigation.
-- Verified role switcher updates the visible profile.
-- Verified visual transitions on hover for Projects and Gigs.
-- Verified Transaction Dialog renders SHA-256 hashes inside a correctly sized mono-font box.
-- Verified "No Data" empty states render clearly using dashed borders and muted icons.
+Based strictly on the issues identified in the visual acceptance review, the following precise changes were implemented:
 
-## 3. Strict Typographic Constraints
-- `font-display` utility properly applies tracking adjustments.
-- `font-mono2` ensures tabular numbers are aligned perfectly in Escrow totals and Milestone amounts.
-- `eyebrow` text is restricted to structural identifiers (e.g., "Overview", "Arbitration").
+1. **Dashboard Data Binding & Empty States**:
+   - Resolved the API mapping error that caused `AWAITING_DEPOSIT` seeded contracts to disappear. The `RoleContext` now uses correct UUIDs, ensuring seeded data propagates to the frontend.
+   - Contracts in `AWAITING_DEPOSIT` now correctly render in both the "Needs Your Attention" section (with the explicit `DEPOSIT` action) and the "Active Contracts" list.
 
-## 4. Double-Submission & Interaction State
-- Tested transaction buttons; they disable properly upon initiation.
-- The `transactionState` triggers a structured dialog detailing irreversible actions before hitting the ledger.
-- The `ease-forge` CSS bezier provides crisp snap-backs on buttons.
+2. **AppShell Depth**:
+   - Adjusted `src/components/layout/AppShell.tsx` to use `bg-charcoal` (`#0a0a0a`) for the sidebar and `bg-surface` (`#121212`) for the main workspace canvas.
+   - The desktop top navigation was also matched to `bg-surface/80`, establishing clear structural hierarchy between navigation elements and the workspace.
 
-## 5. Weaknesses & Future Improvements
-- **Transaction Flow:** While the UI prevents double submissions, adding optimistic UI updates for `Milestone` transitions (rather than waiting for full `activePollContractId` refresh) would make the app feel even faster.
-- **Evidence Hashes:** SHA-256 proofs currently span the dialog in a long string. A visual truncation with a copy-to-clipboard button would be cleaner for extremely small viewports.
-- **Dark Mode Support Only:** By locking into a Charcoal/Paper-white theme, we fully committed to the "Groq / Claude Code workspace" feel, abandoning any legacy Light mode. If Light mode is required in the future, the Tailwind classes will need CSS variable inversion configurations in `@theme`.
+3. **Projects Rhythm**:
+   - Refactored `src/app/projects/page.tsx` to abandon the single monolithic grid.
+   - Grouped projects semantically into `High Value Projects` (Budget >= 2500) and `Standard Projects`.
+   - Used the existing `.eyebrow` class and `lucide-react` icons to define these segments without introducing arbitrary background colors.
+
+4. **Gigs Interaction Signaling**:
+   - Added a strict left-edge indicator (`bg-brand-base`, width: `1px`) on hover in `src/app/gigs/page.tsx`.
+   - Removed the generic `hover:bg-surface-highlight/30` alone and tied interaction states to the semantic GigaFlow Orange, making row interactions explicit.
+
+5. **Disputes Empty State**:
+   - Replaced the large centered empty block in `src/app/disputes/page.tsx` with a single, horizontal, 1-line panel.
+   - Retained the `ShieldAlert` icon but scaled it appropriately for a dense data-entry workspace.
+
+## Remaining Limitations
+
+1. **Role Switcher UX**: The dropdown role switcher uses the native `<select>` element. While it functions securely, styling native select options on certain browsers can be inconsistent compared to a fully custom Radix/Headless UI component.
+2. **Transaction Modals**: Modals currently rely on basic absolute positioning overlays. On extremely small vertical viewports (like `390x844` rotated or with a large keyboard), scrolling inside the modal might overlap edge boundaries.
+3. **List Virtualization**: The Projects and Gigs lists group and render all items immediately. If the seeded data scales to >200 items, `react-window` or infinite scrolling would be required to prevent DOM sluggishness.
+
+## Testing Verification
+
+- `npx tsc` passes cleanly.
+- `npm run build` completed successfully.
+- `capture.js` successfully verified all routes (`/`, `/projects`, `/gigs`, `/disputes`) against `1440x900`, `1920x1080`, and `390x844`.

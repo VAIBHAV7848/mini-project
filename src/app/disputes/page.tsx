@@ -75,12 +75,14 @@ export default function DisputesPage() {
             <p className="text-sm font-medium">Loading dispute cases...</p>
           </div>
         ) : disputes.length === 0 ? (
-          <div className="py-24 flex flex-col items-center justify-center border border-dashed border-line rounded-panel bg-surface">
-            <div className="w-14 h-14 rounded-2xl bg-surface-elevated border border-line flex items-center justify-center mx-auto mb-4">
-              <FolderOpen className="w-6 h-6 text-paper-faint" />
+          <div className="flex items-center gap-4 p-4 rounded-lg bg-surface border border-line">
+            <div className="w-8 h-8 rounded-md bg-surface-elevated border border-line flex items-center justify-center shrink-0">
+              <ShieldAlert className="w-4 h-4 text-paper-faint" />
             </div>
-            <h3 className="font-display text-lg font-bold text-white">No Active Disputes</h3>
-            <p className="text-sm text-paper-muted mt-1.5 text-center max-w-sm leading-relaxed">There are currently no dispute cases requiring attention or arbitration.</p>
+            <div>
+              <h3 className="font-display text-sm font-bold text-white">No active disputes</h3>
+              <p className="text-[13px] text-paper-muted">All current escrow contracts are progressing without an open dispute.</p>
+            </div>
           </div>
         ) : (
           <div className="grid gap-6">

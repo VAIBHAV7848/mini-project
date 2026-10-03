@@ -55,7 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-charcoal text-paper selection:bg-brand-base/30 selection:text-white">
-      <aside className="hidden md:flex flex-col w-[260px] border-r border-line bg-surface sticky top-0 h-screen overflow-y-auto">
+      <aside className="hidden md:flex flex-col w-[260px] border-r border-line bg-charcoal sticky top-0 h-screen overflow-y-auto">
         <div className="p-6 flex flex-col gap-6">
           <Link href="/" className="flex items-center space-x-3 group outline-none focus-visible:ring-2 focus-visible:ring-brand-base rounded-lg">
             <div className="w-8 h-8 rounded-lg bg-brand-base flex items-center justify-center font-display font-bold text-charcoal transition-transform duration-[160ms] ease-[var(--ease-forge)] group-hover:scale-105">
@@ -115,7 +115,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-screen min-w-0 bg-charcoal">
+      <main className="flex-1 flex flex-col min-h-screen min-w-0 bg-surface">
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between p-4 border-b border-line bg-surface/80 backdrop-blur z-40 sticky top-0">
           <div className="flex items-center space-x-2">
@@ -141,7 +141,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Top bar (Desktop) */}
-        <header className="hidden md:flex items-center justify-between px-10 py-5 border-b border-line bg-charcoal/80 backdrop-blur sticky top-0 z-40">
+        <header className="hidden md:flex items-center justify-between px-10 py-5 border-b border-line bg-surface/80 backdrop-blur sticky top-0 z-40">
           <div className="flex items-center gap-3">
              <span className="font-mono2 text-[11px] text-paper-muted uppercase tracking-wider">
                {role} Workspace
