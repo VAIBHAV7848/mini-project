@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { Dialog } from '@/components/ui/Dialog';
+import { useRole } from '@/components/layout/RoleContext';
 import {
   ShieldCheck,
   Lock,
@@ -40,7 +41,7 @@ interface ContractItem {
 }
 
 export default function DashboardPage() {
-  const [role, setRole] = useState<'CLIENT' | 'FREELANCER' | 'REVIEWER' | 'ADMIN'>('CLIENT');
+  const { role, currentPersona } = useRole();
   const [contracts, setContracts] = useState<ContractItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePollContractId, setActivePollContractId] = useState<string | null>(null);
@@ -54,15 +55,6 @@ export default function DashboardPage() {
     status: 'idle' | 'processing' | 'success' | 'error';
     message?: string;
   }>({ isOpen: false, action: '', contractId: null, milestoneId: null, status: 'idle' });
-
-  const personas = {
-    CLIENT: { id: 'usr-client-alice', name: 'Alice Client', email: 'client1@escrow.local' },
-    FREELANCER: { id: 'usr-dev-charlie', name: 'Charlie Developer', email: 'dev1@escrow.local' },
-    REVIEWER: { id: 'usr-reviewer-judge', name: 'Judge Reviewer', email: 'reviewer1@escrow.local' },
-    ADMIN: { id: 'usr-admin-system', name: 'System Auditor', email: 'admin@escrow.local' },
-  };
-
-  const currentPersona = personas[role];
 
   const fetchContracts = async () => {
     setLoading(true);
@@ -79,7 +71,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchContracts();
-  }, [role]);
+  }, [role, currentPersona.id]);
 
   useEffect(() => {
     if (!activePollContractId) return;
@@ -170,7 +162,7 @@ export default function DashboardPage() {
       case 'START_WORK': return { title: 'Commence Milestone', desc: 'Acknowledge funds are locked and begin work.', btn: 'Start Work', color: 'btn-primary' };
       case 'SUBMIT_DELIVERABLE': return { title: 'Submit Evidence & Hash', desc: 'Submit work and generate a SHA-256 cryptographic proof of the deliverable.', btn: 'Sign & Submit', color: 'btn-primary' };
       case 'APPROVE_MILESTONE': return { title: 'Approve Deliverable', desc: 'Acknowledge the deliverable meets requirements. This will prepare funds for release.', btn: 'Approve Work', color: 'btn-primary' };
-      case 'RELEASE_ESCROW': return { title: 'Release Escrow', desc: 'Transfer locked funds to the freelancer. This action is irreversible.', btn: 'Release Funds', color: 'btn-success bg-emerald-600 hover:bg-emerald-500 text-white' };
+      case 'RELEASE_ESCROW': return { title: 'Release Escrow', desc: 'Transfer locked funds to the freelancer. This action is irreversible.', btn: 'Release Funds', color: 'bg-[var(--color-success-base)] hover:bg-[var(--color-success-base)]/80 text-white focus:ring-[var(--color-success-base)]' };
       case 'RAISE_DISPUTE': return { title: 'Raise Dispute', desc: 'Freeze the escrow and request reviewer arbitration.', btn: 'Freeze & Dispute', color: 'btn-danger' };
       default: return { title: 'Confirm Action', desc: 'Are you sure you want to proceed?', btn: 'Confirm', color: 'btn-primary' };
     }
@@ -179,36 +171,36 @@ export default function DashboardPage() {
   const actionInfo = getActionDetails(transactionState.action);
 
   return (
-    <AppShell role={role} onRoleChange={setRole} currentPersona={currentPersona}>
+    <AppShell>
       <div className="space-y-8 pb-12">
         {/* Architecture Status Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="card p-4">
-            <div className="text-[11px] font-mono text-indigo-400 mb-1">ENGINE 01 (OS)</div>
+          <div className="card p-4 transition-colors hover:bg-[var(--color-surface-2)]">
+            <div className="text-[11px] font-mono text-[var(--color-primary-light)] mb-1 uppercase tracking-wider">Engine 01 (OS)</div>
             <div className="font-medium text-sm">Escrow FSM & Mutex</div>
-            <div className="mt-2 text-[10px] font-mono text-slate-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Active: KeyedMutex TTL
+            <div className="mt-2 text-[10px] font-mono text-[var(--color-text-muted)] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary-base)] animate-pulse"></span> Active: KeyedMutex TTL
             </div>
           </div>
-          <div className="card p-4">
-            <div className="text-[11px] font-mono text-teal-400 mb-1">ENGINE 02 (DSA/SE)</div>
+          <div className="card p-4 transition-colors hover:bg-[var(--color-surface-2)]">
+            <div className="text-[11px] font-mono text-teal-400 mb-1 uppercase tracking-wider">Engine 02 (DSA)</div>
             <div className="font-medium text-sm">Evidence Tree & Hashes</div>
-            <div className="mt-2 text-[10px] font-mono text-slate-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span> SHA-256 Validated
+            <div className="mt-2 text-[10px] font-mono text-[var(--color-text-muted)] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span> SHA-256 Validated
             </div>
           </div>
-          <div className="card p-4">
-            <div className="text-[11px] font-mono text-amber-400 mb-1">ENGINE 03 (DBMS)</div>
+          <div className="card p-4 transition-colors hover:bg-[var(--color-surface-2)]">
+            <div className="text-[11px] font-mono text-amber-400 mb-1 uppercase tracking-wider">Engine 03 (DBMS)</div>
             <div className="font-medium text-sm">ACID Ledger</div>
-            <div className="mt-2 text-[10px] font-mono text-slate-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> SQLite WAL Sync
+            <div className="mt-2 text-[10px] font-mono text-[var(--color-text-muted)] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> SQLite WAL Sync
             </div>
           </div>
-          <div className="card p-4">
-            <div className="text-[11px] font-mono text-purple-400 mb-1">ENGINE 04 (WEB)</div>
-            <div className="font-medium text-sm">RBAC Dashboard</div>
-            <div className="mt-2 text-[10px] font-mono text-slate-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Session: {role}
+          <div className="card p-4 transition-colors hover:bg-[var(--color-surface-2)]">
+            <div className="text-[11px] font-mono text-[var(--color-notice-base)] mb-1 uppercase tracking-wider">Engine 04 (WEB)</div>
+            <div className="font-medium text-sm">RBAC Workflow</div>
+            <div className="mt-2 text-[10px] font-mono text-[var(--color-text-muted)] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-notice-base)] animate-pulse"></span> Session: {role}
             </div>
           </div>
         </div>
@@ -224,59 +216,60 @@ export default function DashboardPage() {
               onClick={fetchContracts}
               disabled={loading}
               className="btn btn-secondary btn-sm"
+              aria-label="Refresh State"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              Refresh State
+              <span className="hidden sm:inline">Refresh State</span>
             </button>
           </div>
 
           {loading && contracts.length === 0 ? (
-            <div className="py-20 flex flex-col items-center justify-center text-[var(--color-text-muted)]">
-              <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-4" />
-              <p className="text-sm">Syncing contract ledger...</p>
+            <div className="py-24 flex flex-col items-center justify-center text-[var(--color-text-muted)] animate-in fade-in duration-300">
+              <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary-base)] mb-4" />
+              <p className="text-sm font-medium">Syncing contract ledger...</p>
             </div>
           ) : contracts.length === 0 ? (
-            <div className="py-20 flex flex-col items-center justify-center border border-dashed border-[var(--color-border-default)] rounded-xl bg-[var(--color-surface-1)]">
-              <FileText className="w-10 h-10 text-[var(--color-text-muted)] mb-4" />
+            <div className="py-24 flex flex-col items-center justify-center border border-dashed border-[var(--color-border-strong)] rounded-xl bg-[var(--color-surface-1)]/50">
+              <FileText className="w-12 h-12 text-[var(--color-border-strong)] mb-4" />
               <h3 className="text-base font-medium text-white">No Active Contracts</h3>
-              <p className="text-sm text-[var(--color-text-muted)] mt-1">There are no escrow contracts available for your current role.</p>
+              <p className="text-sm text-[var(--color-text-muted)] mt-1 max-w-sm text-center">There are no active escrow contracts assigned to your role. Check your proposals or gigs.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6">
               {contracts.map((contract) => (
-                <div key={contract.id} className="card shadow-lg flex flex-col">
+                <div key={contract.id} className="card shadow-lg flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
                   {/* Contract Header */}
                   <div className="p-6 border-b border-[var(--color-border-subtle)] bg-[var(--color-surface-2)]/30">
                     <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-                      <div className="space-y-3 flex-1">
-                        <div className="flex items-center gap-3 flex-wrap">
+                      <div className="space-y-4 flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                           <h3 className="text-lg font-semibold text-white">{contract.project?.title || 'Contract Agreement'}</h3>
                           {getStatusBadge(contract.status)}
                         </div>
-                        <div className="grid grid-cols-2 max-w-md gap-4 text-sm">
+                        <div className="grid grid-cols-2 max-w-md gap-4 text-sm bg-[var(--color-base)] p-3 rounded-lg border border-[var(--color-border-subtle)]">
                           <div>
-                            <span className="text-[var(--color-text-muted)] block text-xs mb-0.5">Client</span>
+                            <span className="text-[var(--color-text-muted)] block text-xs mb-1 uppercase tracking-wider">Client</span>
                             <span className="font-medium text-slate-200">{contract.client?.name}</span>
                           </div>
                           <div>
-                            <span className="text-[var(--color-text-muted)] block text-xs mb-0.5">Freelancer</span>
+                            <span className="text-[var(--color-text-muted)] block text-xs mb-1 uppercase tracking-wider">Freelancer</span>
                             <span className="font-medium text-slate-200">{contract.freelancer?.name}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-3 min-w-[200px] bg-[var(--color-surface-1)] p-4 rounded-lg border border-[var(--color-border-default)]">
+                      <div className="flex flex-col items-end gap-3 min-w-[200px] bg-[var(--color-surface-1)] p-5 rounded-lg border border-[var(--color-border-default)] shadow-sm">
                         <div className="text-right w-full">
-                          <div className="text-xs text-[var(--color-text-muted)] font-mono uppercase tracking-wide mb-1">Total Escrow Locked</div>
+                          <div className="text-xs text-[var(--color-text-muted)] font-mono uppercase tracking-widest mb-1.5">Escrow Locked</div>
                           <div className="text-2xl font-bold font-mono text-white tracking-tight">
                             ${contract.escrowBalance.toFixed(2)}
                           </div>
                         </div>
                         <button
                           onClick={() => setActivePollContractId(activePollContractId === contract.id ? null : contract.id)}
-                          className={`w-full btn btn-sm ${
+                          className={`w-full btn btn-sm transition-all duration-200 ${
                             activePollContractId === contract.id
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-[var(--color-success-base)]/10 text-[var(--color-success-base)] border border-[var(--color-success-base)]/30 hover:bg-[var(--color-success-base)]/20'
                               : 'btn-secondary'
                           }`}
                         >
@@ -288,18 +281,18 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Milestones List */}
-                  <div className="p-6">
+                  <div className="p-6 bg-[var(--color-surface-1)]/30">
                     <h4 className="text-sm font-medium text-slate-300 mb-4 flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-indigo-400" />
+                      <Layers className="w-4 h-4 text-[var(--color-primary-light)]" />
                       Milestone Pipeline
                     </h4>
                     <div className="space-y-4">
                       {contract.milestones?.map((m) => (
-                        <div key={m.id} className="group relative rounded-xl border border-[var(--color-border-default)] bg-[var(--color-base)] p-5 hover:border-[var(--color-border-strong)] transition-colors">
+                        <div key={m.id} className="group relative rounded-xl border border-[var(--color-border-default)] bg-[var(--color-base)] p-5 hover:border-[var(--color-border-strong)] transition-all duration-200 shadow-sm hover:shadow-md">
                           <div className="flex flex-col md:flex-row justify-between gap-4">
-                            <div className="flex-1 space-y-2">
+                            <div className="flex-1 space-y-3">
                               <div className="flex items-center justify-between md:justify-start gap-4">
-                                <span className="text-xs font-mono px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border-default)]">
+                                <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border-default)]">
                                   SEQ #{m.sequenceOrder}
                                 </span>
                                 {getStatusBadge(m.status)}
@@ -307,10 +300,10 @@ export default function DashboardPage() {
                               <h5 className="text-base font-medium text-white">{m.title}</h5>
                             </div>
 
-                            <div className="flex flex-col items-end justify-between min-w-[120px]">
+                            <div className="flex flex-col items-end justify-between min-w-[140px]">
                               <span className="text-lg font-bold font-mono text-white">${m.amount.toFixed(2)}</span>
 
-                              <div className="mt-3 flex gap-2 flex-wrap justify-end">
+                              <div className="mt-4 flex gap-2 flex-wrap justify-end">
                                 {/* Contextual Actions based on state and role */}
                                 {contract.status === 'AWAITING_DEPOSIT' && role === 'CLIENT' && m.sequenceOrder === 1 && (
                                   <button onClick={() => initiateTransaction(contract.id, 'DEPOSIT')} className="btn btn-sm btn-primary">
@@ -325,7 +318,7 @@ export default function DashboardPage() {
                                 )}
 
                                 {m.status === 'IN_PROGRESS' && role === 'FREELANCER' && (
-                                  <button onClick={() => initiateTransaction(contract.id, 'SUBMIT_DELIVERABLE', m.id)} className="btn btn-sm bg-purple-600 hover:bg-purple-500 text-white focus:ring-purple-500">
+                                  <button onClick={() => initiateTransaction(contract.id, 'SUBMIT_DELIVERABLE', m.id)} className="btn btn-sm bg-[var(--color-notice-base)] hover:bg-[var(--color-notice-base)]/80 text-white focus:ring-[var(--color-notice-base)]">
                                     <FileCheck2 className="w-3.5 h-3.5" /> Submit Evidence
                                   </button>
                                 )}
@@ -344,6 +337,12 @@ export default function DashboardPage() {
                                 {m.status === 'APPROVED' && role === 'CLIENT' && (
                                   <button onClick={() => initiateTransaction(contract.id, 'RELEASE_ESCROW', m.id)} className="btn btn-sm bg-emerald-600 hover:bg-emerald-500 text-white">
                                     <Unlock className="w-3.5 h-3.5" /> Release Funds
+                                  </button>
+                                )}
+
+                                {m.status === 'DISPUTED' && role === 'REVIEWER' && (
+                                  <button onClick={() => initiateTransaction(contract.id, 'SUBMIT_RULING', m.id)} className="btn btn-sm btn-primary">
+                                    <ShieldCheck className="w-3.5 h-3.5" /> Resolve Dispute
                                   </button>
                                 )}
                               </div>
@@ -396,46 +395,55 @@ export default function DashboardPage() {
           ) : null
         }
       >
-        <div className="py-4">
+        <div className="py-2">
           {transactionState.status === 'idle' && (
              <div className="p-4 bg-[var(--color-surface-2)]/50 border border-[var(--color-border-default)] rounded-lg text-sm text-[var(--color-text-secondary)]">
                <p>This action will be recorded in the immutable audit log and will trigger an FSM state transition in the escrow engine.</p>
                {transactionState.action === 'SUBMIT_DELIVERABLE' && (
-                 <div className="mt-3 p-3 bg-[var(--color-base)] border border-slate-700 rounded text-xs font-mono text-slate-400 break-all">
-                   <div className="mb-1 text-slate-500 uppercase tracking-widest text-[10px]">Generated SHA-256 Proof</div>
-                   e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                 <div className="mt-4 p-3 bg-[var(--color-base)] border border-[var(--color-border-strong)] rounded-md text-xs font-mono text-slate-300 break-all shadow-inner">
+                   <div className="mb-1.5 text-slate-500 uppercase tracking-widest text-[10px] flex items-center gap-1.5">
+                     <ShieldCheck className="w-3 h-3 text-[var(--color-primary-base)]" />
+                     Generated SHA-256 Proof
+                   </div>
+                   <span className="select-all">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span>
+                 </div>
+               )}
+               {transactionState.action === 'RELEASE_ESCROW' && (
+                 <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-md text-xs text-amber-300 flex items-start gap-2">
+                   <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                   <span>Warning: Escrow release is an irreversible action. Funds will be transferred immediately.</span>
                  </div>
                )}
              </div>
           )}
 
           {transactionState.status === 'processing' && (
-            <div className="flex flex-col items-center justify-center py-8 space-y-4">
-              <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-              <p className="text-sm font-medium text-slate-300">Executing transaction...</p>
+            <div className="flex flex-col items-center justify-center py-10 space-y-4 animate-in fade-in">
+              <Loader2 className="w-10 h-10 text-[var(--color-primary-base)] animate-spin" />
+              <p className="text-sm font-medium text-slate-300">Processing transaction on ledger...</p>
             </div>
           )}
 
           {transactionState.status === 'success' && (
-            <div className="flex flex-col items-center justify-center py-6 space-y-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-emerald-500" />
+            <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center animate-in zoom-in-95 duration-300">
+              <div className="w-16 h-16 rounded-full bg-[var(--color-success-base)]/10 flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-[var(--color-success-base)]" />
               </div>
               <div>
-                <p className="text-base font-medium text-white mb-1">Transaction Successful</p>
-                <p className="text-sm text-[var(--color-text-muted)]">{transactionState.message}</p>
+                <p className="text-lg font-medium text-white mb-1.5">Transaction Successful</p>
+                <p className="text-sm text-[var(--color-text-muted)] max-w-[280px] mx-auto">{transactionState.message}</p>
               </div>
             </div>
           )}
 
           {transactionState.status === 'error' && (
-            <div className="flex flex-col items-center justify-center py-6 space-y-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center">
-                <XCircle className="w-6 h-6 text-rose-500" />
+            <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center animate-in zoom-in-95 duration-300">
+              <div className="w-16 h-16 rounded-full bg-[var(--color-danger-base)]/10 flex items-center justify-center">
+                <XCircle className="w-8 h-8 text-[var(--color-danger-base)]" />
               </div>
               <div>
-                <p className="text-base font-medium text-white mb-1">Transaction Failed</p>
-                <p className="text-sm text-rose-400">{transactionState.message}</p>
+                <p className="text-lg font-medium text-white mb-1.5">Transaction Failed</p>
+                <p className="text-sm text-[var(--color-danger-base)] opacity-90 max-w-[280px] mx-auto">{transactionState.message}</p>
               </div>
             </div>
           )}

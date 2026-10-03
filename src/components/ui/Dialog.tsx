@@ -26,7 +26,7 @@ export function Dialog({ isOpen, onClose, title, description, children, footer }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div 
+      <div
         className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
       />
@@ -36,7 +36,7 @@ export function Dialog({ isOpen, onClose, title, description, children, footer }
             <h2 className="text-lg font-semibold text-white">{title}</h2>
             {description && <p className="text-sm text-[var(--color-text-muted)] mt-1">{description}</p>}
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 rounded-md text-[var(--color-text-muted)] hover:text-white hover:bg-[var(--color-surface-2)] transition-colors"
           >
