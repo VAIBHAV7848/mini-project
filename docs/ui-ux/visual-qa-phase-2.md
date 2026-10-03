@@ -11,12 +11,12 @@ This document logs the visual QA and structural refinement process for Phase 2 o
 
 ### Dashboard (`/`)
 - **Defect:** Visual noise across cards. Status tags lacked strict alignment. Empty states were absent or crude.
-- **Fix:** Implemented structured empty states utilizing Lucide `FileText` and `FolderOpen` icons inside dashed boundaries. Extracted status tags to a semantic `getStatusBadge` function. Redesigned Milestone presentation using sequence headers (`SEQ #N`) and clear hierarchical spacing. 
+- **Fix:** Implemented structured empty states utilizing Lucide `FileText` and `FolderOpen` icons inside dashed boundaries. Extracted status tags to a semantic `getStatusBadge` function. Redesigned Milestone presentation using sequence headers (`SEQ #N`) and clear hierarchical spacing.
 - **Fix:** Fixed layout shift on empty contracts. Added explicit loading and empty state wrappers with `animate-in fade-in` transitions.
 
 ### Role-Specific UX implementation (`/projects`, `/gigs`, `/disputes`)
 - **Defect:** Prior dashboard was a monolith requiring fake state to view all items.
-- **Fix:** Created dedicated routing views utilizing the Next.js `App Router`. 
+- **Fix:** Created dedicated routing views utilizing the Next.js `App Router`.
   - **`/projects`:** Tailored for CLIENT. Prominently displays budget and proposal counts.
   - **`/gigs`:** Tailored for FREELANCER. Emphasizes freelancer reputation (DevScore) and structured categories.
   - **`/disputes`:** Tailored for REVIEWER. Prioritizes severity, disputed amounts, and timestamp chronology. Implemented a specific layout splitting the milestone metadata from the dispute reason.

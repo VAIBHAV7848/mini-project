@@ -1,78 +1,210 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  /* ---- Type ---- */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --color-base: var(--color-slate-950);
-  --color-surface-1: var(--color-slate-900);
-  --color-surface-2: var(--color-slate-800);
-  --color-surface-3: var(--color-slate-700);
+  /* ---- Neutrals (Dark Workspace) ---- */
+  --color-charcoal: #0a0a0a;
+  --color-surface: #121212;
+  --color-surface-elevated: #1a1a1a;
+  --color-surface-highlight: #222222;
+  --color-paper: #ffffff;
+  --color-paper-muted: #a3a3a3;
+  --color-paper-faint: #737373;
+  --color-line: rgba(255, 255, 255, 0.12);
+  --color-line-strong: rgba(255, 255, 255, 0.25);
 
-  --color-border-subtle: rgba(30, 41, 59, 0.5); /* slate-800/50 */
-  --color-border-default: var(--color-slate-800);
-  --color-border-strong: var(--color-slate-700);
+  /* ---- GigaFlow Brand Accent ---- */
+  --color-brand-base: #fc6c00;
+  --color-brand-light: #ff9d47;
+  --color-brand-dark: #c2410c;
+  --color-brand-tint: rgba(252, 108, 0, 0.1);
 
-  --color-text-primary: var(--color-white);
-  --color-text-secondary: var(--color-slate-300);
-  --color-text-muted: var(--color-slate-500);
+  /* ---- Semantic ---- */
+  --color-success: #15803d;
+  --color-success-light: #4ade80;
+  --color-success-tint: rgba(21, 128, 61, 0.15);
 
-  /* Semantic */
-  --color-primary-light: var(--color-indigo-400);
-  --color-primary-base: var(--color-indigo-500);
-  --color-primary-dark: var(--color-indigo-600);
+  --color-warning: #b45309;
+  --color-warning-light: #fbbf24;
+  --color-warning-tint: rgba(180, 83, 9, 0.15);
 
-  --color-success-base: var(--color-emerald-500);
-  --color-info-base: var(--color-blue-500);
-  --color-warning-base: var(--color-amber-500);
-  --color-danger-base: var(--color-rose-500);
-  --color-notice-base: var(--color-purple-500);
+  --color-danger: #b91c1c;
+  --color-danger-light: #f87171;
+  --color-danger-tint: rgba(185, 28, 28, 0.15);
+
+  /* ---- Radius ---- */
+  --radius-card: 20px;
+  --radius-panel: 24px;
+  --radius-hero: 28px;
+
+  /* ---- Motion: snappy and mechanical ---- */
+  --ease-forge: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* ---- Shadows ---- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4), 0 12px 28px rgba(0, 0, 0, 0.5);
+
+  /* ---- Backwards compatibility variables to avoid breaking existing pages entirely,
+          though we will refactor them heavily ---- */
+  --color-text-primary: var(--color-paper);
+  --color-text-secondary: var(--color-paper-muted);
+  --color-text-muted: var(--color-paper-faint);
+  --color-border-subtle: var(--color-line);
+  --color-border-default: var(--color-line-strong);
 }
 
+/* ==========================================================================
+   Base
+   ========================================================================== */
 @layer base {
-  html, body {
-    background-color: var(--color-base);
-    color: var(--color-text-primary);
-    font-feature-settings: "rlig" 1, "calt" 1;
+  html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-charcoal);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    font-feature-settings: "cv11" 1, "ss01" 1, "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+
+  p, li {
+    text-wrap: pretty;
+  }
+
+  p, li {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-base);
+    color: #0a0a0a;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-base);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Custom Scrollbar for Dark Theme */
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-charcoal);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 99px;
+    border: 3px solid var(--color-charcoal);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.25);
+  }
+
+  select {
+    appearance: none;
   }
 }
 
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+@utility font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility font-mono2 {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-paper-faint);
+}
+
+@utility grid-lines {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* ==========================================================================
+   Components (Migrating to the Reference Project's constraint model)
+   ========================================================================== */
 @layer components {
-  .btn {
-    @apply inline-flex items-center justify-center font-medium rounded-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:pointer-events-none;
-  }
-
-  .btn-sm {
-    @apply text-xs px-3 py-1.5 gap-1.5;
-  }
-
-  .btn-md {
-    @apply text-sm px-4 py-2 gap-2;
-  }
-
-  .btn-primary {
-    @apply bg-indigo-600 text-white hover:bg-indigo-500 focus:ring-indigo-500;
-  }
-
-  .btn-secondary {
-    @apply bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 focus:ring-slate-500;
-  }
-
-  .btn-danger {
-    @apply bg-rose-600 text-white hover:bg-rose-500 focus:ring-rose-500;
-  }
-
-  .btn-ghost {
-    @apply bg-transparent text-slate-300 hover:text-white hover:bg-slate-800 focus:ring-slate-500;
+  /* Panels and Cards (With Reference Project Geometry) */
+  .panel {
+    @apply bg-surface border border-line rounded-[var(--radius-panel)] p-6 sm:p-8;
   }
 
   .card {
-    @apply bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden;
+    @apply bg-surface border border-line rounded-[var(--radius-card)] p-5 transition-all duration-[160ms] ease-[var(--ease-forge)] hover:-translate-y-0.5 hover:border-brand-base/40 hover:shadow-md;
   }
 
-  .badge {
-    @apply px-2.5 py-1 rounded-full text-xs font-medium border inline-flex items-center gap-1.5;
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center font-bold whitespace-nowrap select-none transition-all duration-[160ms] ease-[var(--ease-forge)] active:scale-[0.975] disabled:opacity-55 disabled:pointer-events-none;
   }
+  .btn-sm { @apply h-9 px-3.5 text-[13px] rounded-xl gap-1.5 min-w-[36px]; }
+  .btn-md { @apply h-11 px-5 text-sm rounded-xl gap-2 min-w-[44px]; }
+  .btn-lg { @apply h-12 px-6 text-[15px] rounded-2xl gap-2 min-w-[48px]; }
+
+  .btn-primary {
+    @apply bg-brand-base text-charcoal shadow-xs hover:bg-brand-light disabled:hover:bg-brand-base;
+  }
+  .btn-secondary {
+    @apply bg-surface-elevated text-paper border border-line hover:border-brand-base hover:text-brand-light;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-paper-muted hover:bg-surface-elevated hover:text-paper;
+  }
+  .btn-danger {
+    @apply bg-transparent text-danger-light border border-danger/40 hover:bg-danger-tint hover:border-danger;
+  }
+  .btn-danger-solid {
+    @apply bg-danger text-paper hover:bg-danger-light;
+  }
+  .btn-success {
+    @apply bg-success text-white shadow-xs hover:bg-success-light disabled:hover:bg-success;
+  }
+
+  /* Badges */
+  .badge {
+    @apply px-2.5 py-1 rounded-lg text-[11px] font-mono2 font-bold inline-flex items-center gap-1.5 transition-colors border;
+  }
+  .badge-default { @apply bg-surface-elevated border-line text-paper-muted; }
+  .badge-brand { @apply bg-brand-tint border-brand-base/30 text-brand-light; }
+  .badge-success { @apply bg-success-tint border-success/30 text-success-light; }
+  .badge-warning { @apply bg-warning-tint border-warning/30 text-warning-light; }
+  .badge-danger { @apply bg-danger-tint border-danger/30 text-danger-light; }
 }

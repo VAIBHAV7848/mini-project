@@ -5,11 +5,11 @@ import {
   LayoutDashboard,
   Layers,
   AlertTriangle,
-  FileCheck2,
+  ShieldCheck,
   Settings,
   Bell,
-  ShieldCheck,
-  UserCheck
+  UserCheck,
+  ChevronDown
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -23,21 +23,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     switch (role) {
       case 'CLIENT':
         return [
-          { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
-          { icon: Layers, label: 'Projects & Gigs', href: '/projects' },
-          { icon: FileCheck2, label: 'Active Contracts', href: '/' },
+          { icon: LayoutDashboard, label: 'Overview', href: '/' },
+          { icon: Layers, label: 'Projects', href: '/projects' },
+          { icon: ShieldCheck, label: 'Contracts', href: '/contracts' },
           { icon: AlertTriangle, label: 'Disputes', href: '/disputes' },
         ];
       case 'FREELANCER':
         return [
-          { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
-          { icon: Layers, label: 'Available Gigs', href: '/gigs' },
-          { icon: FileCheck2, label: 'My Contracts', href: '/' },
+          { icon: LayoutDashboard, label: 'Overview', href: '/' },
+          { icon: Layers, label: 'Gigs', href: '/gigs' },
+          { icon: ShieldCheck, label: 'My Contracts', href: '/contracts' },
           { icon: AlertTriangle, label: 'Disputes', href: '/disputes' },
         ];
       case 'REVIEWER':
         return [
-          { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
+          { icon: LayoutDashboard, label: 'Overview', href: '/' },
           { icon: AlertTriangle, label: 'Pending Cases', href: '/disputes' },
         ];
       case 'ADMIN':
@@ -54,110 +54,113 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const navItems = getNavItems();
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[var(--color-base)] text-[var(--color-text-primary)]">
-      {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-[var(--color-border-default)] bg-[var(--color-surface-1)]/50 sticky top-0 h-screen overflow-y-auto">
-        <div className="p-6 border-b border-[var(--color-border-subtle)]">
-          <Link href="/" className="flex items-center space-x-3 mb-6 group">
-            <div className="w-8 h-8 rounded-lg bg-[var(--color-primary-dark)] flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-200">
-              07
+    <div className="min-h-screen flex flex-col md:flex-row bg-charcoal text-paper selection:bg-brand-base/30 selection:text-white">
+      <aside className="hidden md:flex flex-col w-[260px] border-r border-line bg-surface sticky top-0 h-screen overflow-y-auto">
+        <div className="p-6 flex flex-col gap-6">
+          <Link href="/" className="flex items-center space-x-3 group outline-none focus-visible:ring-2 focus-visible:ring-brand-base rounded-lg">
+            <div className="w-8 h-8 rounded-lg bg-brand-base flex items-center justify-center font-display font-bold text-charcoal transition-transform duration-[160ms] ease-[var(--ease-forge)] group-hover:scale-105">
+              GF
             </div>
-            <div>
-              <span className="font-semibold text-white tracking-tight leading-none block">EscrowProtocol</span>
-              <span className="text-[10px] font-mono text-[var(--color-primary-light)]">Engine v1.0</span>
-            </div>
+            <span className="font-display font-bold text-lg tracking-tight text-white">GigaFlow</span>
           </Link>
-
-          <div className="space-y-1">
-            <div className="text-xs font-mono text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Active Role</div>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as any)}
-              className="w-full bg-[var(--color-base)] border border-[var(--color-border-default)] text-sm rounded-md px-3 py-2 text-[var(--color-text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-base)] transition-shadow duration-150"
-            >
-              <option value="CLIENT">Client</option>
-              <option value="FREELANCER">Freelancer</option>
-              <option value="REVIEWER">Reviewer</option>
-              <option value="ADMIN">Admin</option>
-            </select>
-          </div>
         </div>
 
-        <nav className="flex-1 py-6 px-4 space-y-1">
+        <nav className="flex-1 px-4 space-y-1">
+          <div className="mb-4 px-3">
+            <p className="eyebrow">Main Navigation</p>
+          </div>
           {navItems.map((item, idx) => {
             const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
             return (
               <Link
                 key={idx}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-[160ms] ease-[var(--ease-forge)] outline-none focus-visible:ring-2 focus-visible:ring-brand-base ${
                   isActive
-                    ? 'bg-[var(--color-primary-base)]/10 text-[var(--color-primary-light)] shadow-[inset_2px_0_0_0_var(--color-primary-base)]'
-                    : 'text-[var(--color-text-muted)] hover:text-white hover:bg-[var(--color-surface-2)]/50 hover:translate-x-1'
+                    ? 'bg-surface-elevated text-paper font-semibold shadow-xs border border-line'
+                    : 'text-paper-muted hover:text-paper hover:bg-surface-elevated border border-transparent'
                 }`}
               >
-                <item.icon className="w-4 h-4" />
+                <item.icon className="w-[18px] h-[18px]" />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-[var(--color-border-subtle)]">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[var(--color-surface-2)] flex items-center justify-center border border-[var(--color-border-default)]">
-              <UserCheck className="w-4 h-4 text-[var(--color-text-muted)]" />
+        <div className="p-4 border-t border-line relative group cursor-pointer hover:bg-surface-elevated transition-colors">
+          <select
+            id="workspace-select"
+            value={role}
+            onChange={(e) => setRole(e.target.value as any)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            aria-label="Switch workspace role"
+          >
+            <option value="CLIENT">Client Workspace</option>
+            <option value="FREELANCER">Engineer Workspace</option>
+            <option value="REVIEWER">Reviewer Workspace</option>
+            <option value="ADMIN">Admin Console</option>
+          </select>
+          <div className="flex items-center gap-3 px-2 pointer-events-none">
+            <div className="w-9 h-9 rounded-full bg-brand-tint flex items-center justify-center border border-brand-base/30 text-brand-light">
+              <UserCheck className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{currentPersona.name}</p>
-              <p className="text-xs text-[var(--color-text-muted)] truncate">{currentPersona.email}</p>
+              <p className="text-[14px] font-bold text-white truncate">{currentPersona.name}</p>
+              <p className="text-[12px] text-paper-muted truncate capitalize">{role.toLowerCase()} Workspace</p>
             </div>
+            <ChevronDown className="w-4 h-4 text-paper-faint group-hover:text-paper-muted transition-colors" />
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-screen min-w-0">
+      <main className="flex-1 flex flex-col min-h-screen min-w-0 bg-charcoal">
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between p-4 border-b border-[var(--color-border-default)] bg-[var(--color-surface-1)]/80 backdrop-blur z-40 sticky top-0">
+        <header className="md:hidden flex items-center justify-between p-4 border-b border-line bg-surface/80 backdrop-blur z-40 sticky top-0">
           <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 rounded-md bg-[var(--color-primary-dark)] flex items-center justify-center font-bold text-white text-xs">
-              07
+            <div className="w-7 h-7 rounded-md bg-brand-base flex items-center justify-center font-display font-bold text-charcoal text-xs">
+              GF
             </div>
-            <span className="font-semibold text-white text-sm">EscrowProtocol</span>
+            <span className="font-display font-bold text-white text-sm">GigaFlow</span>
           </div>
-          <div className="flex items-center gap-3">
-             <select
+          <div className="flex items-center gap-3 relative">
+            <select
               value={role}
               onChange={(e) => setRole(e.target.value as any)}
-              className="bg-[var(--color-base)] border border-[var(--color-border-default)] text-xs rounded px-2 py-1 text-[var(--color-text-secondary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-base)]"
+              aria-label="Switch workspace role"
+              className="bg-surface-elevated border border-line text-xs font-mono2 rounded-lg pl-3 pr-8 py-1.5 text-paper appearance-none focus:outline-none focus:ring-1 focus:ring-brand-base"
             >
               <option value="CLIENT">Client</option>
-              <option value="FREELANCER">Freelancer</option>
+              <option value="FREELANCER">Engineer</option>
               <option value="REVIEWER">Reviewer</option>
               <option value="ADMIN">Admin</option>
             </select>
+            <ChevronDown className="w-3 h-3 text-paper-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </header>
 
         {/* Top bar (Desktop) */}
-        <header className="hidden md:flex items-center justify-between px-8 py-4 border-b border-[var(--color-border-subtle)] bg-[var(--color-base)]/50 backdrop-blur sticky top-0 z-40">
-          <div className="flex items-center gap-4 text-sm text-[var(--color-text-muted)]">
-            <span className="inline-flex items-center gap-1.5 font-mono text-xs bg-[var(--color-success-base)]/10 text-[var(--color-success-base)] px-2 py-1 rounded-md border border-[var(--color-success-base)]/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-success-base)] animate-pulse"></span>
-              System Operational
-            </span>
+        <header className="hidden md:flex items-center justify-between px-10 py-5 border-b border-line bg-charcoal/80 backdrop-blur sticky top-0 z-40">
+          <div className="flex items-center gap-3">
+             <span className="font-mono2 text-[11px] text-paper-muted uppercase tracking-wider">
+               {role} Workspace
+             </span>
+             <span className="w-1 h-1 rounded-full bg-line-strong" />
+             <span className="text-[13px] text-paper-muted">
+               {currentPersona.name}
+             </span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="text-[var(--color-text-muted)] hover:text-white transition-colors relative focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-base)] rounded-md p-1">
+            <button aria-label="Notifications" className="text-paper-muted hover:text-white transition-colors relative focus:outline-none focus:ring-2 focus:ring-brand-base rounded-md p-1">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[var(--color-danger-base)] rounded-full border border-[var(--color-base)]"></span>
+              <span className="absolute top-1 right-1 w-2 h-2 bg-brand-base rounded-full border border-charcoal"></span>
             </button>
           </div>
         </header>
 
-        <div className="flex-1 p-4 md:p-8 overflow-x-hidden">
-          <div className="max-w-6xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-300 ease-out">
+        <div className="flex-1 p-4 md:p-10 overflow-x-hidden">
+          <div className="max-w-[1200px] mx-auto w-full animate-in fade-in duration-300 ease-out">
             {children}
           </div>
         </div>

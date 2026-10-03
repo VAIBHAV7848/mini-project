@@ -24,8 +24,8 @@ describe('Engine 04 (Web) - UI Components', () => {
         </RoleProvider>
       );
 
-      expect(screen.getByText('Projects & Gigs')).toBeDefined();
-      expect(screen.getByText('Active Contracts')).toBeDefined();
+      expect(screen.getByText('Projects')).toBeDefined();
+      expect(screen.getByText('Contracts')).toBeDefined();
     });
 
     it('should call onRoleChange (setRole) when role dropdown is changed', () => {
@@ -42,7 +42,8 @@ describe('Engine 04 (Web) - UI Components', () => {
       fireEvent.change(selects[0], { target: { value: 'FREELANCER' } });
 
       // Since context updates state, the UI should now show Freelancer items
-      expect(screen.getByText('Available Gigs')).toBeDefined();
+      expect(screen.getByText('Gigs')).toBeDefined();
+      expect(screen.getByText('My Contracts')).toBeDefined();
     });
   });
 

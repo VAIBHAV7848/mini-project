@@ -14,6 +14,11 @@ interface Gig {
   _count: { orders: number };
 }
 
+interface GigDetail {
+  category: string;
+  devScore: number;
+}
+
 export default function GigsPage() {
   const { currentPersona } = useRole();
   const [gigs, setGigs] = useState<Gig[]>([]);
@@ -37,50 +42,56 @@ export default function GigsPage() {
   return (
     <AppShell>
       <div className="space-y-6 pb-12">
-        <div className="border-b border-[var(--color-border-subtle)] pb-4">
-          <h2 className="text-xl font-semibold text-white tracking-tight flex items-center gap-2">
-            <Layers className="w-5 h-5 text-[var(--color-primary-light)]" />
-            Available Gigs
-          </h2>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">Browse marketplace gigs offered by top freelancers.</p>
+        <div className="border-b border-line pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow mb-2">Marketplace</p>
+            <h2 className="font-display text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+              <Layers className="w-5 h-5 text-brand-base" />
+              Available Gigs
+            </h2>
+            <p className="text-sm text-paper-muted mt-1 font-medium">Browse marketplace gigs offered by top freelancers.</p>
+          </div>
         </div>
 
         {loading ? (
-          <div className="py-24 flex flex-col items-center justify-center text-[var(--color-text-muted)]">
-            <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary-base)] mb-4" />
+          <div className="py-24 flex flex-col items-center justify-center text-paper-muted bg-surface rounded-panel border border-line">
+            <Loader2 className="w-8 h-8 animate-spin text-brand-base mb-4" />
             <p className="text-sm font-medium">Loading gigs...</p>
           </div>
         ) : gigs.length === 0 ? (
-          <div className="py-24 flex flex-col items-center justify-center border border-dashed border-[var(--color-border-strong)] rounded-xl bg-[var(--color-surface-1)]/50">
-            <FolderOpen className="w-12 h-12 text-[var(--color-border-strong)] mb-4" />
-            <h3 className="text-base font-medium text-white">No Gigs Available</h3>
-            <p className="text-sm text-[var(--color-text-muted)] mt-1 text-center">There are currently no active gigs in the marketplace.</p>
+          <div className="py-24 flex flex-col items-center justify-center border border-dashed border-line rounded-panel bg-surface">
+            <div className="w-14 h-14 rounded-2xl bg-surface-elevated border border-line flex items-center justify-center mx-auto mb-4">
+              <FolderOpen className="w-6 h-6 text-paper-faint" />
+            </div>
+            <h3 className="font-display text-lg font-bold text-white">No Gigs Available</h3>
+            <p className="text-sm text-paper-muted mt-1.5 text-center">There are currently no active gigs in the marketplace.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {gigs.map((gig) => (
-              <div key={gig.id} className="card p-6 flex flex-col justify-between gap-4 hover:border-[var(--color-border-strong)] transition-colors">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-wider font-mono px-2 py-0.5 rounded-md bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border-default)]">
+              <div key={gig.id} className="card p-0 overflow-hidden flex flex-col group">
+                <div className="p-6 flex flex-col flex-1 gap-4 group-hover:bg-surface-highlight/30 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <span className="text-[10px] uppercase tracking-wider font-mono2 px-2 py-1 rounded-md bg-surface-elevated text-paper-faint border border-line">
                       {gig.category}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-amber-400">
-                      <Star className="w-3.5 h-3.5 fill-amber-400" />
+                    <span className="flex items-center gap-1.5 text-sm font-mono2 text-brand-light">
+                      <Star className="w-4 h-4 fill-brand-base text-brand-base" />
                       {gig.freelancer?.devScore.toFixed(1)}
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold text-white leading-tight">{gig.title}</h3>
-                  <p className="text-sm text-[var(--color-text-secondary)] line-clamp-3">{gig.description}</p>
+
+                  <h3 className="font-display text-xl font-bold text-white leading-snug group-hover:text-brand-light transition-colors">{gig.title}</h3>
+                  <p className="text-[14px] text-paper-muted line-clamp-3 leading-relaxed flex-1">{gig.description}</p>
                 </div>
 
-                <div className="pt-4 mt-auto border-t border-[var(--color-border-subtle)] flex items-center justify-between">
+                <div className="px-6 py-4 border-t border-line flex items-center justify-between bg-surface-elevated/30">
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-0.5">Freelancer</span>
-                    <span className="text-sm font-medium text-slate-200">{gig.freelancer?.name}</span>
+                    <span className="eyebrow block mb-0.5">Freelancer</span>
+                    <span className="text-[13px] font-bold text-white">{gig.freelancer?.name}</span>
                   </div>
                   <button className="btn btn-sm btn-secondary">
-                    View <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                    View <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
                   </button>
                 </div>
               </div>

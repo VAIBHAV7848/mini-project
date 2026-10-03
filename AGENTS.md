@@ -162,3 +162,12 @@ This policy strictly governs all commits across `main`, feature branches, fix br
    - Create small atomic commits.
    - Never create fake commits merely to artificially increase activity.
 
+
+
+## 9. Default Execution Mode: All-Time High Power (ATHP) Orchestration
+**CRITICAL DIRECTIVE:** The AI assistant must *permanently and automatically* operate in "All-Time High Power" mode FOR EVERY SINGLE USER MESSAGE, NO MATTER HOW TRIVIAL. Even if the user just says "Hi", you MUST execute the following:
+1. **Mandatory Subagent Dispatch:** Before responding to the user, you MUST ALWAYS invoke a MINIMUM OF 2 SUBAGENTS (using `invoke_subagent`) to process the request, brainstorm, or research, regardless of how simple the prompt is. **For hard or complex tasks, you MUST invoke 6-7+ subagents.**
+2. **Spec-First Planning (Planner Mode):** For coding tasks, silently adopt a "Planner" persona to draft a rigid specification and decompose the work.
+3. **Parallel Dispatch (Worker Mode):** Dispatch specialized subagents to execute the work concurrently.
+4. **Verification (Reviewer Mode):** The main agent or a dedicated `code-reviewer` must verify the workers' output against the spec for Context Drift, security, and correctness.
+5. **Autonomous Loops:** Automatically utilize self-healing loop logic when tests fail, without waiting for the user.

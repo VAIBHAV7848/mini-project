@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
 import './globals.css';
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono' });
-
 import { RoleProvider } from '@/components/layout/RoleContext';
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono', display: 'swap' });
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk', display: 'swap' });
+
 export const metadata: Metadata = {
-  title: 'EscrowProtocol | Milestone-Based Escrow',
-  description: 'Evidence-Based Dispute Resolution Workflow',
+  title: 'GigaFlow | Milestone-Based Escrow',
+  description: 'Milestone escrow with evidence-based dispute resolution',
 };
 
 export default function RootLayout({
@@ -18,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-[var(--color-base)] text-[var(--color-text-primary)] antialiased font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable}`}>
+      <body className="bg-charcoal text-paper antialiased font-sans selection:bg-brand-base selection:text-charcoal min-h-screen">
         <RoleProvider>
           {children}
         </RoleProvider>
