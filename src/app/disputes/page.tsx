@@ -85,62 +85,54 @@ export default function DisputesPage() {
             </div>
           </div>
         ) : (
-          <div className="grid gap-6">
-            {disputes.map((dispute) => (
-              <div key={dispute.id} className="card p-0 overflow-hidden">
-                <div className="p-5 sm:p-6 border-b border-line bg-surface-highlight/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-danger-tint border border-danger/30 flex items-center justify-center shrink-0">
-                      <AlertTriangle className="w-5 h-5 text-danger-light" />
-                    </div>
-                    <div>
-                      <h3 className="font-display text-lg font-bold text-white">Case <span className="text-paper-muted uppercase text-base">#{dispute.id.slice(0,8)}</span></h3>
-                      <div className="flex items-center gap-2 text-xs font-mono2 text-paper-muted mt-1">
-                        <ClockIcon className="w-3.5 h-3.5" />
-                        Opened {new Date(dispute.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="shrink-0">{getStatusBadge(dispute.status)}</div>
-                </div>
-
-                <div className="p-5 sm:p-6 flex flex-col lg:flex-row gap-8">
-                  <div className="flex-1 space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-line rounded-xl overflow-hidden border border-line">
-                      <div className="bg-surface p-4">
-                        <span className="eyebrow block mb-1.5">Milestone</span>
-                        <span className="font-medium text-white">{dispute.milestone.title}</span>
-                      </div>
-                      <div className="bg-surface p-4">
-                        <span className="eyebrow block mb-1.5">Disputed Amount</span>
-                        <span className="font-mono2 text-lg font-bold text-danger-light">₹{dispute.milestone.amount.toFixed(2)}</span>
-                      </div>
-                      <div className="bg-surface p-4 sm:col-span-2">
-                        <span className="eyebrow block mb-1.5">Reason for Dispute</span>
-                        <p className="text-paper-muted leading-relaxed italic border-l-2 border-danger-light/30 pl-3 py-0.5">“{dispute.reason}”</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-6 text-[13px] text-paper-muted font-medium bg-surface-elevated/50 p-3 rounded-lg border border-line">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono2 text-xs">CLIENT</span>
-                        <span className="text-white">{dispute.milestone.contract.client.name}</span>
-                      </div>
-                      <div className="w-px h-4 bg-line hidden sm:block" />
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono2 text-xs">FREELANCER</span>
-                        <span className="text-white">{dispute.milestone.contract.freelancer.name}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-start lg:items-end lg:justify-center shrink-0 min-w-[160px]">
-                    <button className="btn btn-secondary w-full lg:w-auto">
-                      <ExternalLink className="w-4 h-4" /> View Case File
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="card overflow-hidden p-0 border border-line bg-surface">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-line bg-surface-elevated text-paper-faint">
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold">Case ID</th>
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold">Milestone & Reason</th>
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold">Parties</th>
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold text-right">Amount</th>
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold text-right">Status</th>
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {disputes.map((dispute) => (
+                    <tr key={dispute.id} className="group hover:bg-surface-elevated/50 transition-colors relative">
+                      <td className="py-4 px-4 align-top">
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-danger-light opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <span className="font-mono2 text-sm text-paper-muted">#{dispute.id.slice(0,8)}</span>
+                      </td>
+                      <td className="py-4 px-4 align-top">
+                        <div className="flex flex-col gap-1 max-w-md">
+                          <span className="font-display font-bold text-white line-clamp-1">{dispute.milestone.title}</span>
+                          <span className="text-sm text-paper-muted line-clamp-1">"{dispute.reason}"</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 align-top">
+                        <div className="flex flex-col gap-0.5 text-xs text-paper-muted font-mono2">
+                          <span className="truncate max-w-[120px]"><span className="text-paper-faint">C:</span> {dispute.milestone.contract.client.name}</span>
+                          <span className="truncate max-w-[120px]"><span className="text-paper-faint">F:</span> {dispute.milestone.contract.freelancer.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 align-top text-right">
+                        <span className="font-mono2 font-bold text-danger-light">₹{dispute.milestone.amount.toFixed(2)}</span>
+                      </td>
+                      <td className="py-4 px-4 align-top text-right">
+                        {getStatusBadge(dispute.status)}
+                      </td>
+                      <td className="py-4 px-4 align-top text-right">
+                        <button className="btn btn-sm btn-secondary opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+                          <ExternalLink className="w-3.5 h-3.5" /> View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

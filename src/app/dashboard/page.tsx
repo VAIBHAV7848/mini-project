@@ -251,7 +251,7 @@ export default function DashboardPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'AWAITING_DEPOSIT':
-        return <span className="badge badge-warning">Awaiting Deposit</span>;
+        return <span className="badge bg-brand-base text-charcoal border-transparent font-bold">Awaiting Deposit</span>;
       case 'FUNDED':
         return <span className="badge badge-brand">Funded · Locked</span>;
       case 'IN_PROGRESS':
@@ -399,10 +399,14 @@ export default function DashboardPage() {
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-brand-base shrink-0 hidden sm:block" aria-hidden />
                       <div className="flex-1 min-w-0">
-                        <p className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider mb-1">{item.milestone}</p>
+                        {item.action === 'DEPOSIT' ? (
+                          <p className="font-mono2 text-[11px] text-brand-base uppercase tracking-wider mb-1 font-bold">Awaiting deposit</p>
+                        ) : (
+                          <p className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider mb-1">{item.milestone}</p>
+                        )}
                         <p className="text-base font-bold text-white truncate">{item.title}</p>
                         <p className="text-sm text-paper-muted mt-0.5">
-                          <span className="font-mono2 text-white">{formatRupee(item.amount)}</span> · {item.detail}
+                          <span className="font-mono2 text-white">{formatRupee(item.amount)}</span> · {item.action === 'DEPOSIT' ? 'Escrow is not yet funded.' : item.detail}
                         </p>
                       </div>
                       {item.link ? (

@@ -70,18 +70,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <p className="eyebrow">Main Navigation</p>
           </div>
           {navItems.map((item, idx) => {
-            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
             return (
               <Link
                 key={idx}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-[160ms] ease-[var(--ease-forge)] outline-none focus-visible:ring-2 focus-visible:ring-brand-base ${
+                className={`relative flex items-center gap-3 px-3.5 py-2.5 rounded-[4px] text-[14px] font-medium transition-all duration-[160ms] ease-[var(--ease-forge)] outline-none focus-visible:ring-2 focus-visible:ring-brand-base ${
                   isActive
-                    ? 'bg-surface-elevated text-paper font-semibold shadow-xs border border-line'
-                    : 'text-paper-muted hover:text-paper hover:bg-surface-elevated border border-transparent'
+                    ? 'bg-surface-elevated text-white font-semibold'
+                    : 'text-paper-muted hover:text-paper hover:bg-surface border border-transparent'
                 }`}
               >
-                <item.icon className="w-[18px] h-[18px]" />
+                {isActive && <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-brand-base rounded-r-[1px]" />}
+                <item.icon className={`w-[18px] h-[18px] ${isActive ? 'text-brand-base' : ''}`} />
                 {item.label}
               </Link>
             );

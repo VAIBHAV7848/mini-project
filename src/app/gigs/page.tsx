@@ -67,36 +67,52 @@ export default function GigsPage() {
             <p className="text-sm text-paper-muted mt-1.5 text-center">There are currently no active gigs in the marketplace.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {gigs.map((gig) => (
-              <div key={gig.id} className="card p-0 overflow-hidden flex flex-col group relative transition-all duration-[200ms] hover:border-brand-base/50">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-base opacity-0 group-hover:opacity-100 transition-opacity duration-[200ms]" aria-hidden />
-                <div className="p-6 flex flex-col flex-1 gap-4 group-hover:bg-surface-highlight/30 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <span className="text-[10px] uppercase tracking-wider font-mono2 px-2 py-1 rounded-md bg-surface-elevated text-paper-faint border border-line">
-                      {gig.category}
-                    </span>
-                    <span className="flex items-center gap-1.5 text-sm font-mono2 text-brand-light">
-                      <Star className="w-4 h-4 fill-brand-base text-brand-base" />
-                      {gig.freelancer?.devScore.toFixed(1)}
-                    </span>
-                  </div>
-
-                  <h3 className="font-display text-xl font-bold text-white leading-snug group-hover:text-brand-light transition-colors">{gig.title}</h3>
-                  <p className="text-[14px] text-paper-muted line-clamp-3 leading-relaxed flex-1">{gig.description}</p>
-                </div>
-
-                <div className="px-6 py-4 border-t border-line flex items-center justify-between bg-surface-elevated/30">
-                  <div className="flex flex-col">
-                    <span className="eyebrow block mb-0.5">Freelancer</span>
-                    <span className="text-[13px] font-bold text-white">{gig.freelancer?.name}</span>
-                  </div>
-                  <button className="btn btn-sm btn-secondary">
-                    View <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="card overflow-hidden p-0 border border-line bg-surface">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-line bg-surface-elevated text-paper-faint">
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold">Gig Details</th>
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold">Category</th>
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold">Freelancer</th>
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold text-right">Score</th>
+                    <th className="py-3 px-4 font-mono2 text-[11px] uppercase tracking-wider font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {gigs.map((gig) => (
+                    <tr key={gig.id} className="group hover:bg-surface-elevated/50 transition-colors relative">
+                      <td className="py-4 px-4 align-top">
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-brand-base opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex flex-col gap-1 max-w-xl">
+                          <span className="font-display font-bold text-white group-hover:text-brand-light transition-colors">{gig.title}</span>
+                          <span className="text-sm text-paper-muted line-clamp-2">{gig.description}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 align-top">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-highlight text-xs font-mono2 text-paper-muted">
+                          {gig.category}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 align-top text-sm font-medium text-white">
+                        {gig.freelancer?.name}
+                      </td>
+                      <td className="py-4 px-4 align-top text-right">
+                        <span className="inline-flex items-center gap-1 font-mono2 font-bold text-brand-light">
+                          <Star className="w-3.5 h-3.5 fill-brand-base text-brand-base" />
+                          {gig.freelancer?.devScore.toFixed(1)}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 align-top text-right">
+                        <button className="btn btn-sm btn-secondary opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+                          <ExternalLink className="w-3.5 h-3.5" /> View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
