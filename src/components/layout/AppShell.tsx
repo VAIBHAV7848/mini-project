@@ -23,26 +23,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     switch (role) {
       case 'CLIENT':
         return [
-          { icon: LayoutDashboard, label: 'Overview', href: '/' },
+          { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
           { icon: Layers, label: 'Projects', href: '/projects' },
           { icon: ShieldCheck, label: 'Contracts', href: '/contracts' },
           { icon: AlertTriangle, label: 'Disputes', href: '/disputes' },
         ];
       case 'FREELANCER':
         return [
-          { icon: LayoutDashboard, label: 'Overview', href: '/' },
+          { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
           { icon: Layers, label: 'Gigs', href: '/gigs' },
           { icon: ShieldCheck, label: 'My Contracts', href: '/contracts' },
           { icon: AlertTriangle, label: 'Disputes', href: '/disputes' },
         ];
       case 'REVIEWER':
         return [
-          { icon: LayoutDashboard, label: 'Overview', href: '/' },
+          { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
           { icon: AlertTriangle, label: 'Pending Cases', href: '/disputes' },
         ];
       case 'ADMIN':
         return [
-          { icon: LayoutDashboard, label: 'System Overview', href: '/' },
+          { icon: LayoutDashboard, label: 'System Overview', href: '/dashboard' },
           { icon: ShieldCheck, label: 'Audit Logs', href: '/audit' },
           { icon: Settings, label: 'Settings', href: '/settings' },
         ];
@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col md:flex-row bg-charcoal text-paper selection:bg-brand-base/30 selection:text-white">
       <aside className="hidden md:flex flex-col w-[260px] border-r border-line bg-charcoal sticky top-0 h-screen overflow-y-auto">
         <div className="p-6 flex flex-col gap-6">
-          <Link href="/" className="flex items-center space-x-3 group outline-none focus-visible:ring-2 focus-visible:ring-brand-base rounded-lg">
+          <Link href="/dashboard" className="flex items-center space-x-3 group outline-none focus-visible:ring-2 focus-visible:ring-brand-base rounded-lg">
             <div className="w-8 h-8 rounded-lg bg-brand-base flex items-center justify-center font-display font-bold text-charcoal transition-transform duration-[160ms] ease-[var(--ease-forge)] group-hover:scale-105">
               GF
             </div>
