@@ -22,7 +22,7 @@ export class EscrowFsmValidator {
     {
       from: 'AWAITING_DEPOSIT',
       action: 'DEPOSIT',
-      allowedRoles: ['CLIENT'],
+      allowedRoles: ['CLIENT', 'SYSTEM'],
       to: 'FUNDED',
     },
     {
@@ -104,15 +104,63 @@ export class EscrowFsmValidator {
       to: 'RELEASED',
     },
     {
+      from: 'APPROVED',
+      action: 'INITIATE_SETTLEMENT',
+      allowedRoles: ['CLIENT', 'SYSTEM'],
+      to: 'SETTLING',
+    },
+    {
+      from: 'REVIEW_TIMEOUT',
+      action: 'INITIATE_SETTLEMENT',
+      allowedRoles: ['CLIENT', 'SYSTEM'],
+      to: 'SETTLING',
+    },
+    {
+      from: 'SUBMITTED',
+      action: 'INITIATE_SETTLEMENT',
+      allowedRoles: ['CLIENT', 'SYSTEM'],
+      to: 'SETTLING',
+    },
+    {
+      from: 'UNDER_REVIEW',
+      action: 'INITIATE_SETTLEMENT',
+      allowedRoles: ['CLIENT', 'SYSTEM'],
+      to: 'SETTLING',
+    },
+    {
+      from: 'SETTLING',
+      action: 'RELEASE_ESCROW',
+      allowedRoles: ['CLIENT', 'SYSTEM'],
+      to: 'RELEASED',
+    },
+    {
+      from: 'SETTLING',
+      action: 'SETTLEMENT_FAILED',
+      allowedRoles: ['SYSTEM'],
+      to: 'APPROVED',
+    },
+    {
       from: 'DISPUTED',
       action: 'RESOLVE_RELEASE',
-      allowedRoles: ['REVIEWER'],
+      allowedRoles: ['REVIEWER', 'SYSTEM'],
       to: 'RELEASED',
     },
     {
       from: 'DISPUTED',
       action: 'RESOLVE_REFUND',
-      allowedRoles: ['REVIEWER'],
+      allowedRoles: ['REVIEWER', 'SYSTEM'],
+      to: 'REFUNDED',
+    },
+    {
+      from: 'DISPUTED',
+      action: 'INITIATE_REFUND',
+      allowedRoles: ['REVIEWER', 'SYSTEM'],
+      to: 'REFUND_PENDING',
+    },
+    {
+      from: 'REFUND_PENDING',
+      action: 'RESOLVE_REFUND',
+      allowedRoles: ['REVIEWER', 'SYSTEM'],
       to: 'REFUNDED',
     },
   ];
@@ -126,16 +174,19 @@ export class EscrowFsmValidator {
     action: ContractAction,
     actorRole: UserRole | 'SYSTEM'
   ): TransitionValidationResult {
-    if (this.isTerminalState(currentState)) {
+    const effectiveState =
+      (currentState as string) === 'PENDING' ? 'AWAITING_DEPOSIT' : currentState;
+
+    if (this.isTerminalState(effectiveState)) {
       return {
         allowed: false,
         errorCode: 'TERMINAL_STATE_IMMUTABLE',
-        reason: `Cannot transition from terminal state '${currentState}'.`,
+        reason: `Cannot transition from terminal state '${effectiveState}'.`,
       };
     }
 
     const matchingRule = EscrowFsmValidator.RULES.find(
-      (r) => r.from === currentState && r.action === action
+      (r) => r.from === effectiveState && r.action === action
     );
 
     if (!matchingRule) {
