@@ -188,14 +188,14 @@ r_dl.font.name = "Bookman Old Style"
 r_dl.font.size = Pt(9.5)
 r_dl.font.color.rgb = NAVY
 
-arch_img_path = "/home/nethunter/Collage /BIG_PROJECT/assets/generated_diagrams/engine_04_web_architecture_light.png"
+arch_img_path = "/home/nethunter/Collage /BIG_PROJECT/assets/generated_diagrams/engine_04_architecture_simplified.png"
 if os.path.exists(arch_img_path):
     p_img = doc.add_paragraph()
     p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_img.paragraph_format.space_after = Pt(0)
     p_img.paragraph_format.space_before = Pt(1)
     r_img = p_img.add_run()
-    r_img.add_picture(arch_img_path, width=Inches(4.5))
+    r_img.add_picture(arch_img_path, width=Inches(5.5))
 
 # Page 1 Break
 doc.add_page_break()

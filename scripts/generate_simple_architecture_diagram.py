@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""
+Generate a clean, simplified, publication-grade System Architecture & Inter-Engine Interfacing diagram (Figure 1.1).
+Matches the exact simple 4-Engine hand-drawn model.
+Target: assets/generated_diagrams/engine_04_architecture_simplified.png
+"""
+
+import os
+import subprocess
+
+OUTPUT_DIR = "/home/nethunter/Collage /BIG_PROJECT/assets/generated_diagrams"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+PNG_OUTPUT = os.path.join(OUTPUT_DIR, "engine_04_architecture_simplified.png")
+DOT_FILE = os.path.join(OUTPUT_DIR, "engine_04_architecture_simplified.dot")
+
+dot_content = """
+digraph SystemArchitecture {
+    graph [
+        bgcolor="#FFFFFF",
+        fontname="Helvetica,Arial,sans-serif",
+        fontsize=12,
+        rankdir=TB,
+        nodesep=0.45,
+        ranksep=0.45,
+        pad=0.2
+    ];
+    node [shape=record, style="filled,rounded", fontname="Helvetica,Arial,sans-serif", fontsize=10.5, penwidth=1.6];
+    edge [fontname="Helvetica,Arial,sans-serif", fontsize=9, color="#1E3A8A", fontcolor="#0F172A", penwidth=1.5];
+
+    // TOP: Users
+    users [
+        label = "{ 👥 USER PERSONAS (BROWSER) | Client · Freelancer · Dispute Reviewer · Administrator }",
+        fillcolor = "#F1F5F9",
+        color = "#475569",
+        fontcolor = "#0F172A"
+    ];
+
+    // MIDDLE: Engine 04 (Gateway & Web Tech)
+    engine04 [
+        label = "{ 🌐 ENGINE 04: WEB TECHNOLOGIES (Vaibhav Chavanpatil) | • Next.js 16 App Router UI & REST API Endpoints\\n• Server-Side RbacEnforcer (HMAC-SHA256 Session Auth · 401/403)\\n• 5-Second Real-Time StatePoller (Lightweight SQLite Snapshot) }",
+        fillcolor = "#EFF6FF",
+        color = "#1D4ED8",
+        fontcolor = "#1E3A8A",
+        penwidth = 2.2
+    ];
+
+    // BOTTOM: 3 Subsystems
+    subgraph cluster_backends {
+        label = "SPECIALIZED BACKEND ENGINES (ENGINEERING CORES)";
+        fontname = "Helvetica Bold,Arial Bold";
+        fontsize = 10.5;
+        fontcolor = "#334155";
+        color = "#CBD5E1";
+        style = "dashed,rounded";
+        bgcolor = "#F8FAFC";
+        penwidth = 1.2;
+
+        engine01 [
+            label = "{ ⚙️ ENGINE 01: OS ENGINE\\n(Vaishnavi Modekar) | • Escrow Finite State Machine\\n• KeyedMutex Concurrency Locks\\n• 7-Day Auto-Review Watchdog }",
+            fillcolor = "#FEF3C7",
+            color = "#D97706",
+            fontcolor = "#92400E"
+        ];
+
+        engine02 [
+            label = "{ 🌳 ENGINE 02: DSA & SE\\n(Darshan Kittur) | • SHA-256 Checksum Hashing\\n• N-ary Merkle Evidence Tree\\n• Deterministic AI Matcher }",
+            fillcolor = "#ECFDF5",
+            color = "#059669",
+            fontcolor = "#065F46"
+        ];
+
+        engine03 [
+            label = "{ 🗄️ ENGINE 03: DBMS ENGINE\\n(Purvi Sammatshetti) | • ACID Double-Entry Transfers\\n• Relational SQLite (WAL Mode)\\n• Chained Tamper-Evident Audit }",
+            fillcolor = "#F3E8FF",
+            color = "#7C3AED",
+            fontcolor = "#5B21B6"
+        ];
+    }
+
+    // Connections
+    users -> engine04 [label="  HTTP / JSON Requests  ", color="#475569"];
+
+    engine04 -> engine01 [label=" 1. Validated FSM Action\\n(Deposit / Release / Dispute) ", color="#D97706"];
+    engine04 -> engine02 [label=" 2. Deliverable Evidence\\n(SHA-256 Checksums) ", color="#059669"];
+    engine04 -> engine03 [label=" 3. Financial Ledger\\n(ACID Transfers & DB State) ", color="#7C3AED"];
+}
+"""
+
+with open(DOT_FILE, "w") as f:
+    f.write(dot_content.strip())
+
+cmd = f"dot -Tpng -Gdpi=200 '{DOT_FILE}' -o '{PNG_OUTPUT}'"
+subprocess.run(cmd, shell=True, check=True)
+print(f"Generated clean simplified diagram: {PNG_OUTPUT}")
