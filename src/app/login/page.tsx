@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition, useMemo } from 'react';
+import React, { useState, useEffect, useTransition, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -11,10 +11,7 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Sparkles,
   AlertCircle,
-  Database,
-  UserCheck,
   Briefcase,
   Code2,
   Scale,
@@ -22,14 +19,12 @@ import {
   Loader2,
   Volume2,
   VolumeX,
-  Cpu,
   Server,
-  Activity,
   CheckCircle2,
-  Bot,
 } from 'lucide-react';
 import { useRole, Role } from '@/components/layout/RoleContext';
 import { MechanicalEscrowVault, VaultState } from '@/components/auth/MechanicalEscrowVault';
+import { InteractiveMonkeyAvatar } from '@/components/auth/InteractiveMonkeyAvatar';
 import { AiAvatarSecurityAgent } from '@/components/auth/AiAvatarSecurityAgent';
 import type { VideoAvatarState as AvatarState } from '@/components/auth/RealisticAiVideoAvatar';
 import {
@@ -155,8 +150,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
-  // Visualizer Mode: 'video' (react-ai-avatar Realistic Video), 'coder' (react-ai-avatar Coder), or 'vault' (Mechanical Vault)
-  const [visualizerMode, setVisualizerMode] = useState<'video' | 'coder' | 'vault'>('video');
+  // Visualizer Mode: 'monkey' (Interactive Monkey Mascot from nitish-niraj/monkey-login), 'vault' (Mechanical Vault), or 'coder' (Interactive Coder)
+  const [visualizerMode, setVisualizerMode] = useState<'monkey' | 'vault' | 'coder'>('monkey');
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const emailInputRef = useRef<HTMLInputElement | null>(null);
 
   // Vault state
   const [vaultState, setVaultState] = useState<VaultState>('idle');
@@ -310,6 +308,7 @@ export default function LoginPage() {
 
   const handlePersonaClick = (persona: PersonaProfile) => {
     playSwitchClick();
+    setIsPasswordFocused(false);
     setEmail(persona.email);
     setPassword(persona.password);
     executeLogin(persona.email, persona.password, persona);
@@ -467,39 +466,23 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Mode Switcher: Realistic Video Avatar vs Interactive Coder vs Mechanical Vault */}
+              {/* Mode Switcher: Interactive Monkey Mascot vs Mechanical Vault vs Interactive Coder */}
               <div className="pt-4 pb-2 flex items-center justify-center">
                 <div className="inline-flex items-center p-1 rounded-xl bg-[#12151b] border border-[#242934] gap-1">
                   <button
                     type="button"
                     onClick={() => {
                       playSwitchClick();
-                      setVisualizerMode('video');
+                      setVisualizerMode('monkey');
                     }}
                     className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                      visualizerMode === 'video'
+                      visualizerMode === 'monkey'
                         ? 'bg-[#fc6c00] text-black shadow-sm'
                         : 'text-[#8491a5] hover:text-white'
                     }`}
                   >
-                    <Bot className="w-3.5 h-3.5" />
-                    <span>Realistic AI Video</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      playSwitchClick();
-                      setVisualizerMode('coder');
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                      visualizerMode === 'coder'
-                        ? 'bg-[#fc6c00] text-black shadow-sm'
-                        : 'text-[#8491a5] hover:text-white'
-                    }`}
-                  >
-                    <Code2 className="w-3.5 h-3.5" />
-                    <span>Interactive Coder</span>
+                    <span>🐵</span>
+                    <span>Monkey Mascot</span>
                   </button>
 
                   <button
@@ -517,27 +500,43 @@ export default function LoginPage() {
                     <Shield className="w-3.5 h-3.5" />
                     <span>Mechanical Vault</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playSwitchClick();
+                      setVisualizerMode('coder');
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      visualizerMode === 'coder'
+                        ? 'bg-[#fc6c00] text-black shadow-sm'
+                        : 'text-[#8491a5] hover:text-white'
+                    }`}
+                  >
+                    <Code2 className="w-3.5 h-3.5" />
+                    <span>Interactive Coder</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Centerpiece: Realistic Video Avatar, Coder Avatar, or Mechanical Escrow Vault */}
+              {/* Centerpiece: Interactive Monkey Mascot, Mechanical Escrow Vault, or Coder Avatar */}
               <div className="py-4 flex flex-col items-center justify-center min-h-[260px]">
-                {visualizerMode === 'video' && (
-                  <AiAvatarSecurityAgent
-                    state={avatarState}
-                    variant="video"
+                {visualizerMode === 'monkey' && (
+                  <InteractiveMonkeyAvatar
+                    emailValue={email}
+                    emailInputRef={emailInputRef}
+                    isEmailFocused={isEmailFocused}
+                    isPasswordFocused={isPasswordFocused}
+                    isShowPassword={showPassword}
                     size={220}
-                    caption={
-                      avatarState === 'working'
-                        ? '🧑‍💻 Security Sentinel: Processing credential telemetry...'
-                        : avatarState === 'thinking'
-                        ? '🧠 Security Sentinel: Computing HMAC-SHA256 signature...'
-                        : avatarState === 'speaking'
-                        ? '🎉 Security Sentinel: Identity authenticated! Welcome.'
-                        : avatarState === 'listening'
-                        ? '👂 Security Sentinel: Ready for credential input'
-                        : '⚡ Security Sentinel: Monitoring institutional session channel'
-                    }
+                  />
+                )}
+
+                {visualizerMode === 'vault' && (
+                  <MechanicalEscrowVault
+                    state={vaultState}
+                    hashPreview={hashPreview}
+                    progress={entropy}
                   />
                 )}
 
@@ -557,14 +556,6 @@ export default function LoginPage() {
                         ? '👂 Security Sentinel: Ready for authentication input'
                         : '⚡ Security Sentinel: Monitoring institutional session channel'
                     }
-                  />
-                )}
-
-                {visualizerMode === 'vault' && (
-                  <MechanicalEscrowVault
-                    state={vaultState}
-                    hashPreview={hashPreview}
-                    progress={entropy}
                   />
                 )}
               </div>
@@ -610,11 +601,17 @@ export default function LoginPage() {
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
                     <input
                       id="login-email"
+                      ref={emailInputRef}
                       type="email"
                       required
                       value={email}
                       onFocus={() => {
+                        setIsEmailFocused(true);
+                        setIsPasswordFocused(false);
                         if (vaultState === 'idle') setVaultState('typing');
+                      }}
+                      onBlur={() => {
+                        setIsEmailFocused(false);
                       }}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       placeholder="client1@escrow.local or admin@escrow.local"
@@ -647,7 +644,11 @@ export default function LoginPage() {
                       required
                       value={password}
                       onFocus={() => {
+                        setIsPasswordFocused(true);
                         if (vaultState === 'idle') setVaultState('typing');
+                      }}
+                      onBlur={() => {
+                        setIsPasswordFocused(false);
                       }}
                       onChange={(e) => handleInputChange('password', e.target.value)}
                       placeholder="Password123! or VAIBHAV2667"
@@ -656,6 +657,10 @@ export default function LoginPage() {
                     <button
                       type="button"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      onMouseDown={(e) => {
+                        // Prevent loss of focus on password input so arms stay covering eyes during peek
+                        e.preventDefault();
+                      }}
                       onClick={() => {
                         playSwitchClick();
                         setShowPassword(!showPassword);
