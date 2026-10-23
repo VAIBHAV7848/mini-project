@@ -64,7 +64,12 @@ export function RealisticAiVideoAvatar({
       });
     }, 400);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      Object.values(videoRefs.current).forEach((video) => {
+        if (video) video.pause();
+      });
+    };
   }, [state]);
 
   return (
@@ -100,7 +105,7 @@ export function RealisticAiVideoAvatar({
               muted
               loop
               playsInline
-              preload="auto"
+              preload={clipKey === 'idle' ? 'auto' : 'metadata'}
               aria-hidden="true"
               style={{
                 position: 'absolute',
@@ -129,7 +134,11 @@ export function RealisticAiVideoAvatar({
       </div>
 
       {/* Dynamic Caption Readout */}
-      <div className="mt-4 px-3.5 py-1.5 rounded-full bg-[#12151b] border border-[#242934] text-xs font-mono text-[#ff9d47] flex items-center gap-2 shadow-sm">
+      <div
+        role="status"
+        aria-live="polite"
+        className="mt-4 px-3.5 py-1.5 rounded-full bg-[#12151b] border border-[#242934] text-xs font-mono text-[#ff9d47] flex items-center gap-2 shadow-sm"
+      >
         <span
           className={`w-2 h-2 rounded-full ${
             activeState === 'thinking'

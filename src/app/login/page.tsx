@@ -529,14 +529,14 @@ export default function LoginPage() {
                     size={220}
                     caption={
                       avatarState === 'working'
-                        ? '🧑‍💻 AI Guardian: Typing credentials into secure channel...'
+                        ? '🧑‍💻 Security Sentinel: Processing credential telemetry...'
                         : avatarState === 'thinking'
-                        ? '🧠 AI Guardian: Computing HMAC-SHA256 signature...'
+                        ? '🧠 Security Sentinel: Computing HMAC-SHA256 signature...'
                         : avatarState === 'speaking'
-                        ? '🎉 AI Guardian: Identity authenticated! Welcome.'
+                        ? '🎉 Security Sentinel: Identity authenticated! Welcome.'
                         : avatarState === 'listening'
-                        ? '👂 AI Guardian: Listening to credentials input'
-                        : '⚡ AI Guardian: Monitoring institutional session channel'
+                        ? '👂 Security Sentinel: Ready for credential input'
+                        : '⚡ Security Sentinel: Monitoring institutional session channel'
                     }
                   />
                 )}
@@ -548,14 +548,14 @@ export default function LoginPage() {
                     size={220}
                     caption={
                       avatarState === 'working'
-                        ? '🧑‍💻 AI Agent: Typing credentials on keyboard...'
+                        ? '🧑‍💻 Security Sentinel: Typing credentials on console...'
                         : avatarState === 'thinking'
-                        ? '🧠 AI Agent: Cryptographic signature verification in progress...'
+                        ? '🧠 Security Sentinel: Cryptographic signature verification...'
                         : avatarState === 'speaking'
-                        ? '🎉 AI Agent: Access cleared! Routing to dashboard...'
+                        ? '🎉 Security Sentinel: Access cleared! Routing to dashboard...'
                         : avatarState === 'listening'
-                        ? '👂 AI Agent: Ready for authentication input'
-                        : '⚡ AI Agent: Monitoring institutional session channel'
+                        ? '👂 Security Sentinel: Ready for authentication input'
+                        : '⚡ Security Sentinel: Monitoring institutional session channel'
                     }
                   />
                 )}
@@ -731,8 +731,17 @@ export default function LoginPage() {
                 return (
                   <div
                     key={persona.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Authenticate as ${persona.name}, ${persona.title}`}
+                    onKeyDown={(e) => {
+                      if ((e.key === 'Enter' || e.key === ' ') && !authenticatingPersonaId) {
+                        e.preventDefault();
+                        handlePersonaClick(persona);
+                      }
+                    }}
                     onClick={() => !authenticatingPersonaId && handlePersonaClick(persona)}
-                    className={`group relative rounded-xl bg-[#0e1117] border border-[#202531] p-4.5 transition-all duration-200 cursor-pointer hover:border-[#fc6c00]/60 hover:bg-[#12151d] hover:shadow-[0_4px_24px_rgba(0,0,0,0.6)] ${
+                    className={`group relative rounded-xl bg-[#0e1117] border border-[#202531] p-4.5 transition-all duration-200 cursor-pointer hover:border-[#fc6c00]/60 hover:bg-[#12151d] hover:shadow-[0_4px_24px_rgba(0,0,0,0.6)] focus:outline-none focus:ring-1 focus:ring-[#fc6c00] ${
                       isLoggingIn ? 'border-[#fc6c00] ring-1 ring-[#fc6c00]' : ''
                     }`}
                   >
