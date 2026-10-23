@@ -12,6 +12,7 @@ export async function GET(request: Request) {
     if (!session) {
       throw new AuthenticationError('Authentication required.');
     }
+    RbacEnforcer.enforceRole(session, ['CLIENT', 'FREELANCER', 'ADMIN']);
 
     const where: any = {};
     if (session.role === 'CLIENT') {
@@ -74,12 +75,18 @@ export async function POST(request: Request) {
       throw new ValidationError(`Tier '${validated.tierName}' is not offered for this gig.`);
     }
 
+    if (Math.abs(validated.amount - matchedTier.price) > 0.001) {
+      throw new ValidationError(
+        `Submitted amount (₹${validated.amount}) does not match authoritative tier price (₹${matchedTier.price}).`
+      );
+    }
+
     const order = await prisma.order.create({
       data: {
         gigId: validated.gigId,
         clientId: session.userId,
         tierName: matchedTier.name,
-        amount: validated.amount,
+        amount: matchedTier.price,
         status: 'PENDING',
       },
       include: {

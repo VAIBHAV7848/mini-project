@@ -11,8 +11,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const search = searchParams.get('search');
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
+    const parsedPage = parseInt(searchParams.get('page') || '1', 10);
+    const parsedLimit = parseInt(searchParams.get('limit') || '10', 10);
+    const page = Number.isInteger(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
+    const limit = Number.isInteger(parsedLimit) && parsedLimit >= 1 ? Math.min(100, parsedLimit) : 10;
     const skip = (page - 1) * limit;
 
     const where: any = {};

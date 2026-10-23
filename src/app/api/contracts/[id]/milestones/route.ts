@@ -16,8 +16,26 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const snapshot = await StatePoller.pollContractState(id);
+    const { id: contractId } = await params;
+    const session = await SessionService.getSessionFromHeaders(request.headers);
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required.' } },
+        { status: 401 }
+      );
+    }
+
+    const contract = await prisma.contract.findUnique({
+      where: { id: contractId },
+    });
+
+    if (!contract) {
+      throw new NotFoundError('Contract', contractId);
+    }
+
+    RbacEnforcer.enforceContractAccess(session, contract);
+
+    const snapshot = await StatePoller.pollContractState(contractId);
     return NextResponse.json(formatSuccessResponse(snapshot));
   } catch (error) {
     const err = formatErrorResponse(error);
@@ -53,6 +71,17 @@ export async function POST(
     const validated = contractActionSchema.parse(rawBody);
     const action = validated.action as ContractAction;
     const milestoneId = validated.milestoneId;
+
+    if (milestoneId) {
+      const milestone = await prisma.milestone.findUnique({
+        where: { id: milestoneId },
+        select: { id: true, contractId: true },
+      });
+      if (!milestone) throw new NotFoundError('Milestone', milestoneId);
+      if (milestone.contractId !== contractId) {
+        throw new ValidationError(`Milestone '${milestoneId}' does not belong to contract '${contractId}'.`);
+      }
+    }
 
     // Mutex locking on milestone or contract
     const lockKey = milestoneId || contractId;
