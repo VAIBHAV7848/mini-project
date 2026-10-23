@@ -155,6 +155,8 @@ export function InteractiveMonkeyAvatar({
         hairRef.current,
         toothRef.current,
         tongueRef.current,
+        bodyNormalRef.current,
+        bodyChangedRef.current,
       ]);
     };
   }, []);
@@ -308,6 +310,8 @@ export function InteractiveMonkeyAvatar({
     };
   }, [isPasswordFocused, isEmailFocused, lookAtPoint, resetFace]);
 
+  const isInitialMountRef = useRef(true);
+
   // 6. Arm Covering Kinematics on Password Focus / Blur
   useEffect(() => {
     const armL = armLRef.current;
@@ -316,6 +320,13 @@ export function InteractiveMonkeyAvatar({
     const bodyChanged = bodyChangedRef.current;
 
     if (!armL || !armR) return;
+
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      if (!isPasswordFocused) {
+        return; // Guard: suppress redundant uncover tween on initial mount
+      }
+    }
 
     if (isPasswordFocused) {
       eyesCoveredRef.current = true;

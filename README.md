@@ -24,7 +24,48 @@ This platform resolves this dilemma through a **Milestone-Based Escrow and Evide
 
 ---
 
-## 2. Key Features
+## 2. Platform Interface & Visual Demonstration
+
+### 🔐 Interactive Mascot Authentication Sentinel (Engine 04)
+The login gateway features a real-time reactive SVG mascot sentinel with caret coordinate tracking, 12-node 3D cranial parallax, and cryptographic privacy shielding:
+
+<p align="center">
+  <img src="assets/login_screen_demo.gif" alt="Interactive Mascot Login Demo" width="800" style="border-radius: 12px; border: 1px solid #fc6c00;" />
+</p>
+
+> **Demonstration Highlights**:
+> 1. **Caret Tracking Trigonometry**: Left and right eye pupils track cursor coordinates across the email input using sub-pixel ghost mirroring (`Math.atan2`).
+> 2. **Delimiter Jaw Reaction**: Mouth scales up dynamically (`scale: 1.15`) with tooth and tongue drop upon entering the `@` symbol.
+> 3. **Biomechanical Eye Covering**: Focusing the password field prompts arms to rise and occlude the eyes (`y: 0`), while shoulders contract into privacy mode.
+> 4. **Two-Finger Peek Aperture**: Toggling "Show Password" rotates two fingers outwards by $30^\circ$ (`transformOrigin: 'bottom left'`), revealing the eye aperture while keeping privacy protection engaged.
+> 5. **Direct Video Asset**: [Download or View HD Recording (assets/login_screen_demo.mp4)](assets/login_screen_demo.mp4)
+
+---
+
+### 📊 Role-Based Enterprise Dashboards
+
+The presentation layer enforces responsive role-based access control across **Client**, **Freelancer**, **Dispute Reviewer**, and **Admin** workspaces:
+
+| Institutional Dark Theme (GigaFlow Palette) | High-Contrast Light Theme |
+| :---: | :---: |
+| <img src="assets/dashboard_theme_dark.png" alt="Dashboard Dark Theme" width="480" /> | <img src="assets/dashboard_theme_light.png" alt="Dashboard Light Theme" width="480" /> |
+| **Dark Theme (1920×1080 Viewport)** | **Light Theme (1920×1080 Viewport)** |
+
+#### Multi-Role Workspace Views & Responsive Breakpoints
+
+| Responsive Desktop Workspace (1920×1080) | Adaptive High-DPI Grid (1440×900) |
+| :---: | :---: |
+| <img src="docs/ui-ux/screenshots/dashboard-1920x1080.png" alt="Enterprise Dashboard 1920x1080" width="480" /> | <img src="docs/ui-ux/screenshots/dashboard-1440x900.png" alt="Adaptive Dashboard 1440x900" width="480" /> |
+| **Real-Time Escrow & Milestone Allocation** | **Persona Switching & Audit Feed** |
+
+| Milestone Contracts & Escrow Locking | Evidence-Based Dispute Arbitration |
+| :---: | :---: |
+| <img src="docs/ui-ux/screenshots/projects-1920x1080.png" alt="Contracts and Milestones" width="480" /> | <img src="docs/ui-ux/screenshots/disputes-1920x1080.png" alt="Disputes and Merkle Evidence" width="480" /> |
+| **FSM Milestone Sequencing (`FUNDED` → `RELEASED`)** | **Merkle Evidence Tree & Tamper Inspection** |
+
+---
+
+## 3. Key Features
 
 - **Role-Based Access Control (RBAC)**: Dedicated server-enforced interfaces for Clients, Freelancers, Dispute Reviewers, and Administrators (FR-07, FR-08, NFR-02).
 - **Project & Service Marketplace**: Clients post custom projects with skill tags; freelancers publish tiered service gigs (`Basic`, `Standard`, `Premium`).
@@ -40,7 +81,7 @@ This platform resolves this dilemma through a **Milestone-Based Escrow and Evide
 
 ---
 
-## 3. Four Academic Engineering Engines
+## 4. Four Academic Engineering Engines
 
 The architecture partitions system responsibilities across four independently ownable and testable engineering engines:
 
@@ -53,7 +94,7 @@ The architecture partitions system responsibilities across four independently ow
 
 ---
 
-## 4. System Architecture
+## 5. System Architecture
 
 The platform follows a modular monolithic architecture, enforcing loose coupling between presentation, domain engines, and persistence:
 
@@ -75,6 +116,18 @@ Persistence Layer (SQLite Database in WAL Journal Mode)
 Prisma 5.22 ORM (Serialized ACID Transactions, Foreign Key Constraints)
 ```
 
+### Architectural Diagrams
+
+| Four-Engine Decomposition | Escrow Finite State Machine (OS Engine) |
+| :---: | :---: |
+| <img src="assets/diagram_four_engines.png" alt="Four-Engine Architecture" width="480" /> | <img src="assets/diagram_escrow_fsm.png" alt="Escrow State Machine" width="480" /> |
+| **Inter-Engine Boundaries & Responsibilities** | **Deterministic Sequential FSM Transitions** |
+
+| Double-Entry ACID Ledger (DBMS Engine) | Merkle Evidence Tree (DSA & SE Engine) |
+| :---: | :---: |
+| <img src="assets/diagram_acid_ledger.png" alt="ACID Ledger" width="480" /> | <img src="assets/diagram_evidence_tree.png" alt="Merkle Evidence Tree" width="480" /> |
+| **Mathematical Conservation ($\Delta\text{Escrow} + \Delta\text{User} = 0$)** | **Hierarchical N-Ary Tamper Detection** |
+
 Detailed architectural specifications and diagrams:
 - [System Architecture Specification](docs/architecture/architecture.md)
 - [C4 Context Diagram](docs/architecture/c4-context.md)
@@ -84,7 +137,7 @@ Detailed architectural specifications and diagrams:
 
 ---
 
-## 5. Core Operational Workflow
+## 6. Core Operational Workflow
 
 ```text
 Client posts project / Freelancer lists service gig
@@ -116,7 +169,7 @@ Append-only cryptographic SHA-256 chained audit log records every event
 
 ---
 
-## 6. Technology Stack
+## 7. Technology Stack
 
 | Layer / Component | Technology | Version | Engineering Justification |
 | :--- | :--- | :---: | :--- |
@@ -133,7 +186,7 @@ Append-only cryptographic SHA-256 chained audit log records every event
 
 ---
 
-## 7. Security Architecture
+## 8. Security Architecture
 
 - **Server-Side RBAC Enforcement (NFR-02)**: Role permissions (`CLIENT`, `FREELANCER`, `REVIEWER`, `ADMIN`) are strictly enforced within server-side API route handlers via `RbacEnforcer`. Frontend tabs are visual routing conveniences; direct unauthorized requests return HTTP 401/403.
 - **Session Token Integrity**: Session tokens utilize HMAC-SHA256 signatures verified with timing-safe comparisons (`SessionService`), preventing signature tampering and replay attacks.
@@ -148,7 +201,7 @@ Detailed security documentation:
 
 ---
 
-## 8. Testing & Verification
+## 9. Testing & Verification
 
 The platform enforces a test-driven verification pipeline where every requirement is validated with automated tests:
 
@@ -181,7 +234,7 @@ npm run build
 
 ---
 
-## 9. Performance & Benchmarking
+## 10. Performance & Benchmarking
 
 Empirical benchmarks executed against the SQLite WAL database engine and Next.js route handlers are recorded in [Performance Results](docs/development/performance-results.md):
 
@@ -225,7 +278,7 @@ Empirical benchmarks executed against the SQLite WAL database engine and Next.js
 
 ---
 
-## 10. Requirements Traceability
+## 11. Requirements Traceability
 
 The repository maintains strict end-to-end traceability connecting specifications directly to source code and tests:
 
@@ -280,7 +333,7 @@ Detailed traceability specifications:
 
 ---
 
-## 11. Project Scope & Boundaries
+## 12. Project Scope & Boundaries
 
 ### In-Scope Capabilities
 - Role-based user authentication and session authorization (FR-08, NFR-02)
@@ -302,7 +355,7 @@ Detailed traceability specifications:
 
 ---
 
-## 12. Current Project Status
+## 13. Current Project Status
 
 As recorded in [Project Status & Durable Memory](docs/development/project-status.md):
 
@@ -317,7 +370,7 @@ Gate 2: READY FOR EVALUATION
 
 ---
 
-## 13. Local Setup & Execution
+## 14. Local Setup & Execution
 
 ### Prerequisites
 - Node.js (v20.x or v22.x LTS)
@@ -348,7 +401,7 @@ Open `http://localhost:3000` in your browser to access the dashboard.
 
 ---
 
-## 14. Repository Structure
+## 15. Repository Structure
 
 ```text
 mini-project/
@@ -382,7 +435,7 @@ mini-project/
 
 ---
 
-## 15. Documentation Index
+## 16. Documentation Index
 
 - **Architecture**:
   - [System Architecture](docs/architecture/architecture.md)
@@ -414,7 +467,7 @@ mini-project/
 
 ---
 
-## 16. Academic Context
+## 17. Academic Context
 
 This project demonstrates practical software engineering synthesis across five core academic subjects in Computer Science:
 - **Operating Systems**: Finite State Machine synchronization, mutual exclusion via keyed critical sections, and asynchronous review timeout scheduling.
@@ -425,7 +478,7 @@ This project demonstrates practical software engineering synthesis across five c
 
 ---
 
-## 17. Contributors
+## 18. Contributors
 
 **Team 07 (Theme 01) — KLE Technological University**:
 - **Vaibhav Chavanpatil** (Roll No: 04, SRN: 02FE24BCS013) — Lead Engineer & Owner, Engine 04 (Web Technologies)
@@ -435,6 +488,6 @@ This project demonstrates practical software engineering synthesis across five c
 
 ---
 
-## 18. License
+## 19. License
 
 This project is licensed under the [MIT License](LICENSE).

@@ -10,7 +10,15 @@ export function getCaretCoordinates(
     return { x: 0, y: 0 };
   }
 
-  const index = selectionIndex ?? input.selectionEnd ?? input.value.length;
+  let index = selectionIndex;
+  if (index === undefined) {
+    try {
+      index = input.selectionEnd ?? input.value.length;
+    } catch {
+      // WHATWG HTML spec: input type="email" throws DOMException on selectionEnd access in some browsers
+      index = input.value.length;
+    }
+  }
   const div = document.createElement('div');
   const span = document.createElement('span');
   const style = window.getComputedStyle(input);
