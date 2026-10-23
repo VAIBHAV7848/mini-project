@@ -20,7 +20,9 @@ import {
   CheckCircle,
   XCircle,
   FileText,
+  Upload,
 } from 'lucide-react';
+import { calculateFileSha256, formatBytes } from '@/lib/crypto-hash';
 
 interface MilestoneItem {
   id: string;
@@ -88,6 +90,27 @@ export default function DashboardPage() {
     message?: string;
     sha256Checksum?: string;
   }>({ isOpen: false, action: '', contractId: null, milestoneId: null, status: 'idle' });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileChecksum, setFileChecksum] = useState<string>('');
+  const [isHashing, setIsHashing] = useState(false);
+  const [submissionNotes, setSubmissionNotes] = useState('');
+  const [disputeReason, setDisputeReason] = useState('');
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedFile(file);
+    setIsHashing(true);
+    try {
+      const hash = await calculateFileSha256(file);
+      setFileChecksum(hash);
+    } catch (err) {
+      console.error('Hashing failed:', err);
+    } finally {
+      setIsHashing(false);
+    }
+  };
 
   const fetchContracts = async () => {
     setLoading(true);
@@ -157,6 +180,28 @@ export default function DashboardPage() {
               action: 'APPROVE_MILESTONE',
               actionLabel: 'Review submission',
             });
+          } else if (m.status === 'APPROVED') {
+            items.push({
+              contractId: c.id,
+              milestoneId: m.id,
+              title: projectTitle,
+              milestone: `Milestone ${String(m.sequenceOrder).padStart(2, '0')} · ${m.title}`,
+              amount: m.amount,
+              detail: 'Milestone approved — ready for release.',
+              action: 'RELEASE_ESCROW',
+              actionLabel: 'Release funds',
+            });
+          } else if (m.status === 'DISPUTED') {
+            items.push({
+              contractId: c.id,
+              milestoneId: m.id,
+              title: projectTitle,
+              milestone: `Milestone ${String(m.sequenceOrder).padStart(2, '0')} · ${m.title}`,
+              amount: m.amount,
+              detail: 'Dispute active — under reviewer arbitration.',
+              link: '/disputes',
+              actionLabel: 'View dispute',
+            });
           }
         }
       } else if (role === 'FREELANCER') {
@@ -183,6 +228,17 @@ export default function DashboardPage() {
               action: 'SUBMIT_DELIVERABLE',
               actionLabel: 'Submit deliverable',
             });
+          } else if (m.status === 'DISPUTED') {
+            items.push({
+              contractId: c.id,
+              milestoneId: m.id,
+              title: projectTitle,
+              milestone: `Milestone ${String(m.sequenceOrder).padStart(2, '0')} · ${m.title}`,
+              amount: m.amount,
+              detail: 'Dispute active — under reviewer arbitration.',
+              link: '/disputes',
+              actionLabel: 'View dispute',
+            });
           }
         }
       } else if (role === 'REVIEWER') {
@@ -206,6 +262,11 @@ export default function DashboardPage() {
   }, [contracts, role]);
 
   const initiateTransaction = (contractId: string, action: string, milestoneId?: string) => {
+    setSelectedFile(null);
+    setFileChecksum('');
+    setIsHashing(false);
+    setSubmissionNotes('');
+    setDisputeReason('');
     setTransactionState({
       isOpen: true,
       action,
@@ -222,18 +283,24 @@ export default function DashboardPage() {
     setTransactionState((prev) => ({ ...prev, status: 'processing' }));
 
     try {
+      const payload: Record<string, unknown> = {
+        action,
+        milestoneId,
+      };
+
+      if (action === 'SUBMIT_DELIVERABLE') {
+        payload.fileName = selectedFile?.name || 'deliverable-archive.zip';
+        payload.fileUrl = `https://storage.escrow.local/deliverables/${milestoneId}/${selectedFile?.name || 'deliverable-archive.zip'}`;
+        payload.sha256Checksum = fileChecksum || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+        payload.submissionNotes = submissionNotes || 'Deliverable source and artifacts submitted for review.';
+      } else if (action === 'RAISE_DISPUTE') {
+        payload.reason = disputeReason || 'Deliverable does not meet documented acceptance criteria.';
+      }
+
       const res = await fetch(`/api/contracts/${contractId}/milestones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-user-id': currentPersona.id },
-        body: JSON.stringify({
-          action,
-          milestoneId,
-          sha256Checksum:
-            action === 'SUBMIT_DELIVERABLE'
-              ? 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
-              : undefined,
-          notes: action === 'SUBMIT_DELIVERABLE' ? 'Deliverable submitted with cryptographic hash validation' : undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) {
@@ -291,48 +358,48 @@ export default function DashboardPage() {
   const renderMilestoneActions = (contract: ContractItem, m: MilestoneItem) => {
     if (contract.status === 'AWAITING_DEPOSIT' && role === 'CLIENT' && m.sequenceOrder === 1) {
       return (
-        <button onClick={() => initiateTransaction(contract.id, 'DEPOSIT')} className="btn btn-sm btn-primary">
-          <Lock className="w-3.5 h-3.5" /> Deposit
+        <button type="button" onClick={() => initiateTransaction(contract.id, 'DEPOSIT')} className="btn btn-sm btn-primary">
+          <Lock className="w-3.5 h-3.5" aria-hidden="true" /> Deposit
         </button>
       );
     }
     if (m.status === 'FUNDED' && role === 'FREELANCER') {
       return (
-        <button onClick={() => initiateTransaction(contract.id, 'START_WORK', m.id)} className="btn btn-sm btn-secondary">
-          <ArrowRight className="w-3.5 h-3.5" /> Start Work
+        <button type="button" onClick={() => initiateTransaction(contract.id, 'START_WORK', m.id)} className="btn btn-sm btn-secondary">
+          <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" /> Start Work
         </button>
       );
     }
     if (m.status === 'IN_PROGRESS' && role === 'FREELANCER') {
       return (
-        <button onClick={() => initiateTransaction(contract.id, 'SUBMIT_DELIVERABLE', m.id)} className="btn btn-sm btn-secondary">
-          <FileCheck2 className="w-3.5 h-3.5" /> Submit Evidence
+        <button type="button" onClick={() => initiateTransaction(contract.id, 'SUBMIT_DELIVERABLE', m.id)} className="btn btn-sm btn-secondary">
+          <FileCheck2 className="w-3.5 h-3.5" aria-hidden="true" /> Submit Evidence
         </button>
       );
     }
     if (m.status === 'SUBMITTED' && role === 'CLIENT') {
       return (
         <div className="flex gap-2 flex-wrap justify-end">
-          <button onClick={() => initiateTransaction(contract.id, 'APPROVE_MILESTONE', m.id)} className="btn btn-sm btn-secondary">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+          <button type="button" onClick={() => initiateTransaction(contract.id, 'APPROVE_MILESTONE', m.id)} className="btn btn-sm btn-secondary">
+            <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" /> Approve
           </button>
-          <button onClick={() => initiateTransaction(contract.id, 'RAISE_DISPUTE', m.id)} className="btn btn-sm btn-danger">
-            <AlertTriangle className="w-3.5 h-3.5" /> Dispute
+          <button type="button" onClick={() => initiateTransaction(contract.id, 'RAISE_DISPUTE', m.id)} className="btn btn-sm btn-danger">
+            <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> Dispute
           </button>
         </div>
       );
     }
     if (m.status === 'APPROVED' && role === 'CLIENT') {
       return (
-        <button onClick={() => initiateTransaction(contract.id, 'RELEASE_ESCROW', m.id)} className="btn btn-sm btn-primary">
-          <Unlock className="w-3.5 h-3.5" /> Release Funds
+        <button type="button" onClick={() => initiateTransaction(contract.id, 'RELEASE_ESCROW', m.id)} className="btn btn-sm btn-primary">
+          <Unlock className="w-3.5 h-3.5" aria-hidden="true" /> Release Funds
         </button>
       );
     }
     if (m.status === 'DISPUTED' && (role === 'REVIEWER' || role === 'ADMIN')) {
       return (
         <Link href="/disputes" className="btn btn-sm btn-secondary">
-          <ShieldCheck className="w-3.5 h-3.5" /> Open Case File
+          <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" /> Open Case File
         </Link>
       );
     }
@@ -366,9 +433,10 @@ export default function DashboardPage() {
               <span className="font-mono2 text-paper">{formatRupee(totalProtected)}</span> protected
             </p>
           </div>
-          <button onClick={fetchContracts} disabled={loading} className="btn btn-sm btn-ghost" aria-label="Refresh State">
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-brand-base' : ''}`} />
+          <button type="button" onClick={fetchContracts} disabled={loading} className="btn btn-sm btn-ghost">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-brand-base' : ''}`} aria-hidden="true" />
             <span className="hidden sm:inline">Refresh</span>
+            <span className="sr-only sm:hidden">Refresh data</span>
           </button>
         </div>
 
@@ -381,7 +449,7 @@ export default function DashboardPage() {
               {attention.length === 0 ? (
                 <div className="text-center py-12 px-6 bg-surface border border-dashed border-line rounded-panel">
                   <div className="w-12 h-12 rounded-2xl bg-surface-elevated border border-line flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="w-5 h-5 text-paper-faint" />
+                    <CheckCircle className="w-5 h-5 text-paper-faint" aria-hidden="true" />
                   </div>
                   <h3 className="font-display text-base font-bold text-paper">All clear</h3>
                   <p className="text-sm text-paper-muted mt-1 max-w-sm mx-auto">
@@ -389,15 +457,15 @@ export default function DashboardPage() {
                   </p>
                 </div>
               ) : (
-                <div className="panel p-0">
+                <ul className="panel p-0 list-none m-0">
                   {attention.map((item, idx) => (
-                    <div
+                    <li
                       key={`${item.contractId}-${item.milestoneId ?? 'contract'}`}
                       className={`flex flex-col sm:flex-row sm:items-center gap-4 p-5 ${
                         idx !== attention.length - 1 ? 'border-b border-line' : ''
                       } hover:bg-surface-elevated/50 transition-colors`}
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-base shrink-0 hidden sm:block" aria-hidden />
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-base shrink-0 hidden sm:block" aria-hidden="true" />
                       <div className="flex-1 min-w-0">
                         {item.action === 'DEPOSIT' ? (
                           <p className="font-mono2 text-[11px] text-brand-base uppercase tracking-wider mb-1 font-bold">Awaiting deposit</p>
@@ -410,26 +478,28 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       {item.link ? (
-                        <Link href={item.link} className="btn btn-sm btn-secondary shrink-0">
+                        <Link href={item.link} className="btn btn-sm btn-secondary shrink-0" aria-label={`${item.actionLabel} for ${item.title}`}>
                           {item.actionLabel}
                         </Link>
                       ) : (
                         item.action && (
                           <button
+                            type="button"
                             onClick={() => initiateTransaction(item.contractId, item.action as string, item.milestoneId)}
                             className={`btn btn-sm shrink-0 ${
                               item.action === 'DEPOSIT' || item.action === 'RELEASE_ESCROW'
                                 ? 'btn-primary'
                                 : 'btn-secondary'
                             }`}
+                            aria-label={`${item.actionLabel} for ${item.title}`}
                           >
                             {item.actionLabel}
                           </button>
                         )
                       )}
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </section>
 
@@ -437,14 +507,14 @@ export default function DashboardPage() {
             <section>
               <h2 className="eyebrow mb-3">Active contracts</h2>
               {loading && contracts.length === 0 ? (
-                <div className="py-16 flex flex-col items-center justify-center text-paper-muted bg-surface rounded-panel border border-line">
-                  <Loader2 className="w-6 h-6 animate-spin text-brand-base mb-3" />
+                <div className="py-16 flex flex-col items-center justify-center text-paper-muted bg-surface rounded-panel border border-line" role="status" aria-live="polite">
+                  <Loader2 className="w-6 h-6 animate-spin text-brand-base mb-3" aria-hidden="true" />
                   <p className="text-sm font-medium">Syncing contract ledger…</p>
                 </div>
               ) : contracts.length === 0 ? (
                 <div className="py-16 flex flex-col items-center justify-center border border-dashed border-line rounded-panel bg-surface">
                   <div className="w-12 h-12 rounded-2xl bg-surface-elevated border border-line flex items-center justify-center mx-auto mb-4">
-                    <FileText className="w-5 h-5 text-paper-faint" />
+                    <FileText className="w-5 h-5 text-paper-faint" aria-hidden="true" />
                   </div>
                   <h3 className="font-display text-base font-bold text-white">No active contracts</h3>
                   <p className="text-sm text-paper-muted mt-1 max-w-sm text-center">
@@ -452,90 +522,96 @@ export default function DashboardPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <ul className="space-y-6 list-none p-0 m-0">
                   {contracts.map((contract) => (
-                    <article key={contract.id} className="card p-0 overflow-hidden">
-                      <div className="p-5 sm:p-6 border-b border-line bg-surface-highlight/30">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <h3 className="font-display text-xl font-bold text-white leading-snug">
-                              {contract.project?.title || 'Contract Agreement'}
-                            </h3>
-                            <p className="text-sm text-paper-muted mt-1 font-medium">
-                              {contract.client?.name} <span aria-hidden className="mx-1 text-paper-faint">·</span> {contract.freelancer?.name}
-                            </p>
+                    <li key={contract.id}>
+                      <article className="card p-0 overflow-hidden">
+                        <div className="p-5 sm:p-6 border-b border-line bg-surface-highlight/30">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div className="min-w-0">
+                              <h3 className="font-display text-xl font-bold text-white leading-snug">
+                                {contract.project?.title || 'Contract Agreement'}
+                              </h3>
+                              <p className="text-sm text-paper-muted mt-1 font-medium">
+                                {contract.client?.name} <span aria-hidden="true" className="mx-1 text-paper-faint">·</span> {contract.freelancer?.name}
+                              </p>
+                            </div>
+                            <div className="shrink-0">{getStatusBadge(contract.status)}</div>
                           </div>
-                          <div className="shrink-0">{getStatusBadge(contract.status)}</div>
                         </div>
-                      </div>
 
-                      <div className="p-5 sm:p-6">
-                        <h4 className="text-[11px] uppercase tracking-wider font-bold text-paper-faint mb-5 flex items-center gap-2">
-                          <Layers className="w-3.5 h-3.5" />
-                          Milestone Progression
-                        </h4>
-                        <div>
-                          {(contract.milestones ?? []).map((m, idx, arr) => {
-                            const done = isDone(m.status);
-                            const current = isCurrent(m.status);
-                            const last = idx === arr.length - 1;
-                            return (
-                              <div key={m.id} className="flex gap-4">
-                                <div className="flex flex-col items-center" aria-hidden>
-                                  <span
-                                    className={`w-3 h-3 rounded-full mt-1.5 shrink-0 transition-colors ${
-                                      done
-                                        ? 'bg-success'
-                                        : current
-                                          ? 'bg-brand-base ring-4 ring-brand-tint'
-                                          : 'border-2 border-line bg-surface'
-                                    }`}
-                                  />
-                                  {!last && <span className={`w-0.5 flex-1 my-1.5 min-h-6 ${done ? 'bg-success/30' : 'bg-line'}`} />}
-                                </div>
-                                <div className={`flex-1 min-w-0 ${last ? '' : 'pb-6'}`}>
-                                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                      <p className="font-mono2 text-[11px] text-paper-muted mb-1">
-                                        M-{String(m.sequenceOrder).padStart(2, '0')}
-                                      </p>
-                                      <p className={`text-base font-bold leading-snug ${done ? 'text-paper-muted line-through decoration-paper-faint/50' : 'text-white'}`}>
-                                        {m.title}
-                                      </p>
-                                      <p className="text-[13px] text-paper-muted mt-1">
-                                        <span className="font-mono2 text-paper">{formatRupee(m.amount)}</span>
-                                        <span className="mx-1.5 text-paper-faint">·</span>
-                                        {WAITING_TEXT[m.status] ?? m.status}
-                                      </p>
-                                    </div>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                      {getStatusBadge(m.status)}
-                                      {renderMilestoneActions(contract, m)}
+                        <div className="p-5 sm:p-6">
+                          <h4 className="text-[11px] uppercase tracking-wider font-bold text-paper-faint mb-5 flex items-center gap-2">
+                            <Layers className="w-3.5 h-3.5" aria-hidden="true" />
+                            Milestone Progression
+                          </h4>
+                          <ol className="list-none p-0 m-0">
+                            {(contract.milestones ?? []).map((m, idx, arr) => {
+                              const done = isDone(m.status);
+                              const current = isCurrent(m.status);
+                              const last = idx === arr.length - 1;
+                              return (
+                                <li key={m.id} className="flex gap-4">
+                                  <div className="flex flex-col items-center" aria-hidden="true">
+                                    <span
+                                      className={`w-3 h-3 rounded-full mt-1.5 shrink-0 transition-colors ${
+                                        done
+                                          ? 'bg-success'
+                                          : current
+                                            ? 'bg-brand-base ring-4 ring-brand-tint'
+                                            : 'border-2 border-line bg-surface'
+                                      }`}
+                                    />
+                                    {!last && <span className={`w-0.5 flex-1 my-1.5 min-h-6 ${done ? 'bg-success/30' : 'bg-line'}`} />}
+                                  </div>
+                                  <div className={`flex-1 min-w-0 ${last ? '' : 'pb-6'}`}>
+                                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
+                                      <div className="min-w-0">
+                                        <p className="font-mono2 text-[11px] text-paper-muted mb-1">
+                                          M-{String(m.sequenceOrder).padStart(2, '0')}
+                                        </p>
+                                        <p className={`text-base font-bold leading-snug ${done ? 'text-paper-muted line-through decoration-paper-faint/50' : 'text-white'}`}>
+                                          <span className={done ? 'sr-only' : 'hidden'}>Completed: </span>
+                                          {m.title}
+                                        </p>
+                                        <p className="text-[13px] text-paper-muted mt-1">
+                                          <span className="font-mono2 text-paper">{formatRupee(m.amount)}</span>
+                                          <span className="mx-1.5 text-paper-faint">·</span>
+                                          {WAITING_TEXT[m.status] ?? m.status}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        {getStatusBadge(m.status)}
+                                        {renderMilestoneActions(contract, m)}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                                </li>
+                              );
+                            })}
+                          </ol>
                         </div>
-                      </div>
 
-                      <div className="px-5 sm:px-6 py-4 bg-surface-highlight/30 border-t border-line flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-2 text-sm text-paper-muted">
-                          <ShieldCheck className="w-4 h-4 text-brand-base" />
-                          <span>Escrow <span className="font-mono2 font-bold text-white ml-1">{formatRupee(contract.escrowBalance)}</span> protected</span>
+                        <div className="px-5 sm:px-6 py-4 bg-surface-highlight/30 border-t border-line flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-2 text-sm text-paper-muted">
+                            <ShieldCheck className="w-4 h-4 text-brand-base" aria-hidden="true" />
+                            <span>Escrow <span className="font-mono2 font-bold text-white ml-1">{formatRupee(contract.escrowBalance)}</span> protected</span>
+                          </div>
+                          <button
+                            type="button"
+                            aria-label={activePollContractId === contract.id ? 'Disable auto-sync' : 'Enable auto-sync'}
+                            aria-pressed={activePollContractId === contract.id}
+                            onClick={() => setActivePollContractId(activePollContractId === contract.id ? null : contract.id)}
+                            className={`btn btn-sm ${activePollContractId === contract.id ? 'btn-secondary text-brand-light' : 'btn-ghost'}`}
+                          >
+                            <Clock className={`w-3.5 h-3.5 ${activePollContractId === contract.id ? 'animate-pulse' : ''}`} aria-hidden="true" />
+                            <span className="hidden sm:inline">{activePollContractId === contract.id ? 'Auto-sync on' : 'Auto-sync'}</span>
+                          </button>
                         </div>
-                        <button
-                          onClick={() => setActivePollContractId(activePollContractId === contract.id ? null : contract.id)}
-                          className={`btn btn-sm ${activePollContractId === contract.id ? 'btn-secondary text-brand-light' : 'btn-ghost'}`}
-                        >
-                          <Clock className={`w-3.5 h-3.5 ${activePollContractId === contract.id ? 'animate-pulse' : ''}`} />
-                          <span className="hidden sm:inline">{activePollContractId === contract.id ? 'Auto-sync on' : 'Auto-sync'}</span>
-                        </button>
-                      </div>
-                    </article>
+                      </article>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </section>
           </div>
@@ -549,35 +625,37 @@ export default function DashboardPage() {
                   {formatRupee(totalProtected)}
                 </p>
                 <p className="text-xs font-bold uppercase tracking-wider text-brand-base flex items-center gap-1.5">
-                  <Lock className="w-3 h-3" /> Locked & Protected
+                  <Lock className="w-3 h-3" aria-hidden="true" /> Locked & Protected
                 </p>
               </div>
               <div className="p-6 space-y-4">
                 {contracts.length === 0 ? (
                   <p className="text-sm text-paper-muted">No funds under escrow.</p>
                 ) : (
-                  contracts.map((c) => {
-                    const current = currentMilestoneOf(c);
-                    return (
-                      <div key={c.id} className="group">
-                        <div className="flex items-baseline justify-between gap-3 mb-1">
-                          <p className="text-[13px] font-bold text-white truncate group-hover:text-brand-light transition-colors">
-                            {c.project?.title || 'Contract Agreement'}
-                          </p>
-                          <p className="text-[13px] font-mono2 font-bold text-white shrink-0">
-                            {formatRupee(c.escrowBalance)}
-                          </p>
-                        </div>
-                        {current && (
-                          <p className="text-[11px] text-paper-muted leading-relaxed">
-                            M-{String(current.sequenceOrder).padStart(2, '0')} · {current.title}
-                            <br />
-                            <span className="text-paper-faint">{(WAITING_TEXT[current.status] ?? current.status)}</span>
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })
+                  <ul className="list-none p-0 m-0 space-y-4">
+                    {contracts.map((c) => {
+                      const current = currentMilestoneOf(c);
+                      return (
+                        <li key={c.id} className="group">
+                          <div className="flex items-baseline justify-between gap-3 mb-1">
+                            <p className="text-[13px] font-bold text-white truncate group-hover:text-brand-light transition-colors">
+                              {c.project?.title || 'Contract Agreement'}
+                            </p>
+                            <p className="text-[13px] font-mono2 font-bold text-white shrink-0">
+                              {formatRupee(c.escrowBalance)}
+                            </p>
+                          </div>
+                          {current && (
+                            <p className="text-[11px] text-paper-muted leading-relaxed">
+                              M-{String(current.sequenceOrder).padStart(2, '0')} · {current.title}
+                              <br />
+                              <span className="text-paper-faint">{(WAITING_TEXT[current.status] ?? current.status)}</span>
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 )}
               </div>
             </section>
@@ -598,41 +676,124 @@ export default function DashboardPage() {
         footer={
           transactionState.status === 'idle' || transactionState.status === 'error' ? (
             <>
-              <button onClick={() => setTransactionState((prev) => ({ ...prev, isOpen: false }))} className="btn btn-md btn-ghost">
+              <button type="button" onClick={() => setTransactionState((prev) => ({ ...prev, isOpen: false }))} className="btn btn-md btn-ghost">
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={executeTransaction}
-                className={`btn btn-md ${transactionState.action === 'RAISE_DISPUTE' ? 'btn-danger-solid' : 'btn-primary'}`}
+                disabled={
+                  (transactionState.action === 'SUBMIT_DELIVERABLE' && (!fileChecksum || isHashing)) ||
+                  (transactionState.action === 'RAISE_DISPUTE' && disputeReason.trim().length < 15)
+                }
+                className={`btn btn-md ${
+                  transactionState.action === 'RAISE_DISPUTE' ? 'btn-danger-solid' : 'btn-primary'
+                } ${
+                  (transactionState.action === 'SUBMIT_DELIVERABLE' && (!fileChecksum || isHashing)) ||
+                  (transactionState.action === 'RAISE_DISPUTE' && disputeReason.trim().length < 15)
+                    ? 'opacity-50 cursor-not-allowed'
+                    : ''
+                }`}
               >
                 {actionInfo.btn}
               </button>
             </>
           ) : transactionState.status === 'success' ? (
-            <button onClick={() => setTransactionState((prev) => ({ ...prev, isOpen: false }))} className="btn btn-md btn-primary">
+            <button type="button" onClick={() => setTransactionState((prev) => ({ ...prev, isOpen: false }))} className="btn btn-md btn-primary">
               Done
             </button>
           ) : null
         }
       >
-        <div className="py-2">
+        <div className="py-2" aria-live="polite">
           {transactionState.status === 'idle' && (
             <div className="p-4 bg-surface-elevated border border-line rounded-lg text-sm text-paper-muted">
               <p>This action is recorded in the immutable audit log and triggers a state transition in the escrow engine.</p>
+
               {transactionState.action === 'SUBMIT_DELIVERABLE' && (
-                <div className="mt-4 p-3 bg-charcoal border border-line-strong rounded-md">
-                  <p className="text-[10px] uppercase tracking-wider text-paper-faint flex items-center gap-1.5 mb-1.5 font-bold">
-                    <ShieldCheck className="w-3 h-3 text-brand-base" />
-                    SHA-256 proof
-                  </p>
-                  <p className="text-xs font-mono2 text-paper-muted break-all select-all">
-                    e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-                  </p>
+                <div className="mt-4 space-y-3">
+                  <label className="block text-xs font-semibold text-white">
+                    Deliverable File (SHA-256 Calculated Locally)
+                  </label>
+                  <div className="relative border-2 border-dashed border-line hover:border-brand-base rounded-lg p-4 text-center transition-colors">
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
+                      <Upload className="w-5 h-5 text-brand-base" />
+                      <p className="text-xs text-paper-muted font-medium">
+                        {selectedFile ? selectedFile.name : 'Click or drag deliverable file here'}
+                      </p>
+                      {selectedFile && (
+                        <p className="text-[11px] font-mono2 text-paper-faint">
+                          {formatBytes(selectedFile.size)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {isHashing && (
+                    <div className="flex items-center gap-2 p-2 bg-charcoal border border-line rounded text-xs text-brand-light">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Computing SHA-256 checksum in browser memory...</span>
+                    </div>
+                  )}
+
+                  {fileChecksum && !isHashing && (
+                    <div className="p-3 bg-charcoal border border-line-strong rounded-md space-y-1">
+                      <p className="text-[10px] uppercase tracking-wider text-paper-faint flex items-center gap-1.5 font-bold">
+                        <ShieldCheck className="w-3.5 h-3.5 text-success" aria-hidden="true" />
+                        Verified SHA-256 Proof (Engine 02)
+                      </p>
+                      <p className="text-xs font-mono2 text-success break-all select-all">
+                        {fileChecksum}
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-medium text-paper-muted mb-1">
+                      Submission Notes (Optional)
+                    </label>
+                    <textarea
+                      value={submissionNotes}
+                      onChange={(e) => setSubmissionNotes(e.target.value)}
+                      placeholder="e.g. Completed initial design deliverables with test suite pass."
+                      rows={2}
+                      className="w-full bg-surface-elevated border border-line rounded px-3 py-1.5 text-xs text-white placeholder-paper-faint focus:outline-none focus:border-brand-base"
+                    />
+                  </div>
                 </div>
               )}
+
+              {transactionState.action === 'RAISE_DISPUTE' && (
+                <div className="mt-4 space-y-2">
+                  <label className="block text-xs font-semibold text-white">
+                    Reason for Dispute (Minimum 15 characters)
+                  </label>
+                  <textarea
+                    value={disputeReason}
+                    onChange={(e) => setDisputeReason(e.target.value)}
+                    placeholder="Describe specific acceptance criteria defects, missing artifacts, or deadline breaches..."
+                    rows={3}
+                    className="w-full bg-surface-elevated border border-line rounded p-2.5 text-xs text-white placeholder-paper-faint focus:outline-none focus:border-danger"
+                  />
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className={disputeReason.trim().length >= 15 ? 'text-success' : 'text-paper-faint'}>
+                      {disputeReason.trim().length}/15 chars required
+                    </span>
+                    {disputeReason.trim().length < 15 && (
+                      <span className="text-danger-light">Must describe reason to freeze escrow</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {transactionState.action === 'RELEASE_ESCROW' && (
-                <div className="mt-4 p-3 bg-warning-tint border border-warning/30 rounded-md text-xs font-medium text-warning-light flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="mt-4 p-3 bg-warning-tint border border-warning/30 rounded-md text-xs font-medium text-warning-light flex items-start gap-2" role="alert">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
                   <span>Escrow release is irreversible. Funds transfer immediately.</span>
                 </div>
               )}
@@ -640,16 +801,16 @@ export default function DashboardPage() {
           )}
 
           {transactionState.status === 'processing' && (
-            <div className="flex flex-col items-center justify-center py-10 space-y-4">
-              <Loader2 className="w-8 h-8 text-brand-base animate-spin" />
+            <div className="flex flex-col items-center justify-center py-10 space-y-4" role="status" aria-live="polite">
+              <Loader2 className="w-8 h-8 text-brand-base animate-spin" aria-hidden="true" />
               <p className="text-sm font-medium text-paper-muted">Processing transaction on ledger…</p>
             </div>
           )}
 
           {transactionState.status === 'success' && (
-            <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center">
+            <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center" role="alert" aria-live="assertive">
               <div className="w-14 h-14 rounded-full bg-success-tint flex items-center justify-center">
-                <CheckCircle className="w-7 h-7 text-success" />
+                <CheckCircle className="w-7 h-7 text-success" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-base font-bold text-white mb-1">Transaction successful</p>
@@ -659,9 +820,9 @@ export default function DashboardPage() {
           )}
 
           {transactionState.status === 'error' && (
-            <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center">
+            <div className="flex flex-col items-center justify-center py-8 space-y-4 text-center" role="alert" aria-live="assertive">
               <div className="w-14 h-14 rounded-full bg-danger-tint flex items-center justify-center">
-                <XCircle className="w-7 h-7 text-danger-light" />
+                <XCircle className="w-7 h-7 text-danger-light" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-base font-bold text-white mb-1">Transaction failed</p>
@@ -674,3 +835,4 @@ export default function DashboardPage() {
     </AppShell>
   );
 }
+
