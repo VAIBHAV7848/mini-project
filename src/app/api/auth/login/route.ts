@@ -1,33 +1,27 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import prisma from '@/lib/db';
 import { loginSchema } from '@/lib/validation';
+import { AuthService } from '@/lib/auth-service';
 import { SessionService } from '@/core/engine-04-web/session';
-import { formatSuccessResponse, formatErrorResponse, AuthenticationError } from '@/lib/errors';
-import { UserRole } from '@/types';
+import { formatSuccessResponse, formatErrorResponse } from '@/lib/errors';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const validated = loginSchema.parse(body);
 
-    const user = await prisma.user.findUnique({
-      where: { email: validated.email },
+    // Execute 3-Tier Dual Authentication Pipeline
+    const authResult = await AuthService.authenticate({
+      email: validated.email,
+      password: validated.password,
     });
 
-    if (!user) {
-      throw new AuthenticationError('Invalid email or password.');
-    }
+    const user = authResult.user;
 
-    const isValidPassword = bcrypt.compareSync(validated.password, user.passwordHash);
-    if (!isValidPassword) {
-      throw new AuthenticationError('Invalid email or password.');
-    }
-
+    // Issue tamper-resistant HMAC session token
     const token = SessionService.createToken({
       id: user.id,
       email: user.email,
-      role: user.role as UserRole,
+      role: user.role,
       name: user.name,
     });
 
@@ -41,17 +35,20 @@ export async function POST(request: Request) {
           role: user.role,
           balance: user.balance,
           devScore: user.devScore,
+          githubProfile: user.githubProfile,
         },
+        authProvider: authResult.provider,
       })
     );
 
-    // Set HTTP-only session cookie
-    response.cookies.set('escrow_session', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 86400, // 24 hours
+    // Set secure HTTP-only session cookie
+    const cookieOptions = SessionService.getSessionCookieOptions();
+    response.cookies.set(SessionService.COOKIE_NAME, token, {
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+      path: cookieOptions.path,
+      maxAge: cookieOptions.maxAge,
     });
 
     return response;

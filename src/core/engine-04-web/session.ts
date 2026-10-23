@@ -2,7 +2,23 @@ import crypto from 'node:crypto';
 import prisma from '@/lib/db';
 import { SessionContext, UserRole } from '@/types';
 
-const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret-key-32-chars-minimum-escrow-session';
+function resolveSessionSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'CRITICAL SECURITY CONFIGURATION ERROR: SESSION_SECRET must be defined in production.'
+      );
+    }
+    return 'dev-secret-key-32-chars-minimum-escrow-session';
+  }
+  if (secret.length < 32) {
+    throw new Error('SESSION_SECRET must be at least 32 characters long.');
+  }
+  return secret;
+}
+
+const SESSION_SECRET = resolveSessionSecret();
 
 export interface TokenPayload {
   userId: string;
@@ -12,11 +28,50 @@ export interface TokenPayload {
   exp: number;
 }
 
+export interface CookieOptions {
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: 'lax' | 'strict' | 'none';
+  path: string;
+  maxAge?: number;
+  expires?: Date;
+}
+
 export class SessionService {
+  public static readonly COOKIE_NAME = 'escrow_session';
+  public static readonly DEFAULT_MAX_AGE_SECONDS = 86400; // 24 hours
+
+  /**
+   * Returns canonical cookie options for setting the session cookie.
+   */
+  public static getSessionCookieOptions(expiresInSeconds = SessionService.DEFAULT_MAX_AGE_SECONDS): CookieOptions {
+    return {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: expiresInSeconds,
+    };
+  }
+
+  /**
+   * Returns canonical cookie options for clearing/invalidating the session cookie.
+   */
+  public static getClearCookieOptions(): CookieOptions {
+    return {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 0,
+      expires: new Date(0),
+    };
+  }
+
   /**
    * Generates a tamper-resistant signed HMAC session token.
    */
-  static createToken(user: { id: string; email: string; role: UserRole; name: string }, expiresInSeconds = 86400): string {
+  static createToken(user: { id: string; email: string; role: UserRole; name: string }, expiresInSeconds = SessionService.DEFAULT_MAX_AGE_SECONDS): string {
     const payload: TokenPayload = {
       userId: user.id,
       email: user.email,
@@ -39,24 +94,36 @@ export class SessionService {
    */
   static verifyToken(token: string): SessionContext | null {
     try {
+      if (!token || typeof token !== 'string') return null;
+
       const parts = token.split('.');
       if (parts.length !== 2) return null;
 
       const [encoded, signature] = parts;
+      if (!encoded || !signature) return null;
+
       const expectedSignature = crypto
         .createHmac('sha256', SESSION_SECRET)
         .update(encoded)
         .digest('base64url');
 
-      if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
+      const sigBuf = Buffer.from(signature);
+      const expBuf = Buffer.from(expectedSignature);
+
+      // Constant-time comparison with explicit length guard to prevent RangeError timing side-channels
+      if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
         return null;
       }
 
       const decodedStr = Buffer.from(encoded, 'base64url').toString('utf-8');
       const payload: TokenPayload = JSON.parse(decodedStr);
 
-      if (payload.exp < Math.floor(Date.now() / 1000)) {
+      if (typeof payload.exp !== 'number' || payload.exp < Math.floor(Date.now() / 1000)) {
         return null; // Expired
+      }
+
+      if (!payload.userId || !payload.email || !payload.role || !payload.name) {
+        return null; // Malformed payload
       }
 
       return {
@@ -77,7 +144,7 @@ export class SessionService {
     // 1. Check Bearer Authorization Header
     const authHeader = headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
+      const token = authHeader.substring(7).trim();
       const session = SessionService.verifyToken(token);
       if (session) return session;
     }
@@ -85,26 +152,29 @@ export class SessionService {
     // 2. Check Cookie Header
     const cookieHeader = headers.get('cookie');
     if (cookieHeader) {
-      const match = cookieHeader.match(/escrow_session=([^;]+)/);
-      if (match) {
-        const session = SessionService.verifyToken(match[1]);
+      const regex = new RegExp(`(?:^|;\\s*)${SessionService.COOKIE_NAME}=([^;]+)`);
+      const match = cookieHeader.match(regex);
+      if (match && match[1]) {
+        const session = SessionService.verifyToken(decodeURIComponent(match[1].trim()));
         if (session) return session;
       }
     }
 
-    // 3. Simulated direct test headers (for automated test runners & curl testing)
-    const simulatedUserId = headers.get('x-user-id');
-    if (simulatedUserId) {
-      const user = await prisma.user.findUnique({
-        where: { id: simulatedUserId },
-      });
-      if (user) {
-        return {
-          userId: user.id,
-          email: user.email,
-          role: user.role as UserRole,
-          name: user.name,
-        };
+    // 3. Simulated direct test headers (Restricted strictly to non-production environments)
+    if (process.env.NODE_ENV !== 'production') {
+      const simulatedUserId = headers.get('x-user-id');
+      if (simulatedUserId) {
+        const user = await prisma.user.findUnique({
+          where: { id: simulatedUserId },
+        });
+        if (user) {
+          return {
+            userId: user.id,
+            email: user.email,
+            role: user.role as UserRole,
+            name: user.name,
+          };
+        }
       }
     }
 
