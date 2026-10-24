@@ -10,6 +10,7 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jet
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk', display: 'swap' });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://giga-flow.vercel.app'),
   title: 'GigaFlow | Milestone-Based Escrow',
   description: 'Milestone escrow with evidence-based dispute resolution',
 };

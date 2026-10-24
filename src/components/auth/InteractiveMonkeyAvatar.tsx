@@ -48,6 +48,8 @@ export function InteractiveMonkeyAvatar({
   const eyeRRef = useRef<SVGGElement>(null);
   const pupilLRef = useRef<SVGGElement>(null);
   const pupilRRef = useRef<SVGGElement>(null);
+  const closedEyeLRef = useRef<SVGGElement>(null);
+  const closedEyeRRef = useRef<SVGGElement>(null);
 
   const noseRef = useRef<SVGPathElement>(null);
   const mouthRef = useRef<SVGGElement>(null);
@@ -68,6 +70,7 @@ export function InteractiveMonkeyAvatar({
 
   const eyesCoveredRef = useRef(false);
   const blinkTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const coverTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
   const effectiveInputRef = emailInputRef || inputRef;
   const skinColor = skinTone === 'cool' ? '#ddf1fa' : '#f5ebe1';
@@ -110,7 +113,10 @@ export function InteractiveMonkeyAvatar({
 
     gsap.set(mouth, { transformOrigin: 'center center' });
     if (pupilL && pupilR) {
-      gsap.set([pupilL, pupilR], { transformOrigin: 'center center', scaleX: 1, scaleY: 1 });
+      gsap.set([pupilL, pupilR], { transformOrigin: 'center center', scaleX: 1, scaleY: 1, opacity: 1 });
+    }
+    if (closedEyeLRef.current && closedEyeRRef.current) {
+      gsap.set([closedEyeLRef.current, closedEyeRRef.current], { opacity: 0, y: -2 });
     }
 
     // Natural blinking loop (random schedule 2.5s - 5s)
@@ -123,9 +129,19 @@ export function InteractiveMonkeyAvatar({
             scaleY: 0,
             yoyo: true,
             repeat: 1,
-            transformOrigin: 'center center',
+            transformOrigin: '50% 85%',
             ease: 'power1.inOut',
           });
+          if (closedEyeLRef.current && closedEyeRRef.current) {
+            gsap.to([closedEyeLRef.current, closedEyeRRef.current], {
+              duration: 0.08,
+              opacity: 1,
+              y: 0,
+              yoyo: true,
+              repeat: 1,
+              ease: 'power1.inOut',
+            });
+          }
         }
         scheduleBlink();
       }, delay);
@@ -144,6 +160,8 @@ export function InteractiveMonkeyAvatar({
         eyeRRef.current,
         pupilLRef.current,
         pupilRRef.current,
+        closedEyeLRef.current,
+        closedEyeRRef.current,
         noseRef.current,
         chinRef.current,
         faceRef.current,
@@ -247,6 +265,10 @@ export function InteractiveMonkeyAvatar({
 
     if (eyeLRef.current) gsap.to(eyeLRef.current, { x: 0, y: 0, duration, ease });
     if (eyeRRef.current) gsap.to(eyeRRef.current, { x: 0, y: 0, duration, ease });
+    if (pupilLRef.current) gsap.to(pupilLRef.current, { x: 0, y: 0, scaleY: 1, scaleX: 1, opacity: 1, duration, ease });
+    if (pupilRRef.current) gsap.to(pupilRRef.current, { x: 0, y: 0, scaleY: 1, scaleX: 1, opacity: 1, duration, ease });
+    if (closedEyeLRef.current) gsap.to(closedEyeLRef.current, { opacity: 0, y: -2, duration: 0.3 });
+    if (closedEyeRRef.current) gsap.to(closedEyeRRef.current, { opacity: 0, y: -2, duration: 0.3 });
     if (noseRef.current) gsap.to(noseRef.current, { x: 0, y: 0, rotation: 0, duration, ease });
     if (mouthRef.current) gsap.to(mouthRef.current, { x: 0, y: 0, rotation: 0, scale: 1, duration, ease });
     if (chinRef.current) gsap.to(chinRef.current, { x: 0, y: 0, scaleY: 1, duration, ease });
@@ -312,10 +334,24 @@ export function InteractiveMonkeyAvatar({
 
   const isInitialMountRef = useRef(true);
 
-  // 6. Arm Covering Kinematics on Password Focus / Blur
+  // 6. Two-Stage Organic Monkey Covering Kinematics on Password Focus / Blur
   useEffect(() => {
     const armL = armLRef.current;
     const armR = armRRef.current;
+    const pupilL = pupilLRef.current;
+    const pupilR = pupilRRef.current;
+    const eyeL = eyeLRef.current;
+    const eyeR = eyeRRef.current;
+    const face = faceRef.current;
+    const eyebrow = eyebrowRef.current;
+    const nose = noseRef.current;
+    const mouth = mouthRef.current;
+    const chin = chinRef.current;
+    const outerEarL = outerEarLRef.current;
+    const outerEarR = outerEarRRef.current;
+    const earHairL = earHairLRef.current;
+    const earHairR = earHairRRef.current;
+    const hair = hairRef.current;
     const bodyNormal = bodyNormalRef.current;
     const bodyChanged = bodyChangedRef.current;
 
@@ -328,87 +364,285 @@ export function InteractiveMonkeyAvatar({
       }
     }
 
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Interrupt & cancel any active timeline to guarantee clean transition
+    if (coverTimelineRef.current) {
+      coverTimelineRef.current.kill();
+      coverTimelineRef.current = null;
+    }
+
+    gsap.killTweensOf([
+      armL,
+      armR,
+      pupilL,
+      pupilR,
+      eyeL,
+      eyeR,
+      eyebrow,
+      face,
+      nose,
+      mouth,
+      chin,
+      hair,
+      outerEarL,
+      outerEarR,
+      earHairL,
+      earHairR,
+      bodyNormal,
+      bodyChanged,
+    ]);
+
     if (isPasswordFocused) {
       eyesCoveredRef.current = true;
-      gsap.killTweensOf([armL, armR]);
-      gsap.set([armL, armR], { autoAlpha: 1 });
 
-      // Slide arms up to cover eyes (0.1s human delay on right arm)
-      // y: 0 ensures fingers align directly over cy = 78.5 to fully occlude pupils
-      gsap.to(armL, {
-        x: -93,
-        y: 0,
-        rotation: 0,
-        duration: 0.45,
-        transformOrigin: 'top left',
-        ease: 'power1.out',
-      });
-      gsap.to(armR, {
-        x: -93,
-        y: 0,
-        rotation: 0,
-        duration: 0.45,
-        transformOrigin: 'top right',
-        ease: 'power1.out',
-        delay: 0.1,
-      });
-
-      // Anatomical shoulder contraction
-      if (bodyNormal && bodyChanged) {
-        gsap.to(bodyNormal, { opacity: 0, duration: 0.4, ease: 'power1.out' });
-        gsap.to(bodyChanged, { opacity: 1, duration: 0.4, ease: 'power1.out' });
+      if (prefersReducedMotion) {
+        gsap.set([armL, armR], { autoAlpha: 1, x: -93, y: 18, rotation: 0 });
+        if (pupilL && pupilR) gsap.set([pupilL, pupilR], { scaleY: 0, opacity: 0, y: -4 });
+        if (closedEyeLRef.current && closedEyeRRef.current) {
+          gsap.set([closedEyeLRef.current, closedEyeRRef.current], { opacity: 1, y: 0 });
+        }
+        if (bodyNormal && bodyChanged) {
+          gsap.set(bodyNormal, { opacity: 0 });
+          gsap.set(bodyChanged, { opacity: 1 });
+        }
+        resetFace();
+        return;
       }
-    } else {
-      eyesCoveredRef.current = false;
-      gsap.killTweensOf([armL, armR]);
 
-      // Biomechanical Decoupled Arc Uncover:
-      // Vertical translation starts at t=0, rotation starts at t=0.1s
-      // Explicit x: -93 prevents horizontal drift if interrupted
-      gsap.to(armL, {
-        x: -93,
-        y: 220,
-        duration: 1.35,
-        ease: 'power1.out',
-      });
-      gsap.to(armL, {
-        rotation: 105,
-        duration: 1.35,
-        transformOrigin: 'top left',
-        ease: 'power1.out',
-        delay: 0.1,
-      });
+      const tl = gsap.timeline();
+      coverTimelineRef.current = tl;
 
-      gsap.to(armR, {
-        x: -93,
-        y: 220,
-        duration: 1.35,
-        ease: 'power1.out',
-      });
-      gsap.to(armR, {
-        rotation: -105,
-        duration: 1.35,
-        transformOrigin: 'top right',
-        ease: 'power1.out',
-        delay: 0.1,
-        onComplete: () => {
-          gsap.set([armL, armR], { autoAlpha: 0 });
+      // --- STAGE 1: Look Up Normally (Anticipation / Inquisitive Orienting Reflex ~0.22s) ---
+      // 1. Saccadic eye movement looking up normally
+      tl.to(
+        [eyeL, eyeR],
+        {
+          x: 0,
+          y: -7.5,
+          duration: 0.16,
+          ease: 'power3.out',
         },
-      });
+        0
+      );
 
+      // 2. Cranial tilt upward (eyebrow arch, snout & head pitch, ear reverse-parallax)
+      tl.to(eyebrow, { x: 0, y: -4.5, skewX: 0, duration: 0.2, ease: 'back.out(1.1)' }, 0.02);
+      tl.to(face, { x: 0, y: -4.0, skewX: 0, duration: 0.22, ease: 'back.out(1.1)' }, 0.02);
+      tl.to(nose, { x: 0, y: -5.5, rotation: 0, duration: 0.22, ease: 'back.out(1.1)' }, 0.02);
+      tl.to(mouth, { x: 0, y: -3.5, rotation: 0, scale: 0.94, duration: 0.22, ease: 'power2.out' }, 0.02);
+      tl.to(chin, { x: 0, y: -2.5, scaleY: 0.92, duration: 0.22, ease: 'power2.out' }, 0.02);
+      tl.to(hair, { x: 0, y: -2.5, scaleY: 1.05, duration: 0.22, ease: 'back.out(1.1)' }, 0.02);
+      tl.to([outerEarL, earHairL], { x: 0, y: 3.0, duration: 0.22, ease: 'power2.out' }, 0.02);
+      tl.to([outerEarR, earHairR], { x: 0, y: 3.0, duration: 0.22, ease: 'power2.out' }, 0.02);
+
+      // Prepare arms in viewport
+      tl.set([armL, armR], { autoAlpha: 1 }, 0.12);
+
+      // --- STAGE 2: Smooth Biological Eye Closure & Bilateral Arm Covering ---
+      // 3. Bilateral arm sweep upward landing directly over eyes at y: 18 (NOT on forehead y: 0)
+      const armCurve = 'cubic-bezier(0.28, 0, 0.18, 1)';
+      tl.to(
+        armL,
+        {
+          x: -93,
+          y: 18,
+          rotation: 0,
+          duration: 0.44,
+          transformOrigin: 'top left',
+          ease: armCurve,
+        },
+        0.16
+      );
+
+      tl.to(
+        armR,
+        {
+          x: -93,
+          y: 18,
+          rotation: 0,
+          duration: 0.46,
+          transformOrigin: 'top right',
+          ease: armCurve,
+        },
+        0.22
+      );
+
+      // 4. Shoulder muscular contraction
       if (bodyNormal && bodyChanged) {
-        gsap.to(bodyNormal, { opacity: 1, duration: 0.45, ease: 'power1.out' });
-        gsap.to(bodyChanged, { opacity: 0, duration: 0.45, ease: 'power1.out' });
+        tl.to(bodyNormal, { opacity: 0, duration: 0.32, ease: 'power2.out' }, 0.2);
+        tl.to(bodyChanged, { opacity: 1, duration: 0.32, ease: 'power2.out' }, 0.2);
       }
 
-      // Smoothly return face to neutral upon uncover
+      // Smooth gaze return to orbital datum before eyelid closes so pupils do not disappear into eyebrows
+      tl.to(
+        [eyeL, eyeR],
+        {
+          x: 0,
+          y: 0,
+          duration: 0.16,
+          ease: 'power2.out',
+        },
+        0.16
+      );
+
+      // 5. Smooth biological eyelid closure (eyes close smoothly like a real monkey)
+      tl.to(
+        [pupilL, pupilR],
+        {
+          scaleY: 0,
+          y: -4.0,
+          duration: 0.14,
+          transformOrigin: 'center center',
+          ease: 'power2.inOut',
+        },
+        0.24
+      );
+
+      // Closed eyelid arcs sweep down and appear directly over eyes (not an empty face!)
+      if (closedEyeLRef.current && closedEyeRRef.current) {
+        tl.to(
+          [closedEyeLRef.current, closedEyeRRef.current],
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.14,
+            ease: 'power2.out',
+          },
+          0.24
+        );
+      }
+
+      // 6. Eyebrows settle into relaxed closed-eye posture
+      tl.to(eyebrow, { y: 1.5, duration: 0.22, ease: 'power1.inOut' }, 0.26);
+
+      // 7. Cranium and facial features settle to resting neutral as hands arrive over eyes
+      tl.to(
+        [face, chin, nose, mouth, hair, outerEarL, outerEarR, earHairL, earHairR],
+        {
+          y: 0,
+          scaleY: 1,
+          scale: 1,
+          duration: 0.35,
+          ease: 'power1.out',
+        },
+        0.26
+      );
+    } else {
+      // --- RESTORE ON BLUR: Graceful, gravity-assisted descent & smooth eye re-opening ---
+      eyesCoveredRef.current = false;
+
+      // Snap twoFingers peek closed if it was active
+      if (twoFingersRef.current) {
+        gsap.to(twoFingersRef.current, {
+          rotation: 0,
+          x: 0,
+          y: 0,
+          duration: 0.25,
+          transformOrigin: 'bottom left',
+          ease: 'power2.out',
+        });
+      }
+
+      if (prefersReducedMotion) {
+        gsap.set([armL, armR], {
+          autoAlpha: 0,
+          x: -93,
+          y: 220,
+          rotation: (i) => (i === 0 ? 105 : -105),
+        });
+        if (pupilL && pupilR) gsap.set([pupilL, pupilR], { scaleY: 1, y: 0, x: 0, opacity: 1 });
+        if (closedEyeLRef.current && closedEyeRRef.current) {
+          gsap.set([closedEyeLRef.current, closedEyeRRef.current], { opacity: 0, y: -2 });
+        }
+        if (bodyNormal && bodyChanged) {
+          gsap.set(bodyNormal, { opacity: 1 });
+          gsap.set(bodyChanged, { opacity: 0 });
+        }
+        resetFace();
+        return;
+      }
+
+      const tl = gsap.timeline();
+      coverTimelineRef.current = tl;
+
+      // Arms drop naturally with gravity acceleration
+      tl.to(
+        armL,
+        {
+          x: -93,
+          y: 220,
+          rotation: 105,
+          duration: 0.55,
+          transformOrigin: 'top left',
+          ease: 'power2.in',
+        },
+        0
+      );
+
+      tl.to(
+        armR,
+        {
+          x: -93,
+          y: 220,
+          rotation: -105,
+          duration: 0.55,
+          transformOrigin: 'top right',
+          ease: 'power2.in',
+          onComplete: () => {
+            gsap.set([armL, armR], { autoAlpha: 0 });
+          },
+        },
+        0.04
+      );
+
+      // Shoulders relax
+      if (bodyNormal && bodyChanged) {
+        tl.to(bodyNormal, { opacity: 1, duration: 0.35, ease: 'power2.out' }, 0.1);
+        tl.to(bodyChanged, { opacity: 0, duration: 0.35, ease: 'power2.out' }, 0.1);
+      }
+
+      // Closed eyelids lift and fade as hands fall
+      if (closedEyeLRef.current && closedEyeRRef.current) {
+        tl.to(
+          [closedEyeLRef.current, closedEyeRRef.current],
+          {
+            opacity: 0,
+            y: -2,
+            duration: 0.14,
+            ease: 'power2.in',
+          },
+          0.14
+        );
+      }
+
+      // Eyes smoothly reopen as hands fall below eye level
+      tl.to(
+        [pupilL, pupilR],
+        {
+          scaleY: 1,
+          opacity: 1,
+          y: 0,
+          x: 0,
+          duration: 0.2,
+          transformOrigin: 'center center',
+          ease: 'power2.out',
+        },
+        0.18
+      );
+
+      // Return facial features to neutral
       resetFace();
     }
   }, [isPasswordFocused, resetFace]);
 
-  // 7. Peeking Action via TwoFingers Aperture Spread
+  // 7. Peeking Action via TwoFingers Aperture Spread & Monocular Peek
   useEffect(() => {
     const twoFingers = twoFingersRef.current;
+    const pupilL = pupilLRef.current;
     if (!twoFingers) return;
 
     if (isPasswordFocused && isShowPassword) {
@@ -417,20 +651,53 @@ export function InteractiveMonkeyAvatar({
         rotation: 30,
         x: -9,
         y: -2,
-        duration: 0.35,
+        duration: 0.32,
         transformOrigin: 'bottom left',
         ease: 'power2.inOut',
       });
-    } else {
+
+      // Left eye: hide closed eyelid and open pupil to peek through aperture
+      if (closedEyeLRef.current) {
+        gsap.to(closedEyeLRef.current, { opacity: 0, duration: 0.16 });
+      }
+
+      if (pupilL) {
+        gsap.to(pupilL, {
+          scaleY: 0.85,
+          opacity: 1,
+          y: -2,
+          duration: 0.25,
+          transformOrigin: 'center center',
+          ease: 'power2.out',
+        });
+      }
+    } else if (isPasswordFocused && !isShowPassword) {
       // Snap fingers tightly closed
       gsap.to(twoFingers, {
         rotation: 0,
         x: 0,
         y: 0,
-        duration: 0.35,
+        duration: 0.28,
         transformOrigin: 'bottom left',
         ease: 'power2.inOut',
       });
+
+      // Re-close left eye tightly
+      if (pupilL) {
+        gsap.to(pupilL, {
+          scaleY: 0,
+          opacity: 0,
+          y: -4.0,
+          duration: 0.2,
+          transformOrigin: 'center center',
+          ease: 'power2.in',
+        });
+      }
+
+      // Restore closed eyelid arc
+      if (closedEyeLRef.current) {
+        gsap.to(closedEyeLRef.current, { opacity: 1, y: 0, duration: 0.18, delay: 0.05 });
+      }
     }
   }, [isPasswordFocused, isShowPassword]);
 
@@ -614,19 +881,79 @@ export function InteractiveMonkeyAvatar({
 
             {/* Left Eye (Gaze Translation Group) */}
             <g ref={eyeLRef} className="eyeL">
-              <g ref={pupilLRef} className="eyeballL">
+              {/* Open Eyeball Group */}
+              <g
+                ref={pupilLRef}
+                className="eyeballL"
+                style={{ transformBox: 'fill-box', transformOrigin: 'center center' }}
+              >
                 <circle cx="85.5" cy="78.5" r="3.6" fill="#07080a" />
                 <circle cx="84" cy="76" r="1.1" fill="#ffffff" />
                 <circle cx="86.2" cy="79.2" r="0.6" fill="#fc6c00" opacity={0.8} />
+              </g>
+
+              {/* Closed Eyelid & Lash Crease (Biological Primate Closed Eye) */}
+              <g
+                ref={closedEyeLRef}
+                className="closedEyeL"
+                style={{ opacity: 0, pointerEvents: 'none', transformOrigin: '85.5px 78.5px' }}
+              >
+                {/* Upper Lid Supraciliary Crease Fold */}
+                <path
+                  d="M 82.2,74.8 Q 85.5,73.4 88.8,74.8"
+                  fill="none"
+                  stroke="#fc6c00"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  opacity={0.55}
+                />
+                {/* Main Closed Eyelash / Eyelid Arc */}
+                <path
+                  d="M 81.2,78.2 Q 85.5,82.4 89.8,78.2"
+                  fill="none"
+                  stroke="#07080a"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                />
               </g>
             </g>
 
             {/* Right Eye (Gaze Translation Group) */}
             <g ref={eyeRRef} className="eyeR">
-              <g ref={pupilRRef} className="eyeballR">
+              {/* Open Eyeball Group */}
+              <g
+                ref={pupilRRef}
+                className="eyeballR"
+                style={{ transformBox: 'fill-box', transformOrigin: 'center center' }}
+              >
                 <circle cx="114.5" cy="78.5" r="3.6" fill="#07080a" />
                 <circle cx="113" cy="76" r="1.1" fill="#ffffff" />
                 <circle cx="115.2" cy="79.2" r="0.6" fill="#fc6c00" opacity={0.8} />
+              </g>
+
+              {/* Closed Eyelid & Lash Crease (Biological Primate Closed Eye) */}
+              <g
+                ref={closedEyeRRef}
+                className="closedEyeR"
+                style={{ opacity: 0, pointerEvents: 'none', transformOrigin: '114.5px 78.5px' }}
+              >
+                {/* Upper Lid Supraciliary Crease Fold */}
+                <path
+                  d="M 111.2,74.8 Q 114.5,73.4 117.8,74.8"
+                  fill="none"
+                  stroke="#fc6c00"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  opacity={0.55}
+                />
+                {/* Main Closed Eyelash / Eyelid Arc */}
+                <path
+                  d="M 110.2,78.2 Q 114.5,82.4 118.8,78.2"
+                  fill="none"
+                  stroke="#07080a"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                />
               </g>
             </g>
 
@@ -671,7 +998,7 @@ export function InteractiveMonkeyAvatar({
             {/* Arms Assembly (Inside Master Circular Clip Boundary) */}
             <g className="arms" clipPath={`url(#${armMaskId})`}>
               {/* Left Arm */}
-              <g ref={armLRef} className="armL" style={{ visibility: 'hidden' }}>
+              <g ref={armLRef} className="armL" style={{ transformBox: 'fill-box' }}>
                 <polygon
                   fill={skinColor}
                   stroke="#fc6c00"
@@ -776,7 +1103,7 @@ export function InteractiveMonkeyAvatar({
               </g>
 
               {/* Right Arm */}
-              <g ref={armRRef} className="armR" style={{ visibility: 'hidden' }}>
+              <g ref={armRRef} className="armR" style={{ transformBox: 'fill-box' }}>
                 <path
                   fill={skinColor}
                   stroke="#fc6c00"
@@ -825,7 +1152,7 @@ export function InteractiveMonkeyAvatar({
       <div
         role="status"
         aria-live="polite"
-        className="mt-4 px-3.5 py-1.5 rounded-full bg-[#12151b] border border-[#242934] text-xs font-mono text-[#ff9d47] flex items-center gap-2 shadow-sm"
+        className="mt-4 px-3.5 py-1.5 rounded-full bg-[#12151b] border border-[#242934] text-xs font-mono text-[#ff9d47] flex items-center gap-2 shadow-sm whitespace-nowrap min-h-[34px]"
       >
         <span
           className={`w-2 h-2 rounded-full ${
