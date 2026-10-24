@@ -2,6 +2,7 @@
   "name": "milestone-escrow-workflow",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://giga-flow.vercel.app",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

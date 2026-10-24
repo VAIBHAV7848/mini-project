@@ -4,6 +4,7 @@
 > **Department**: Department of Computer Science and Engineering
 > **Team**: Team 07 (Theme 01)
 > **Repository**: [VAIBHAV7848/mini-project](https://github.com/VAIBHAV7848/mini-project)
+> **Live Production Platform**: [https://giga-flow.vercel.app](https://giga-flow.vercel.app)
 >
 > **Source of Truth Statement**: Official team project documents are the authoritative source of project requirements and scope. `README.md` is public project documentation derived from the authoritative project materials.
 
