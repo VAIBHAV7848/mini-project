@@ -349,6 +349,34 @@ export class ContractManager {
       data: { status: 'APPROVED' },
     });
 
+    // Provision SettlementTransfer for administrative manual payout
+    const grossPaise = milestone.amountPaise > 0 ? milestone.amountPaise : Math.round(milestone.amount * 100);
+    const platformFeePaise = Math.round(grossPaise * 0.05);
+    const netDisbursedPaise = grossPaise - platformFeePaise;
+    const idempotencyKey = `SETTLE_${milestone.id}`;
+
+    await prisma.settlementTransfer.upsert({
+      where: { idempotencyKey },
+      create: {
+        id: `set_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        contractId: milestone.contractId,
+        milestoneId: milestone.id,
+        freelancerId: milestone.contract.freelancerId,
+        beneficiaryId: `BEN_${milestone.contract.freelancerId}`,
+        idempotencyKey,
+        grossAmountPaise: grossPaise,
+        platformFeePaise,
+        netDisbursedPaise,
+        payoutMode: 'MANUAL_UPI',
+        status: 'PENDING',
+      },
+      update: {
+        grossAmountPaise: grossPaise,
+        platformFeePaise,
+        netDisbursedPaise,
+      },
+    });
+
     await this.auditLogger.logAction({
       actorId: input.clientId,
       entityName: 'Milestone',

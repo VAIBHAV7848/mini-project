@@ -26,7 +26,7 @@ const PERSONAS = {
   },
   ADMIN: {
     id: '233616fd-2260-4131-882a-bb9e50f295b1',
-    name: 'System Auditor',
+    name: 'Vaibhav Chavanpatil (VAIBHAV)',
     email: 'admin@escrow.local',
     role: 'ADMIN',
   },

@@ -48,7 +48,7 @@ export interface CashfreeCreateRefundRequest {
   /** Execution rail: "STANDARD" (banking days) or "INSTANT" (instant credit via IMPS/UPI) */
   refund_speed?: 'STANDARD' | 'INSTANT';
 
-  /** 
+  /**
    * Vendor split debit directives when using Cashfree Easy Split (Marketplace).
    * Dictates how the refund is recovered from onboarded freelancers/sub-merchants.
    */
@@ -133,7 +133,7 @@ export interface CashfreeRefundResponse {
   /** Human/machine-readable description of current status */
   status_description: string;
 
-  /** 
+  /**
    * Acquiring Reference Number (ARN) provided by card/banking network.
    * Null until banking processing reaches final clearing stage.
    */
@@ -367,7 +367,7 @@ graph TD
     Reviewer -->|100% Client| FullRefund[Full Milestone Refund]
     Reviewer -->|100% Freelancer| FullRelease[Full Milestone Release]
     Reviewer -->|Partial Compromise| SplitAward[Split Ruling]
-    
+
     SplitAward --> SplitRefund[Refund ₹X to Client]
     SplitAward --> SplitRelease[Release ₹Y to Freelancer]
 ```
@@ -551,14 +551,14 @@ stateDiagram-v2
     REVIEW_TIMEOUT --> RELEASED: Auto-Release
     APPROVED --> RELEASE_PENDING: Client Releases Funds
     RELEASE_PENDING --> RELEASED: Transfer Success Webhook
-    
+
     DISPUTED --> REFUND_PENDING: Reviewer Rules REFUND_TO_CLIENT
     REFUND_PENDING --> REFUNDED: Cashfree Webhook REFUND_SUCCESS
     REFUND_PENDING --> REFUND_FAILED: Cashfree Webhook REFUND_FAILED
-    
+
     REFUND_FAILED --> REFUND_PENDING: Admin Retries Gateway Refund
     REFUND_FAILED --> REFUNDED: Admin Resolves via Alternate Payout
-    
+
     REFUNDED --> [*]
     RELEASED --> [*]
 ```
@@ -617,7 +617,7 @@ model Dispute {
   status             String    @default("OPEN") // OPEN | UNDER_REVIEW | RESOLVED | REJECTED
   ruling             String?   // RELEASE_TO_FREELANCER | REFUND_TO_CLIENT | SPLIT_AWARD
   rulingNotes        String?   @map("ruling_notes")
-  
+
   // Real gateway refund tracking
   gatewayRefundId    String?   @map("gateway_refund_id")
   cfRefundId         String?   @map("cf_refund_id")
@@ -626,7 +626,7 @@ model Dispute {
   refundSpeed        String?   @map("refund_speed")  // STANDARD | INSTANT
   refundArn          String?   @map("refund_arn")
   failureReason      String?   @map("failure_reason")
-  
+
   createdAt          DateTime  @default(now()) @map("created_at")
   resolvedAt         DateTime? @map("resolved_at")
 

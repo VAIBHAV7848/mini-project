@@ -114,3 +114,8 @@ temp/
 *.sql.gz
 *.core
 vgcore.*
+.vercel
+.env*
+*.sql
+scratch/
+PROJECT_REBUILD_PROMPT.md

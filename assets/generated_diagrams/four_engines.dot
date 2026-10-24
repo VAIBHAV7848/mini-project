@@ -1,0 +1,68 @@
+
+digraph FourEngines {
+    graph [bgcolor="#0F172A", fontname="Arial", fontsize=14, rankdir=TB, nodesep=0.6, ranksep=0.7];
+    node [shape=record, style="filled,rounded", fontname="Arial", fontsize=11, penwidth=1.5];
+    edge [fontname="Arial", fontsize=9, color="#94A3B8", fontcolor="#94A3B8", penwidth=1.5];
+
+    // Engine 04: Web Technologies
+    subgraph cluster_e4 {
+        label = "Engine 04 · Web Technologies Engine\n(Vaibhav Chavanpatil · 02FE24BCS013)";
+        fontcolor = "#38BDF8";
+        color = "#0284C7";
+        style = "dashed,rounded";
+        penwidth = 1.8;
+
+        e4_ui [label="{Next.js 16 App Router | React 19 UI Composition | Tailwind CSS 4 Responsive Grids}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#38BDF8"];
+        e4_rbac [label="{Server-Side RBAC Middleware | HTTP-Only Session Guards | Zod 4 Runtime Schema Validation}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#38BDF8"];
+        e4_poll [label="{5-Second Poller | Real-time Milestone Progress | Reviewer Console & Dispute Forms}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#38BDF8"];
+    }
+
+    // Engine 01: OS Engine
+    subgraph cluster_e1 {
+        label = "Engine 01 · OS Engine\n(Vaishnavi Modekar · 02FE24BCS060)";
+        fontcolor = "#34D399";
+        color = "#059669";
+        style = "dashed,rounded";
+        penwidth = 1.8;
+
+        e1_fsm [label="{Deterministic Escrow FSM | Legal Transition Enforcement | Rejects Out-of-Order Jumps (422)}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#34D399"];
+        e1_mutex [label="{Mutual Exclusion Critical Section | KeyedMutex Concurrency Guard | Double-Allocation Prevention}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#34D399"];
+        e1_timer [label="{Timer Interrupt Watchdog | 7-Day Review Preemption | Prevents Freelancer Starvation}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#34D399"];
+    }
+
+    // Engine 02: DSA & SE Engine
+    subgraph cluster_e2 {
+        label = "Engine 02 · DSA & SE Engine\n(Darshan Kittur · 02FE24BCS053)";
+        fontcolor = "#FBBF24";
+        color = "#D97706";
+        style = "dashed,rounded";
+        penwidth = 1.8;
+
+        e2_crypto [label="{Streaming SHA-256 Hasher | 64-Hex Cryptographic Digest | 100% Avalanche Tamper Detection}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#FBBF24"];
+        e2_tree [label="{Hierarchical N-ary EvidenceTree | In-Memory Dispute Timeline | O(V+E) Topological Traversal}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#FBBF24"];
+        e2_rtm [label="{Bidirectional RTM Engine | S0 Needs to S1 Verification | Proposal Matcher Heuristic}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#FBBF24"];
+    }
+
+    // Engine 03: DBMS Engine
+    subgraph cluster_e3 {
+        label = "Engine 03 · DBMS Engine\n(Purvi Sammatshetti · 02FE24BCS022)";
+        fontcolor = "#A78BFA";
+        color = "#7C3AED";
+        style = "dashed,rounded";
+        penwidth = 1.8;
+
+        e3_bcnf [label="{BCNF Relational Data Models | Candidate Key Determinants | Eliminates Insertion/Update Anomalies}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#A78BFA"];
+        e3_acid [label="{Atomic ACID Transactions | prisma.$transaction Rollback | Double-Entry Conservation (Sum dB=0)}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#A78BFA"];
+        e3_audit [label="{Append-Only AuditLog | SHA-256 Chained Hashes | Triggers Denying UPDATE/DELETE}", fillcolor="#1E293B", fontcolor="#F8FAFC", color="#A78BFA"];
+    }
+
+    // Inter-Engine Data Flows
+    e4_ui -> e1_fsm [label="1. Request Milestone Transition", color="#38BDF8", fontcolor="#38BDF8"];
+    e4_ui -> e2_crypto [label="2. Stream Deliverable Binary", color="#FBBF24", fontcolor="#FBBF24"];
+    e1_fsm -> e1_mutex [label="Check Preconditions"];
+    e1_mutex -> e3_acid [label="3. Execute Atomic Balance Transfer", color="#34D399", fontcolor="#34D399"];
+    e2_crypto -> e3_bcnf [label="4. Store Checksum in Deliverable", color="#A78BFA", fontcolor="#A78BFA"];
+    e2_tree -> e4_poll [label="5. Render Tree to Arbiter Console", color="#38BDF8", fontcolor="#38BDF8"];
+    e3_acid -> e3_audit [label="6. Immutably Log State & Hash", color="#A78BFA", fontcolor="#A78BFA"];
+    e3_bcnf -> e4_poll [label="7. 5s Poller Reads Updated State", color="#94A3B8", fontcolor="#94A3B8"];
+}

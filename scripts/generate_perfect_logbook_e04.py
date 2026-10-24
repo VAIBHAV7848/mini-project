@@ -417,7 +417,7 @@ for q, a in viva_qa:
     r_q.bold = True
     r_q.font.size = Pt(7.5)
     r_q.font.color.rgb = NAVY
-    
+
     p_a = doc.add_paragraph()
     p_a.paragraph_format.space_after = Pt(1)
     p_a.paragraph_format.space_before = Pt(0)

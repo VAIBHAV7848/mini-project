@@ -1,9 +1,9 @@
 # Money-Bearing Fields and Transaction Flow Audit
 
-**Document Version**: 1.0.0  
-**Date**: October 3, 2026  
-**Auditor**: Team 07 (KLE Technological University — Dept. of CSE)  
-**Target Repository**: GigaFlow (`/home/nethunter/Collage/BIG_PROJECT`)  
+**Document Version**: 1.0.0
+**Date**: October 3, 2026
+**Auditor**: Team 07 (KLE Technological University — Dept. of CSE)
+**Target Repository**: GigaFlow (`/home/nethunter/Collage/BIG_PROJECT`)
 **Scope**: Complete inventory of all money-bearing fields, models, mutation paths, arithmetic operations, and precision risks.
 
 ---

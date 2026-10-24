@@ -13,6 +13,8 @@ import {
   Check,
   LogOut,
   User,
+  Landmark,
+  Wallet,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -23,7 +25,7 @@ const WORKSPACE_OPTIONS: { role: Role; label: string; sublabel: string; initial:
   { role: 'CLIENT', label: 'Client Workspace', sublabel: 'Alice Client', initial: 'C', badgeColor: 'text-blue-400 bg-blue-500/15 border-blue-500/30' },
   { role: 'FREELANCER', label: 'Engineer Workspace', sublabel: 'Charlie Developer', initial: 'E', badgeColor: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30' },
   { role: 'REVIEWER', label: 'Reviewer Workspace', sublabel: 'Judge Reviewer', initial: 'R', badgeColor: 'text-amber-400 bg-amber-500/15 border-amber-500/30' },
-  { role: 'ADMIN', label: 'Admin Console', sublabel: 'System Auditor', initial: 'A', badgeColor: 'text-purple-400 bg-purple-500/15 border-purple-500/30' },
+  { role: 'ADMIN', label: 'Admin Console', sublabel: 'Vaibhav Chavanpatil (VAIBHAV)', initial: 'V', badgeColor: 'text-purple-400 bg-purple-500/15 border-purple-500/30' },
 ];
 
 function UserProfileDropdown() {
@@ -228,6 +230,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       case 'ADMIN':
         return [
           { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
+          { icon: Landmark, label: 'Finance & Settlements', href: '/admin/finance' },
           { icon: ShieldCheck, label: 'Ledger Audit', href: '/audit' },
           { icon: Layers, label: 'All Projects', href: '/projects' },
           { icon: AlertTriangle, label: 'All Disputes', href: '/disputes' },

@@ -35,6 +35,8 @@ model User {
   payments              Payment[]
   settlementTransfers   SettlementTransfer[]
   vendorPayoutProfile   VendorPayoutProfile?
+  verifiedPayments      Payment[]            @relation("VerifiedPayments")
+  processedSettlements  SettlementTransfer[] @relation("ProcessedSettlements")
 
   @@index([role])
   @@map("users")
@@ -189,7 +191,7 @@ model DisputeEvidence {
 
 model EscrowTransaction {
   id          String   @id @default(uuid())
-  contractId  String   @map("contract_id")
+  contractId  String?  @map("contract_id")
   milestoneId String?  @map("milestone_id")
   fromUserId  String?  @map("from_user_id")
   toUserId    String?  @map("to_user_id")
@@ -200,7 +202,7 @@ model EscrowTransaction {
   providerPaymentId String?  @unique @map("provider_payment_id")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  contract  Contract   @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  contract  Contract?  @relation(fields: [contractId], references: [id], onDelete: Restrict)
   milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
   fromUser  User?      @relation("TransactionsFrom", fields: [fromUserId], references: [id], onDelete: Restrict)
   toUser    User?      @relation("TransactionsTo", fields: [toUserId], references: [id], onDelete: Restrict)
@@ -264,31 +266,46 @@ model Order {
 // ============================================================
 
 model Payment {
-  id                String   @id @default(uuid())
-  contractId        String   @map("contract_id")
-  milestoneId       String?  @map("milestone_id")
-  clientId          String   @map("client_id")
-  amountPaise       Int      @map("amount_paise")
-  currency          String   @default("INR")
-  provider          String   @default("CASHFREE")
-  providerOrderId   String?  @unique @map("provider_order_id")
-  providerPaymentId String?  @map("provider_payment_id")
-  status            String   @default("PENDING") // PENDING | SUCCESS | FAILED | EXPIRED
-  paymentSessionId  String?  @map("payment_session_id")
-  idempotencyKey    String?  @unique @map("idempotency_key")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  id                String    @id @default(uuid())
+  paymentType       String    @default("WALLET_TOPUP") @map("payment_type") // WALLET_TOPUP | CONTRACT_ESCROW
+  contractId        String?   @map("contract_id")
+  milestoneId       String?   @map("milestone_id")
+  clientId          String    @map("client_id")
+  amountPaise       Int       @map("amount_paise")
+  currency          String    @default("INR")
+  provider          String    @default("UPI") // UPI | CASHFREE
+  providerOrderId   String?   @unique @map("provider_order_id")
+  providerPaymentId String?   @map("provider_payment_id")
+  status            String    @default("PENDING") // PENDING | PENDING_REVIEW | SUCCESS | FAILED | EXPIRED
+  paymentSessionId  String?   @map("payment_session_id")
+  idempotencyKey    String?   @unique @map("idempotency_key")
 
-  contract  Contract   @relation(fields: [contractId], references: [id], onDelete: Restrict)
-  milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
-  client    User       @relation(fields: [clientId], references: [id], onDelete: Restrict)
-  events    PaymentEvent[]
-  refunds   Refund[]
+  // UPI Specific Fields
+  upiOrderId        String?   @unique @map("upi_order_id")
+  upiVpa            String?   @map("upi_vpa")
+  upiUtr            String?   @unique @map("upi_utr")
+  upiUri            String?   @map("upi_uri")
+  qrPayload         String?   @map("qr_payload")
+
+  // Verification & Audit Metadata
+  verifiedByAdminId String?   @map("verified_by_admin_id")
+  adminNotes        String?   @map("admin_notes")
+  settledAt         DateTime? @map("settled_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  contract          Contract? @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  milestone         Milestone? @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
+  client            User      @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  verifiedByAdmin   User?     @relation("VerifiedPayments", fields: [verifiedByAdminId], references: [id], onDelete: Restrict)
+  events            PaymentEvent[]
+  refunds           Refund[]
 
   @@index([contractId])
   @@index([milestoneId])
   @@index([clientId])
   @@index([status])
+  @@index([upiUtr])
   @@map("payments")
 }
 
@@ -328,6 +345,7 @@ model SettlementTransfer {
   milestoneId         String    @map("milestone_id")
   freelancerId        String    @map("freelancer_id")
   beneficiaryId       String    @map("beneficiary_id")
+  payoutMode          String    @default("MANUAL_UPI") @map("payout_mode") // MANUAL_UPI | MANUAL_IMPS | CASHFREE
   gatewayTransferId   String?   @unique @map("gateway_transfer_id")
   idempotencyKey      String    @unique @map("idempotency_key")
   grossAmountPaise    Int       @map("gross_amount_paise")
@@ -339,16 +357,20 @@ model SettlementTransfer {
   failureReason       String?   @map("failure_reason")
   retryCount          Int       @default(0) @map("retry_count")
   nextRetryAt         DateTime? @map("next_retry_at")
+  processedByAdminId  String?   @map("processed_by_admin_id")
+  adminNotes          String?   @map("admin_notes")
   createdAt           DateTime  @default(now()) @map("created_at")
   settledAt           DateTime? @map("settled_at")
 
-  contract   Contract  @relation(fields: [contractId], references: [id], onDelete: Restrict)
-  milestone  Milestone @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
-  freelancer User      @relation(fields: [freelancerId], references: [id], onDelete: Restrict)
+  contract         Contract  @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  milestone        Milestone @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
+  freelancer       User      @relation(fields: [freelancerId], references: [id], onDelete: Restrict)
+  processedByAdmin User?     @relation("ProcessedSettlements", fields: [processedByAdminId], references: [id], onDelete: Restrict)
 
   @@index([contractId])
   @@index([freelancerId])
   @@index([status])
+  @@index([gatewayTransferId])
   @@map("settlement_transfers")
 }
 

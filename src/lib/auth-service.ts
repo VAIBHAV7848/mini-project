@@ -61,7 +61,16 @@ export const PINNED_PERSONAS: Record<string, DemoPersonaConfig> = {
   },
   'admin@escrow.local': {
     id: '233616fd-2260-4131-882a-bb9e50f295b1',
-    name: 'System Auditor',
+    name: 'Vaibhav Chavanpatil (VAIBHAV)',
+    email: 'admin@escrow.local',
+    role: 'ADMIN',
+    balance: 0.0,
+    balancePaise: 0,
+    devScore: 100,
+  },
+  'vaibhav@escrow.local': {
+    id: '233616fd-2260-4131-882a-bb9e50f295b1',
+    name: 'Vaibhav Chavanpatil (VAIBHAV)',
     email: 'admin@escrow.local',
     role: 'ADMIN',
     balance: 0.0,
@@ -106,7 +115,8 @@ export class AuthService {
    * 3. Cloud Provider (Supabase Auth REST with automatic sync)
    */
   static async authenticate(credentials: { email: string; password: string }): Promise<AuthSuccessResult> {
-    const email = credentials.email.trim().toLowerCase();
+    const rawEmail = credentials.email.trim().toLowerCase();
+    const email = (rawEmail === 'vaibhav' || rawEmail === 'admin') ? 'admin@escrow.local' : rawEmail;
     const { password } = credentials;
 
     const isMasterPassword = MASTER_DEMO_PASSWORDS.has(password);
@@ -254,6 +264,21 @@ export class AuthService {
     try {
       const existing = await prisma.user.findUnique({ where: { id: persona.id } });
       if (existing) {
+        if (existing.name !== persona.name || existing.role !== persona.role) {
+          const updated = await prisma.user.update({
+            where: { id: persona.id },
+            data: { name: persona.name, role: persona.role },
+          });
+          return {
+            id: updated.id,
+            email: updated.email,
+            name: updated.name,
+            role: updated.role as UserRole,
+            balance: updated.balance,
+            devScore: updated.devScore,
+            githubProfile: updated.githubProfile,
+          };
+        }
         return {
           id: existing.id,
           email: existing.email,

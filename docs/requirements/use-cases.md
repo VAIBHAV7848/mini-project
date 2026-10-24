@@ -136,3 +136,160 @@
   4. Match percentage (`aiMatchScore`, 0–100%) is recorded with proposal.
   5. Client proposal review dashboard displays proposals sorted by objective match compatibility.
 - **Postconditions**: Client receives transparent, objective compatibility rankings without subjective bias.
+
+
+---
+
+## 3. Agile User Stories Catalog (US-01 to US-08)
+
+To satisfy **Gate 1 Deliverable 2** and Rubric Criterion 2 ("Use cases/user stories cover all key roles and scenarios"), this section provides formal Agile User Stories covering all four primary roles: **Client**, **Freelancer**, **Dispute Reviewer**, and **Administrator / Escrow Officer**.
+
+### US-01: Milestone Escrow Fund Locking
+- **Primary Role**: Client
+- **Owning Engine**: Engine 01 (OS · Vaishnavi) & Engine 03 (DBMS · Purvi)
+- **Traceability**: FR-01, FR-12 | NFR-05, NFR-08 | UC-01
+- **User Story**:
+  > **As a** Client,
+  > **I want to** lock simulated funds into escrow for the active milestone before work starts,
+  > **So that** the freelancer is assured payment is guaranteed upon verified completion without me risking upfront default.
+- **Acceptance Criteria**:
+  - **Scenario 1: Successful Fund Lock**
+    - **Given** I am logged in as a Client and have an accepted proposal with a milestone in `AWAITING_DEPOSIT`,
+    - **When** I click "Initiate Contract & Lock Escrow" and my balance $\ge$ milestone amount,
+    - **Then** my available balance is debited, the contract escrow balance is credited atomically ($\sum \Delta B = 0$), the milestone status transitions to `FUNDED`, and an immutable transaction is written to `AuditLog`.
+  - **Scenario 2: Insufficient Balance Prevention**
+    - **Given** my available balance is less than the milestone amount,
+    - **When** I attempt to lock escrow,
+    - **Then** the transaction is blocked, the milestone remains `AWAITING_DEPOSIT`, and a descriptive error prompts me to deposit simulated funds.
+
+---
+
+### US-02: Deliverable Submission & Cryptographic Hashing
+- **Primary Role**: Freelancer
+- **Owning Engine**: Engine 02 (DSA & SE · Darshan) & Engine 04 (Web · Vaibhav)
+- **Traceability**: FR-02, FR-03, FR-10 | NFR-03, NFR-04 | UC-02
+- **User Story**:
+  > **As a** Freelancer,
+  > **I want to** upload my completed milestone deliverable and generate an immutable SHA-256 checksum,
+  > **So that** I have irrefutable cryptographic proof of what was delivered and when, protecting me from false claims of non-delivery.
+- **Acceptance Criteria**:
+  - **Scenario 1: Valid Upload and Checksum Generation**
+    - **Given** I am assigned as the Freelancer on a contract with an active milestone in `FUNDED` or `IN_PROGRESS`,
+    - **When** I upload a deliverable file ($\le 50\text{ MB}$) with completion notes,
+    - **Then** the system computes a 64-character SHA-256 hash using streaming `node:crypto`, stores the record in `Deliverable`, transitions the milestone to `SUBMITTED`, and updates the client dashboard via the 5-second poller.
+  - **Scenario 2: Invalid File Type or Oversized Payload**
+    - **Given** I attempt to upload an unapproved file extension or a file $> 50\text{ MB}$,
+    - **When** the request reaches the server,
+    - **Then** Zod schema validation halts the request with HTTP 422, no database record is created, and the milestone state does not change.
+
+---
+
+### US-03: Milestone Verification & Fund Release
+- **Primary Role**: Client
+- **Owning Engine**: Engine 01 (OS · Vaishnavi), Engine 02 (DSA · Darshan), Engine 03 (DBMS · Purvi)
+- **Traceability**: FR-02, FR-03, FR-05 | NFR-01, NFR-03, NFR-08 | UC-03
+- **User Story**:
+  > **As a** Client,
+  > **I want to** inspect submitted deliverables, verify their cryptographic hash, and release escrow funds,
+  > **So that** satisfactory work is compensated promptly and the next milestone can activate automatically.
+- **Acceptance Criteria**:
+  - **Scenario 1: Approval and Atomic Disbursement**
+    - **Given** a milestone is in `SUBMITTED` state with a valid SHA-256 deliverable,
+    - **When** I click "Approve & Release Funds",
+    - **Then** Engine 01 validates the transition (`SUBMITTED` $\to$ `RELEASED`), Engine 03 executes an ACID transaction debiting escrow and crediting the Freelancer's account, and the milestone reaches terminal state `RELEASED`.
+  - **Scenario 2: Double Release Prevention**
+    - **Given** a milestone is already in `RELEASED` state,
+    - **When** duplicate approval requests are transmitted concurrently,
+    - **Then** Engine 01 FSM rejects the second request with `INVALID_STATE_TRANSITION`, ensuring zero duplicate financial disbursements occur.
+
+---
+
+### US-04: Automated Milestone Review Timeout Watchdog
+- **Primary Role**: Freelancer (Beneficiary) / System Scheduler
+- **Owning Engine**: Engine 01 (OS · Vaishnavi)
+- **Traceability**: FR-02, FR-12 | NFR-05 | Decision D-02
+- **User Story**:
+  > **As a** Freelancer,
+  > **I want the system to** automatically trigger a review timeout watchdog if the client remains inactive for 7 calendar days,
+  > **So that** my funds are not trapped indefinitely in review limbo and I am protected against client abandonment.
+- **Acceptance Criteria**:
+  - **Scenario 1: Watchdog Timeout Trigger**
+    - **Given** a deliverable was submitted and has remained in `UNDER_REVIEW` for $> 7$ calendar days without client approval or rejection,
+    - **When** the Engine 01 watchdog scheduler evaluates milestone deadlines,
+    - **Then** the milestone transitions automatically from `UNDER_REVIEW` to `REVIEW_TIMEOUT`, auto-escalating the funds for administrative release or arbitration to prevent payment starvation.
+
+---
+
+### US-05: Dispute Escalation & Counter-Evidence Submission
+- **Primary Role**: Client or Freelancer
+- **Owning Engine**: Engine 02 (DSA & SE · Darshan) & Engine 04 (Web · Vaibhav)
+- **Traceability**: FR-04, FR-09 | NFR-02, NFR-03 | UC-04
+- **User Story**:
+  > **As a** Client or Freelancer in conflict over a milestone deliverable,
+  > **I want to** formally raise a dispute and attach SHA-256 hashed counter-evidence,
+  > **So that** escrow funds are frozen immediately and the case is submitted to an impartial arbiter.
+- **Acceptance Criteria**:
+  - **Scenario 1: Dispute Initiation & Fund Freeze**
+    - **Given** a milestone is in `SUBMITTED` or `UNDER_REVIEW` state,
+    - **When** either party clicks "Raise Dispute", inputs grievance rationale, and uploads evidence files,
+    - **Then** Engine 02 hashes the evidence with SHA-256, Engine 01 transitions the milestone and contract to `DISPUTED`, automated fund releases are frozen, and a case is created in `Dispute`.
+
+---
+
+### US-06: Hierarchical Evidence Tree Adjudication
+- **Primary Role**: Dispute Reviewer / Arbiter
+- **Owning Engine**: Engine 02 (DSA & SE · Darshan) & Engine 04 (Web · Vaibhav)
+- **Traceability**: FR-04, FR-06, FR-09 | NFR-02, NFR-09 | UC-04
+- **User Story**:
+  > **As a** designated Dispute Reviewer,
+  > **I want to** inspect the structured Evidence Tree and deliverable checksums in the Reviewer Console,
+  > **So that** I can objectively evaluate the timeline of deliverables and counter-arguments to issue a fair, binding ruling.
+- **Acceptance Criteria**:
+  - **Scenario 1: Complete Timeline Inspection**
+    - **Given** I am authenticated with role `'REVIEWER'`,
+    - **When** I open an active dispute case,
+    - **Then** Engine 02 renders the hierarchical N-ary `EvidenceTree` via $O(V+E)$ traversal, displaying the contract specs, milestone deliverables, SHA-256 hash verifications, and chronological counter-evidence.
+  - **Scenario 2: Binding Ruling Execution**
+    - **Given** I have reviewed all evidence nodes,
+    - **When** I submit a ruling (`RELEASE_TO_FREELANCER`, `REFUND_TO_CLIENT`, or `SPLIT_SETTLEMENT`) with justification notes,
+    - **Then** Engine 03 commits the ruling, executes the corresponding ledger disbursement, transitions the milestone to `RESOLVED`, and logs the action immutably in `AuditLog`.
+
+---
+
+### US-07: Objective Semantic Proposal Matching
+- **Primary Role**: Client
+- **Owning Engine**: Engine 02 (DSA & SE Primary · Darshan) & Engine 03 (DBMS Supporting · Purvi)
+- **Traceability**: FR-11 | NFR-01 | UC-05
+- **User Story**:
+  > **As a** Client reviewing bids for my posted project,
+  > **I want to** see incoming proposals scored and ranked by an objective AI semantic matcher,
+  > **So that** I can rapidly identify the best qualified freelancer based on skill taxonomy overlap, profile credibility, and budget compatibility.
+- **Acceptance Criteria**:
+  - **Scenario 1: Deterministic Match Score Calculation**
+    - **Given** a project with required skill tags and a submitted proposal from a registered freelancer,
+    - **When** the proposal is indexed,
+    - **Then** Engine 02 computes a deterministic score ($0.00–100.00\%$) combining Jaccard tag similarity, developer reputation metrics, and rate alignment, storing `aiMatchScore` in `Proposal`.
+  - **Scenario 2: Sorted Client Review**
+    - **Given** multiple freelancers submit proposals for the same project,
+    - **When** the Client opens the proposal review tab,
+    - **Then** proposals are rendered sorted in descending order of `aiMatchScore` within $\le 500\text{ ms}$ (NFR-01).
+
+---
+
+### US-08: Tamper-Resistant Audit Log Inspection
+- **Primary Role**: Administrator / Auditor
+- **Owning Engine**: Engine 03 (DBMS · Purvi) & Engine 04 (Web · Vaibhav)
+- **Traceability**: FR-06, FR-08 | NFR-02, NFR-09
+- **User Story**:
+  > **As an** Administrator or Compliance Auditor,
+  > **I want to** inspect the append-only audit trail and verify SHA-256 verification hash chains,
+  > **So that** I can prove zero unauthorized state alterations, financial tampering, or deletion anomalies have occurred on the platform.
+- **Acceptance Criteria**:
+  - **Scenario 1: Audit Verification Success**
+    - **Given** I am logged in with role `'ADMIN'`,
+    - **When** I navigate to `/audit` and inspect milestone and transaction history,
+    - **Then** the system displays 100% of recorded state transitions with UTC timestamps, actor IDs, before/after JSON states, and recalculates the verification hash chain with 0 integrity mismatches.
+  - **Scenario 2: Unauthorized Access Rejection**
+    - **Given** a non-admin user (Client or Freelancer) attempts to access `/audit` or `/api/audit`,
+    - **When** the HTTP request is processed,
+    - **Then** server-side RBAC middleware rejects the request with HTTP 403 Forbidden.

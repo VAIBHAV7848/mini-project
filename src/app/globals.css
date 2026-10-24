@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* ---- Type ---- */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -62,11 +64,36 @@
    Base
    ========================================================================== */
 @layer base {
+  :root, html.dark {
+    --color-charcoal: #0a0a0a;
+    --color-surface: #121212;
+    --color-surface-elevated: #1a1a1a;
+    --color-surface-highlight: #222222;
+    --color-paper: #ffffff;
+    --color-paper-muted: #a3a3a3;
+    --color-paper-faint: #737373;
+    --color-line: rgba(255, 255, 255, 0.12);
+    --color-line-strong: rgba(255, 255, 255, 0.25);
+    color-scheme: dark;
+  }
+
+  html.light {
+    --color-charcoal: #f8fafc;
+    --color-surface: #ffffff;
+    --color-surface-elevated: #f1f5f9;
+    --color-surface-highlight: #e2e8f0;
+    --color-paper: #09090b;
+    --color-paper-muted: #64748b;
+    --color-paper-faint: #94a3b8;
+    --color-line: rgba(0, 0, 0, 0.08);
+    --color-line-strong: rgba(0, 0, 0, 0.16);
+    color-scheme: light;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
-    color-scheme: dark;
   }
 
   body {
@@ -75,15 +102,29 @@
     font-family: var(--font-sans);
     overflow-x: hidden;
     font-feature-settings: "cv11" 1, "ss01" 1, "rlig" 1, "calt" 1;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  html.light .text-white {
+    color: var(--color-paper);
+  }
+
+  html.light .btn-primary,
+  html.light .btn-primary *,
+  html.light .btn-success,
+  html.light .btn-success *,
+  html.light .btn-danger-solid,
+  html.light .btn-danger-solid *,
+  html.light [class*="bg-brand-base"],
+  html.light [class*="bg-emerald-600"],
+  html.light [class*="bg-red-600"] {
+    color: #ffffff;
   }
 
   h1, h2, h3, h4 {
+    font-family: var(--font-display);
     text-wrap: balance;
     letter-spacing: -0.02em;
-  }
-
-  p, li {
-    text-wrap: pretty;
   }
 
   p, li {
@@ -98,7 +139,7 @@
   :focus-visible {
     outline: 2px solid var(--color-brand-base);
     outline-offset: 2px;
-    border-radius: 8px;
+
   }
 
   :focus:not(:focus-visible) {
@@ -207,4 +248,17 @@
   .badge-success { @apply bg-success-tint border-success/30 text-success-light; }
   .badge-warning { @apply bg-warning-tint border-warning/30 text-warning-light; }
   .badge-danger { @apply bg-danger-tint border-danger/30 text-danger-light; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

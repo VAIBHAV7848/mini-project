@@ -21,7 +21,10 @@ import {
   XCircle,
   FileText,
   Upload,
+  Wallet,
+  PlusCircle,
 } from 'lucide-react';
+import { UpiTopUpModal } from '@/components/payments/UpiTopUpModal';
 import { calculateFileSha256, formatBytes } from '@/lib/crypto-hash';
 
 interface MilestoneItem {
@@ -80,6 +83,27 @@ export default function DashboardPage() {
   const [contracts, setContracts] = useState<ContractItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePollContractId, setActivePollContractId] = useState<string | null>(null);
+  const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+
+  const fetchWalletBalance = React.useCallback(async () => {
+    if (!currentPersona?.id) return;
+    try {
+      const res = await fetch('/api/auth/session', {
+        headers: { 'x-user-id': currentPersona.id },
+      });
+      const data = await res.json();
+      if (data.success && data.data?.balance !== undefined) {
+        setWalletBalance(data.data.balance);
+      }
+    } catch {
+      // fallback
+    }
+  }, [currentPersona?.id]);
+
+  useEffect(() => {
+    fetchWalletBalance();
+  }, [fetchWalletBalance]);
 
   const [transactionState, setTransactionState] = useState<{
     isOpen: boolean;
@@ -618,6 +642,35 @@ export default function DashboardPage() {
 
           {/* Right: escrow rail */}
           <aside className="space-y-6 lg:sticky lg:top-24 self-start">
+            {role === 'CLIENT' && (
+              <section className="panel p-0 overflow-hidden border border-brand-base/30 shadow-md">
+                <div className="p-6 bg-brand-tint/20 border-b border-line">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="eyebrow flex items-center gap-1.5 text-brand-base">
+                      <Wallet className="w-3.5 h-3.5" /> Marketplace Wallet
+                    </h2>
+                    <span className="badge badge-brand text-[10px]">Liquid</span>
+                  </div>
+                  <p className="font-display text-4xl font-bold tracking-tight text-white mb-2">
+                    {formatRupee(walletBalance)}
+                  </p>
+                  <p className="text-xs text-paper-muted">
+                    Available to fund project milestones.
+                  </p>
+                </div>
+                <div className="p-4 bg-surface-elevated">
+                  <button
+                    type="button"
+                    onClick={() => setIsTopUpOpen(true)}
+                    className="w-full btn btn-sm btn-primary flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Add Balance (UPI QR)</span>
+                  </button>
+                </div>
+              </section>
+            )}
+
             <section className="panel p-0 overflow-hidden">
               <div className="p-6 bg-surface-highlight/20 border-b border-line">
                 <h2 className="eyebrow mb-4">Total Escrow</h2>
@@ -832,6 +885,15 @@ export default function DashboardPage() {
           )}
         </div>
       </Dialog>
+
+      <UpiTopUpModal
+        isOpen={isTopUpOpen}
+        onClose={() => setIsTopUpOpen(false)}
+        onSuccess={(newBal) => {
+          setWalletBalance(newBal);
+          fetchContracts();
+        }}
+      />
     </AppShell>
   );
 }

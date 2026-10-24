@@ -8,7 +8,9 @@ export type EscrowStatus =
   | 'UNDER_REVIEW'
   | 'REVIEW_TIMEOUT'
   | 'APPROVED'
+  | 'SETTLING'
   | 'RELEASED'
+  | 'REFUND_PENDING'
   | 'REFUNDED'
   | 'DISPUTED';
 
@@ -18,10 +20,13 @@ export type ContractAction =
   | 'SUBMIT_DELIVERABLE'
   | 'APPROVE_MILESTONE'
   | 'RELEASE_ESCROW'
+  | 'INITIATE_SETTLEMENT'
+  | 'SETTLEMENT_FAILED'
   | 'RAISE_DISPUTE'
   | 'TIMEOUT_WATCHDOG'
   | 'RESOLVE_RELEASE'
-  | 'RESOLVE_REFUND';
+  | 'RESOLVE_REFUND'
+  | 'INITIATE_REFUND';
 
 export interface UserDTO {
   id: string;

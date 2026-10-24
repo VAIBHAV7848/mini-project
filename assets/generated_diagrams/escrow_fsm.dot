@@ -1,0 +1,36 @@
+
+digraph EscrowFSM {
+    graph [bgcolor="#0F172A", fontname="Arial", fontsize=14, rankdir=LR, ranksep=0.8, nodesep=0.5];
+    node [shape=box, style="filled,rounded", fontname="Arial", fontsize=11, penwidth=1.5];
+    edge [fontname="Arial", fontsize=9, color="#94A3B8", fontcolor="#94A3B8", penwidth=1.5];
+
+    start [shape=circle, label="", width=0.3, fillcolor="#38BDF8", color="#38BDF8"];
+
+    await [label="AWAITING_DEPOSIT\n(Initial State)", fillcolor="#1E293B", fontcolor="#94A3B8", color="#475569"];
+    funded [label="FUNDED\n(Escrow Vault Locked)", fillcolor="#1E293B", fontcolor="#34D399", color="#059669"];
+    progress [label="IN_PROGRESS\n(Freelancer Executing)", fillcolor="#1E293B", fontcolor="#38BDF8", color="#0284C7"];
+    subm [label="SUBMITTED\n(SHA-256 Fingerprinted)", fillcolor="#1E293B", fontcolor="#FBBF24", color="#D97706"];
+    review [label="UNDER_REVIEW\n(7-Day Watchdog Active)", fillcolor="#1E293B", fontcolor="#F59E0B", color="#B45309"];
+
+    released [label="RELEASED\n(Terminal Success · Paid)", shape=doubleoctagon, fillcolor="#064E3B", fontcolor="#34D399", color="#34D399", penwidth=2.5];
+    disputed [label="DISPUTED\n(Funds Frozen · In Arbiter)", fillcolor="#7F1D1D", fontcolor="#F87171", color="#EF4444", penwidth=2];
+    timeout [label="REVIEW_TIMEOUT\n(Watchdog Preempted)", fillcolor="#451A03", fontcolor="#FBBF24", color="#F59E0B"];
+    refunded [label="REFUNDED\n(Terminal Refund · Reverted)", shape=doubleoctagon, fillcolor="#1E293B", fontcolor="#F87171", color="#EF4444"];
+
+    start -> await [color="#38BDF8"];
+    await -> funded [label="Client Deposits Funds\n(FR-01, Mutex Lock)", color="#34D399", fontcolor="#34D399"];
+    funded -> progress [label="Freelancer Accepts / Begins", color="#38BDF8", fontcolor="#38BDF8"];
+    progress -> subm [label="Upload Deliverable\n(FR-03, SHA-256 Hash)", color="#FBBF24", fontcolor="#FBBF24"];
+    subm -> review [label="Client Notification Sent", color="#94A3B8"];
+
+    review -> released [label="Client Approves Work\n(FR-05, ACID Payout)", color="#34D399", fontcolor="#34D399", penwidth=2.5];
+    review -> progress [label="Revision Requested\n(Notes Stored)", color="#FBBF24", fontcolor="#FBBF24"];
+    review -> disputed [label="Either Party Contests\n(FR-09, Funds Frozen)", color="#F87171", fontcolor="#F87171", penwidth=2];
+
+    review -> timeout [label="7 Days Inactivity\n(Watchdog Timer)", color="#FBBF24", fontcolor="#FBBF24", style=dashed];
+    timeout -> disputed [label="Auto-Escalate to Arbiter", color="#F87171", fontcolor="#F87171"];
+    timeout -> released [label="Auto-Approval Policy", color="#34D399", fontcolor="#34D399", style=dashed];
+
+    disputed -> released [label="Arbiter Rules for Dev\n(EvidenceTree Verified)", color="#34D399", fontcolor="#34D399"];
+    disputed -> refunded [label="Arbiter Rules for Client\n(Full Refund)", color="#F87171", fontcolor="#F87171"];
+}

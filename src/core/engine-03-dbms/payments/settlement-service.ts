@@ -130,7 +130,7 @@ export class SettlementService {
 
     // Persist to SQLite table using UPSERT
     await prisma.$executeRawUnsafe(
-      `INSERT INTO user_payout_methods 
+      `INSERT INTO user_payout_methods
        (id, user_id, vendor_id, account_type, account_identifier, ifsc, bank_name, verification_status, verified_at, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(user_id) DO UPDATE SET
@@ -298,7 +298,7 @@ export class SettlementService {
 
           // Persist to SQLite settlement_transfers table
           await tx.$executeRawUnsafe(
-            `INSERT INTO settlement_transfers 
+            `INSERT INTO settlement_transfers
              (id, contract_id, milestone_id, freelancer_id, beneficiary_id, gateway_transfer_id, idempotency_key, gross_amount_paise, platform_fee_paise, net_disbursed_paise, currency, status, retry_count, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             transferId,
@@ -548,8 +548,8 @@ export class SettlementService {
       // 6. Update transfer record in SQLite table
       const nowIso = new Date().toISOString();
       await tx.$executeRawUnsafe(
-        `UPDATE settlement_transfers 
-         SET status = 'SUCCESS', gateway_transfer_id = ?, settled_at = ? 
+        `UPDATE settlement_transfers
+         SET status = 'SUCCESS', gateway_transfer_id = ?, settled_at = ?
          WHERE id = ?`,
         gatewayTransferId,
         nowIso,
@@ -591,8 +591,8 @@ export class SettlementService {
     await prisma.$transaction(async (tx) => {
       // Update SQLite transfer record
       await tx.$executeRawUnsafe(
-        `UPDATE settlement_transfers 
-         SET status = 'FAILED', failure_code = ?, failure_reason = ? 
+        `UPDATE settlement_transfers
+         SET status = 'FAILED', failure_code = ?, failure_reason = ?
          WHERE id = ?`,
         failureCode,
         failureReason,
@@ -648,8 +648,8 @@ export class SettlementService {
     const nextRetry = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
     await prisma.$executeRawUnsafe(
-      `UPDATE settlement_transfers 
-       SET status = 'QUEUED_INSUFFICIENT_FUNDS', failure_code = ?, failure_reason = ?, next_retry_at = ? 
+      `UPDATE settlement_transfers
+       SET status = 'QUEUED_INSUFFICIENT_FUNDS', failure_code = ?, failure_reason = ?, next_retry_at = ?
        WHERE id = ?`,
       gatewayResponse.failureCode || 'LOW_BALANCE',
       gatewayResponse.failureReason || 'Platform payout float depleted.',
@@ -695,8 +695,8 @@ export class SettlementService {
     let failed = 0;
 
     const queuedRows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM settlement_transfers 
-       WHERE status = 'QUEUED_INSUFFICIENT_FUNDS' 
+      `SELECT * FROM settlement_transfers
+       WHERE status = 'QUEUED_INSUFFICIENT_FUNDS'
        ORDER BY created_at ASC`
     );
 

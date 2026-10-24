@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { RoleProvider } from '@/components/layout/RoleContext';
+import { ThemeProvider } from '@/components/theme/ThemeContext';
+import { ThemeScript } from '@/components/theme/ThemeScript';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono', display: 'swap' });
@@ -18,11 +20,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable}`}>
+      <head>
+        <ThemeScript />
+      </head>
       <body className="bg-charcoal text-paper antialiased font-sans selection:bg-brand-base selection:text-charcoal min-h-screen">
-        <RoleProvider>
-          {children}
-        </RoleProvider>
+        <ThemeProvider>
+          <RoleProvider>
+            {children}
+          </RoleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

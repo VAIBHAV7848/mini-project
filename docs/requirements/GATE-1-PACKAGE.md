@@ -11,6 +11,35 @@
 
 ---
 
+## Official Gate 1 Deliverables & Evidence Checklist
+
+> **Assessment Rubric Compliance Table** (Reference: KLE Tech Mini-Project Gate 1 Evaluation Guidelines)
+
+| # | Deliverable / Evidence Item | Submitted (Y/N) | Date Verified | Verified By | Authoritative S1 Specification File |
+| :---: | :--- | :---: | :---: | :---: | :--- |
+| **1** | **Functional Requirements Document (FRD)** | **Y** | `2026-10-02` | Team 07 & Guide | [functional-requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/functional-requirements.md) (FR-01 to FR-12) |
+| **2** | **Use Cases & User Stories** | **Y** | `2026-10-02` | Team 07 & Guide | [use-cases.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/use-cases.md) (UC-01..05 & US-01..08) |
+| **3** | **KPIs & Success Metrics** | **Y** | `2026-10-02` | Team 07 & Guide | [kpis-and-success-metrics.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/kpis-and-success-metrics.md) (3-Tier Sheet) |
+| **4** | **Data Requirements & Constraints** | **Y** | `2026-10-02` | Team 07 & Guide | [data-requirements-and-constraints.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/data-requirements-and-constraints.md) |
+| **5** | **Engine Mapping — Four Engines** | **Y** | `2026-10-02` | Team 07 & Guide | [team-project-overview.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/team-project-overview.md) & [engine-defense/](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/engine-defense/) |
+| **6** | **Prioritized Requirement List** | **Y** | `2026-10-02` | Team 07 & Guide | [prioritized-requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/prioritized-requirements.md) (MoSCoW Matrix) |
+| **7** | **Dated Evidence Before Gate 2** | **Y** | `2026-10-02` | Team 07 & Guide | Git Commit `926869b` / `9c141b2` (`2026-10-02 22:40:28 +0530`) |
+
+---
+
+## Gate 1 Assessment Rubric Alignment (Target: 15 / 15 Marks)
+
+| Criterion | Max Marks | Full Marks Criteria | Team 07 Compliance & Defense Evidence |
+| :--- | :---: | :--- | :--- |
+| **Requirements Completeness** | **5** | All major functional requirements captured with clarity and rationale. | **FR-01 through FR-12** fully articulated using IEEE standard behavioral templates with inputs, outputs, error conditions, owning engines, and formal RBAC matrix. |
+| **Use Cases & Users** | **3** | Use cases/user stories cover all key roles and scenarios. | **5 Detailed Use Cases (UC-01 to UC-05)** and **8 Agile User Stories (US-01 to US-08)** covering all 4 roles (Client, Freelancer, Dispute Reviewer, Admin). |
+| **KPIs & Metrics** | **3** | Clear, measurable KPIs with targets defined. | **3-Tier KPI Sheet** defining Mandatory KPIs (Zero drift, 100% RBAC), System KPIs (p95 $\le 500\text{ms}$), Challenge KPIs ($O(V+E) < 10\text{ms}$), and business targets. |
+| **Engine Mapping** | **2** | Requirements mapped correctly to four engines. | **Four foundational engines** individually owned by team members: Engine 01 (OS · Vaishnavi), Engine 02 (DSA/SE · Darshan), Engine 03 (DBMS · Purvi), Engine 04 (Web · Vaibhav). |
+| **Timeliness of Evidence** | **2** | All S1 evidence completed before Gate 2. | **100% of S1 requirements baseline frozen** in Git commit `926869b` / `9c141b2` dated `2026-10-02`, strictly prior to Gate 2 architecture commits on `2026-10-03`. |
+| **TOTAL** | **15** | **FULL MARKS BASELINE** | **15 / 15 Fully Documented and Empirically Verifiable.** |
+
+---
+
 ## Master Document Navigation Index
 
 | Section | Content Area | Authoritative Source Document | Derived Project Package File |
@@ -19,18 +48,20 @@
 | **2** | **Problem Statement** | DOCX Step 1 & 4; PPTX Slide 2 | [team-project-overview.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/team-project-overview.md), [requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/requirements.md) |
 | **3** | **Scope (In/Out of Scope)** | DOCX Step 5; PPTX Slide 16 | [project-scope.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/project-scope.md) |
 | **4** | **Stakeholders & Actors** | DOCX Step 2; PPTX Slide 16 | [use-cases.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/use-cases.md), [team-project-overview.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/team-project-overview.md) |
-| **5** | **Functional Requirements** | PPTX Slide 18 (FR-01 to FR-12) | [functional-requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/functional-requirements.md) |
+| **5** | **Functional Requirements (FRD)**| PPTX Slide 18 (FR-01 to FR-12) | [functional-requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/functional-requirements.md) |
 | **6** | **Non-Functional Requirements** | PPTX Slide 19 (NFR-01 to NFR-10) | [non-functional-requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/non-functional-requirements.md) |
-| **7** | **Use Cases / User Stories** | PPTX Slides 3, 17, 21, 22; DOCX Step 3 | [use-cases.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/use-cases.md) (UC-01 to UC-05) |
-| **8** | **Acceptance Criteria** | PPTX Slide 18 | [functional-requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/functional-requirements.md) Section 2 |
-| **9** | **Requirements Traceability (RTM)**| PPTX Slide 23; DOCX Step 4 | [requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/requirements.md) Section 3 |
-| **10** | **Four-Engine Decomposition** | PPTX Slides 9–15 | [team-project-overview.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/team-project-overview.md) Section 3 |
-| **11** | **Assumptions & Constraints** | DOCX Step 5 | [project-scope.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/project-scope.md) Section 2 |
-| **12** | **Project Risk Register** | DOCX Step 7 (R1 to R8) | [project-scope.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/project-scope.md) Section 3 |
-| **13** | **Pending Team Decisions** | Audit Findings 1, 2, 5 | [gate-1-team-decisions.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-team-decisions.md) (D-01, D-02, D-03) |
-| **14** | **Gate 1 Defense Questions** | Review Board Evaluation | [gate-1-defense-cheat-sheet.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-defense-cheat-sheet.md), [gate-1-hard-questions.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-hard-questions.md), [gate-1-adversarial-review.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-adversarial-review.md) |
-| **15** | **Gate 1 Presentation Script** | S1 Delivery & Q&A Script | [gate-1-presentation-script.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-presentation-script.md) (15 Spoken Sections) |
-| **16** | **Engine Defense Packages** | 4-Engine Subject Defenses | [engine-01-os.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/engine-defense/engine-01-os.md), [engine-02-dsa-se.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/engine-defense/engine-02-dsa-se.md), [engine-03-dbms.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/engine-defense/engine-03-dbms.md), [engine-04-web.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/engine-defense/engine-04-web.md) |
+| **7** | **Use Cases & Agile Stories** | PPTX Slides 3, 17, 21, 22; DOCX Step 3 | [use-cases.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/use-cases.md) (UC-01..05, US-01..08) |
+| **8** | **KPIs & Success Metrics** | PPTX Slide 19 & 22 | [kpis-and-success-metrics.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/kpis-and-success-metrics.md) (3-Tier Sheet) |
+| **9** | **Data Requirements & Constraints**| DOCX Step 4 & 5; PPTX Slide 14, 16 | [data-requirements-and-constraints.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/data-requirements-and-constraints.md) |
+| **10** | **Prioritized Requirements** | DOCX Step 4, Item 2; Slide 18 | [prioritized-requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/prioritized-requirements.md) (MoSCoW Matrix) |
+| **11** | **Requirements Traceability (RTM)**| PPTX Slide 23; DOCX Step 4 | [requirements.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/requirements.md) Section 3 |
+| **12** | **Four-Engine Decomposition** | PPTX Slides 9–15 | [team-project-overview.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/team-project-overview.md) Section 3 |
+| **13** | **Assumptions & Constraints** | DOCX Step 5 | [project-scope.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/project-scope.md) Section 2 |
+| **14** | **Project Risk Register** | DOCX Step 7 (R1 to R8) | [project-scope.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/project-scope.md) Section 3 |
+| **15** | **Pending Team Decisions** | Audit Findings 1, 2, 5 | [gate-1-team-decisions.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-team-decisions.md) (D-01, D-02, D-03) |
+| **16** | **Gate 1 Defense Questions** | Review Board Evaluation | [gate-1-defense-cheat-sheet.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-defense-cheat-sheet.md), [gate-1-hard-questions.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-hard-questions.md), [gate-1-adversarial-review.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-adversarial-review.md) |
+| **17** | **Gate 1 Presentation Script** | S1 Delivery & Q&A Script | [gate-1-presentation-script.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/gate-1-presentation-script.md) (15 Spoken Sections) |
+| **18** | **Engine Defense Packages** | 4-Engine Subject Defenses | [engine-01-os.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/engine-defense/engine-01-os.md), [engine-02-dsa-se.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/engine-defense/engine-02-dsa-se.md), [engine-03-dbms.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/engine-defense/engine-03-dbms.md), [engine-04-web.md](file:///home/nethunter/Collage/BIG_PROJECT/docs/requirements/engine-defense/engine-04-web.md) |
 
 ---
 

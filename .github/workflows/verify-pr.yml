@@ -17,7 +17,7 @@ jobs:
       - name: Validate Shell Scripts
         run: |
           for script in scripts/*; do
-            if [ -f "$script" ]; then
+            if [ -f "$script" ] && head -n1 "$script" | grep -qE '^#!/(bin|usr/bin)/(env\s+)?(bash|sh)'; then
               bash -n "$script"
             fi
           done

@@ -145,7 +145,7 @@ To operate in 100% compliance with RBI directives:
 │                                      ┌───────────────────────┴──────────┐   │
 │                                      ▼                                  ▼   │
 │                          [ Freelancer Bank Account ]         [ GigaFlow Current ]
-│                          (Net Milestone Payout: 95%)         (Platform Fee: 5%) 
+│                          (Net Milestone Payout: 95%)         (Platform Fee: 5%)
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```

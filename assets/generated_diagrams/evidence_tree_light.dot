@@ -1,0 +1,31 @@
+
+digraph EvidenceTree {
+    graph [bgcolor="#FFFFFF", fontname="Arial", fontsize=15, rankdir=TB, ranksep=0.7, nodesep=0.5, pad=0.3];
+    node [shape=record, style="filled,rounded", fontname="Arial", fontsize=11, penwidth=2.0];
+    edge [fontname="Arial", fontsize=10, color="#475569", fontcolor="#0F172A", penwidth=2.0];
+
+    root [label="{Dispute Case #DSP-2026-001 | Contested Milestone: #2 (Authentication Module) | Escrow Frozen: $1,200.00 | Arbiter: Assigned Reviewer}", fillcolor="#FEE2E2", fontcolor="#991B1B", color="#DC2626", penwidth=2.5];
+
+    c_spec [label="{Contract Agreement Node | Contract ID: #CTR-0982 | Phased Milestones: 3 agreed | Client: Acme Corp · Dev: Alex}", fillcolor="#EFF6FF", fontcolor="#1E40AF", color="#2563EB"];
+
+    m2_req [label="{Milestone 2 Specification | Description: OAuth2 + JWT Auth Route | Budget: $1,200 | Due: 2026-10-01}", fillcolor="#F8FAFC", fontcolor="#0F172A", color="#64748B"];
+
+    d1 [label="{Deliverable v1.0 (Initial Submission) | File: auth-service-v1.zip (14.2 MB) | SHA-256: 7f83b1657ff1fc53b92dc181... | Timestamp: 2026-09-30 18:22:10 UTC}", fillcolor="#FFFBEB", fontcolor="#92400E", color="#D97706"];
+
+    rej1 [label="{Client Rejection #1 | Reason: 'Missing Refresh Token Rotation' | Timestamp: 2026-10-01 11:05:00 UTC}", fillcolor="#FEE2E2", fontcolor="#991B1B", color="#DC2626"];
+
+    d2 [label="{Deliverable v2.0 (Revision Upload) | File: auth-service-v2-fixed.zip (14.8 MB) | SHA-256: 3a94a8fe5ccb19ba61c4c087... | Timestamp: 2026-10-02 16:40:00 UTC}", fillcolor="#ECFDF5", fontcolor="#065F46", color="#059669"];
+
+    dispute_claim [label="{Freelancer Dispute Filing | Claim: 'Client requested out-of-scope SAML SSO' | Log Dump: server-audit.log (SHA-256 verified) | Timestamp: 2026-10-02 21:10:00 UTC}", fillcolor="#FEE2E2", fontcolor="#991B1B", color="#DC2626"];
+
+    ruling [label="{Binding Arbitration Ruling | Ruling: RELEASE_TO_FREELANCER (Split 90/10) | Arbiter Notes: 'v2 delivered agreed OAuth2 spec' | Executed: ACID Transaction #TX-7781}", fillcolor="#D1FAE5", fontcolor="#065F46", color="#047857", penwidth=3.0];
+
+    root -> c_spec [label="Bounds Scope"];
+    c_spec -> m2_req [label="Phase 2 Definition"];
+    m2_req -> d1 [label="Initial Proof"];
+    d1 -> rej1 [label="Disputed Acceptance"];
+    rej1 -> d2 [label="Submitted Fix"];
+    rej1 -> dispute_claim [label="Conflict Escalation"];
+    d2 -> ruling [label="O(V+E) Traversal Analysis", color="#047857", fontcolor="#065F46", penwidth=2.5];
+    dispute_claim -> ruling [label="Evidence Adjudicated", color="#047857", fontcolor="#065F46", penwidth=2.5];
+}

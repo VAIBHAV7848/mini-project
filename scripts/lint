@@ -15,7 +15,7 @@ echo "--> Validating shell scripts with bash -n..."
 for script in "${PROJECT_ROOT}/scripts"/*; do
   if [ -f "$script" ]; then
     case "$script" in
-      *.ts|*.js|*.json|*.md)
+      *.ts|*.js|*.json|*.md|*.py)
         continue
         ;;
     esac
@@ -44,7 +44,7 @@ echo "--> Checking scripts execution bit..."
 for script in "${PROJECT_ROOT}/scripts"/*; do
   if [ -f "$script" ]; then
     case "$script" in
-      *.ts|*.js|*.json|*.md)
+      *.ts|*.js|*.json|*.md|*.py)
         continue
         ;;
     esac

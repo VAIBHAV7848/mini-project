@@ -1,11 +1,11 @@
 # Payment Reconciliation Engine & Tamper-Resistant Audit Logging Architecture
 
-> **Document Type**: Production Architecture Specification  
-> **System Component**: Engine 03 (DBMS Engine) & Cross-Engine Security Architecture  
-> **Engine Owner**: Purvi Sammatshetti (Roll No: 11, SRN: `02FE24BCS022`)  
-> **Collaborators**: Vaishnavi Modekar (Engine 01), Darshan Kittur (Engine 02), Vaibhav Chavanpatil (Engine 04)  
-> **Institution**: KLE Technological University, Dr. M. S. Sheshgiri College of Engineering & Technology, Belagavi  
-> **Department**: Computer Science and Engineering (Team 07, Theme 01)  
+> **Document Type**: Production Architecture Specification
+> **System Component**: Engine 03 (DBMS Engine) & Cross-Engine Security Architecture
+> **Engine Owner**: Purvi Sammatshetti (Roll No: 11, SRN: `02FE24BCS022`)
+> **Collaborators**: Vaishnavi Modekar (Engine 01), Darshan Kittur (Engine 02), Vaibhav Chavanpatil (Engine 04)
+> **Institution**: KLE Technological University, Dr. M. S. Sheshgiri College of Engineering & Technology, Belagavi
+> **Department**: Computer Science and Engineering (Team 07, Theme 01)
 > **Related Documents**:
 > - `docs/architecture/real-payment-architecture.md` (Real Payment Gateway Architecture)
 > - `docs/decisions/ADR-011-real-payment-gateway.md` (Gateway Selection ADR)
@@ -339,7 +339,7 @@ model ReconciliationReport {
 model ReconciliationDiscrepancy {
   id                   String               @id @default(uuid())
   reportId             String               @map("report_id")
-  discrepancyType      String               @map("discrepancy_type") 
+  discrepancyType      String               @map("discrepancy_type")
   // UNRECONCILED_GHOST_CAPTURE | UNRECONCILED_ZOMBIE_PAYMENT | ORPHANED_WEBHOOK | STUCK_TRANSFER_SLA_BREACH | AMOUNT_MISMATCH | FEE_MISMATCH
   severity             String               @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
   internalEntityName   String?              @map("internal_entity_name") // Contract | Milestone | EscrowTransaction | PaymentEvent
@@ -755,21 +755,21 @@ sequenceDiagram
     Admin->>Route: POST /api/admin/reconciliation/run { startDate, endDate }
     Route->>Route: RbacEnforcer.assertRole('ADMIN')
     Route->>Engine: runReconciliation(options)
-    
+
     Engine->>Engine: Acquire Concurrency Mutex (RECONCILIATION_RUN_LOCK)
     Engine->>DB: Query internal PaymentEvent, EscrowTx, SettlementTransfers
     Engine->>CF: GET /settlements/clearing-logs (startDate, endDate)
     CF-->>Engine: Settlement Feed & Captures Array
-    
+
     Engine->>Engine: executeTwoWayMatching(internal, external)
     Engine->>Engine: Calculate Balances: C_gross, S_gross, R_total, F_gateway, V
-    
+
     alt Variance Detected (|V| > 0 or Discrepancies exist)
         Engine->>Engine: Set status = 'VARIANCE_DETECTED'
     else Perfect Parity
         Engine->>Engine: Set status = 'BALANCED'
     end
-    
+
     rect rgb(240, 248, 255)
         Note over Engine,DB: Atomic ACID Transaction Boundary
         Engine->>DB: INSERT INTO reconciliation_reports
@@ -777,7 +777,7 @@ sequenceDiagram
         Engine->>Audit: logAction(RECONCILIATION_RUN, sanitizedNewState)
         Audit->>DB: INSERT INTO audit_logs (with SHA-256 verification_hash)
     end
-    
+
     Engine->>Engine: Release Concurrency Mutex
     Engine-->>Route: Return Reconciliation Summary & Discrepancies
     Route-->>Admin: 201 Created JSON { reportId, status, discrepancies, auditLog }

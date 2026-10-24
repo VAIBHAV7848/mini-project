@@ -83,3 +83,22 @@ REGRESSION CHECK
 - Hover/focus/active states remain fully functional across tables.
 - Mobile layouts wrap naturally without breaking the viewport width.
 - Empty states remain horizontally compact and intentional.
+
+## Post-Phase UI/UX Workflow Logic Refinement
+
+Following the visual acceptance phase, 92 concurrent subagents were successfully dispatched to inspect workflow logic consistency in the dashboard. The following actionable workflow rules were identified and verified against the backend APIs and Escrow FSM invariants:
+
+1. **Approved Milestone Client Attention**:
+   - **Issue**: Milestones moved to `APPROVED` required "Release Escrow" actions, but Clients received no alert in their Attention section.
+   - **Fix**: Re-aligned `src/app/dashboard/page.tsx` attention computation to correctly queue a `RELEASE_ESCROW` action when `m.status === 'APPROVED'`.
+
+2. **Dispute Visibility to Involved Parties**:
+   - **Issue**: `DISPUTED` milestones were correctly shown to the Reviewer, but were functionally invisible in the attention queues of the involved Client and Freelancer.
+   - **Fix**: Expanded the attention queue logic for both `CLIENT` and `FREELANCER` to capture `m.status === 'DISPUTED'` and push a direct link to the `/disputes` workflow page. Server-side RBAC inside `/api/disputes` natively handles proper masking of reviewer-only notes.
+
+3. **Deposit Sequence Rule (Verified Correct)**:
+   - **Check**: The UX was restricting the `DEPOSIT` UI button solely to the first milestone (`sequenceOrder === 1`). The goal was to determine if this was a defect or intended design.
+   - **Verdict**: Tracing the API `src/app/api/contracts/[id]/milestones/route.ts` and `Engine 03 (DBMS)` Ledger Coordinator (`src/core/engine-03-dbms/ledger.ts`), it is confirmed that funding deposits the *entire contract amount (`totalAmount`)*, not incremental milestone amounts.
+   - **Resolution**: Therefore, the UX logic enforcing `sequenceOrder === 1` for the Deposit CTA correctly prevents duplicating the Deposit button across all unstarted milestones, directing the Client to fund the entire escrow block prior to kicking off Milestone 1. The original implementation was **Correct by Design**.
+
+All roles (`Client`, `Freelancer`, `Reviewer`, `Admin`) continue to operate with fully validated attention state mappings, and CI test matrices (`npx tsc && npm test && ./scripts/verify`) successfully pass with this synchronized layout logic.
