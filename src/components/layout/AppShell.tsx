@@ -15,6 +15,9 @@ import {
   User,
   Landmark,
   Wallet,
+  Menu,
+  X,
+  BadgeCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -103,7 +106,7 @@ function UserProfileDropdown() {
           {getInitials(currentPersona.name)}
         </div>
         <div className="hidden lg:flex flex-col text-left">
-          <span className="text-xs font-semibold text-white leading-tight truncate max-w-[120px]">
+          <span className="text-xs font-semibold text-paper leading-tight truncate max-w-[120px]">
             {currentPersona.name}
           </span>
           <span className="text-[10px] text-paper-muted font-mono2 uppercase">
@@ -122,7 +125,7 @@ function UserProfileDropdown() {
         <div
           role="menu"
           aria-label="User profile options"
-          className="absolute right-0 mt-2 w-64 bg-[#141416] border border-line-strong rounded-xl shadow-[0_16px_40px_rgba(0,0,0,0.85)] z-50 p-2 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
+          className="absolute right-0 mt-2 w-64 bg-surface-elevated border border-line-strong rounded-xl shadow-2xl z-50 p-2 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Identity Header */}
           <div className="px-3 py-2.5 border-b border-line/40">
@@ -131,7 +134,7 @@ function UserProfileDropdown() {
                 {role}
               </span>
             </div>
-            <p className="text-sm font-bold text-white truncate">{currentPersona.name}</p>
+            <p className="text-sm font-bold text-paper truncate">{currentPersona.name}</p>
             <p className="text-xs text-paper-muted truncate font-mono2">{currentPersona.email}</p>
           </div>
 
@@ -141,17 +144,26 @@ function UserProfileDropdown() {
               href="/dashboard"
               role="menuitem"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-paper-muted hover:text-white hover:bg-surface-highlight transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-paper-muted hover:text-paper hover:bg-surface-highlight transition-colors"
             >
               <LayoutDashboard className="w-4 h-4 text-paper-muted" aria-hidden="true" />
               Workspace Dashboard
+            </Link>
+            <Link
+              href="/rtm"
+              role="menuitem"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-paper-muted hover:text-paper hover:bg-surface-highlight transition-colors"
+            >
+              <BadgeCheck className="w-4 h-4 text-brand-base" aria-hidden="true" />
+              Traceability Matrix
             </Link>
             {role === 'ADMIN' && (
               <Link
                 href="/audit"
                 role="menuitem"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-paper-muted hover:text-white hover:bg-surface-highlight transition-colors"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-paper-muted hover:text-paper hover:bg-surface-highlight transition-colors"
               >
                 <ShieldCheck className="w-4 h-4 text-paper-muted" aria-hidden="true" />
                 Audit Logs
@@ -159,7 +171,7 @@ function UserProfileDropdown() {
             )}
           </div>
 
-          <div className="border-t border-line/40 my-1" />
+          <div role="separator" aria-orientation="horizontal" className="border-t border-line/40 my-1" />
 
           {/* Sign Out Action */}
           <button
@@ -182,6 +194,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { role, setRole, currentPersona } = useRole();
   const pathname = usePathname();
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -213,6 +226,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           { icon: Layers, label: 'Projects', href: '/projects' },
           { icon: ShieldCheck, label: 'Contracts', href: '/contracts' },
           { icon: AlertTriangle, label: 'Disputes', href: '/disputes' },
+          { icon: BadgeCheck, label: 'Traceability Matrix', href: '/rtm' },
         ];
       case 'FREELANCER':
         return [
@@ -220,12 +234,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           { icon: Layers, label: 'Gigs', href: '/gigs' },
           { icon: ShieldCheck, label: 'My Contracts', href: '/contracts' },
           { icon: AlertTriangle, label: 'Disputes', href: '/disputes' },
+          { icon: BadgeCheck, label: 'Traceability Matrix', href: '/rtm' },
         ];
       case 'REVIEWER':
         return [
           { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
           { icon: AlertTriangle, label: 'Dispute Cases', href: '/disputes' },
           { icon: ShieldCheck, label: 'Contracts', href: '/contracts' },
+          { icon: BadgeCheck, label: 'Traceability Matrix', href: '/rtm' },
         ];
       case 'ADMIN':
         return [
@@ -234,11 +250,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           { icon: ShieldCheck, label: 'Ledger Audit', href: '/audit' },
           { icon: Layers, label: 'All Projects', href: '/projects' },
           { icon: AlertTriangle, label: 'All Disputes', href: '/disputes' },
+          { icon: BadgeCheck, label: 'Traceability Matrix', href: '/rtm' },
           { icon: Settings, label: 'System', href: '/settings' },
         ];
       default:
         return [];
     }
+  };
+
+  const isRouteActive = (href: string) => {
+    if (href === '/dashboard') return pathname === '/dashboard';
+    return pathname === href || (href !== '/' && pathname.startsWith(href + '/'));
   };
 
   const navItems = getNavItems();
@@ -336,18 +358,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <nav aria-label="Sidebar Navigation" className="p-4 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = isRouteActive(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-surface-highlight text-paper font-semibold shadow-xs'
                       : 'text-paper-muted hover:text-paper hover:bg-surface-elevated'
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-base' : ''}`} aria-hidden="true" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -368,12 +391,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-screen min-w-0 bg-surface">
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between p-4 border-b border-line bg-surface/80 backdrop-blur z-40 sticky top-0">
-          <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 rounded-md bg-brand-base flex items-center justify-center font-display font-bold text-charcoal text-xs">
-              GF
-            </div>
-            <span className="font-display font-bold text-paper text-sm">GigaFlow</span>
+        <header className="md:hidden flex items-center justify-between p-4 border-b border-line bg-surface/90 backdrop-blur z-40 sticky top-0">
+          <div className="flex items-center space-x-2.5">
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label="Toggle navigation menu"
+              className="p-1.5 rounded-lg bg-surface-elevated border border-line text-paper hover:text-paper"
+            >
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-7 h-7 rounded-md bg-brand-base flex items-center justify-center font-display font-bold text-charcoal text-xs">
+                GF
+              </div>
+              <span className="font-display font-bold text-paper text-sm">GigaFlow</span>
+            </Link>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle size="sm" />
@@ -394,6 +427,81 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <UserProfileDropdown />
           </div>
         </header>
+
+        {/* Mobile Slide-Over Drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-50 flex">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            {/* Drawer Panel */}
+            <div className="relative w-72 max-w-full bg-surface border-r border-line p-5 flex flex-col justify-between shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-line pb-4">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-7 h-7 rounded-md bg-brand-base flex items-center justify-center font-display font-bold text-charcoal text-xs">
+                      GF
+                    </div>
+                    <div>
+                      <span className="font-display font-bold text-paper text-sm block leading-none">GigaFlow</span>
+                      <span className="text-[10px] font-mono2 text-paper-faint uppercase">Escrow Protocol</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMobileMenuOpen(false)}
+                    aria-label="Close menu"
+                    className="p-1 rounded-md text-paper-muted hover:text-paper"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Workspace Indicator */}
+                <div className="p-3 rounded-lg bg-surface-elevated border border-line">
+                  <span className="text-[10px] font-mono2 uppercase text-paper-faint block mb-1">Active Role</span>
+                  <p className="text-xs font-bold text-paper flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-brand-base animate-pulse" />
+                    {currentOption.label}
+                  </p>
+                  <p className="text-[11px] text-paper-muted font-mono2 truncate">{currentPersona.name}</p>
+                </div>
+
+                {/* Navigation Links */}
+                <nav className="space-y-1" aria-label="Mobile Navigation">
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = isRouteActive(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'bg-surface-highlight text-paper font-semibold shadow-xs'
+                            : 'text-paper-muted hover:text-paper hover:bg-surface-elevated'
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-base' : ''}`} aria-hidden="true" />
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* Drawer Footer */}
+              <div className="border-t border-line pt-4 text-xs font-mono2 text-paper-faint">
+                <p>Team 07 · KLE Tech Belagavi</p>
+                <p className="text-[10px] text-paper-faint mt-0.5">Engine 01 · 02 · 03 · 04 Active</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Top bar (Desktop) */}
         <header className="hidden md:flex items-center justify-between px-10 py-5 border-b border-line bg-surface/80 backdrop-blur sticky top-0 z-40">
@@ -417,11 +525,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <div className="flex-1 p-4 md:p-10 overflow-x-hidden">
+        <div className="flex-1 p-4 md:p-10 pb-24 md:pb-10 overflow-x-hidden">
           <div className="max-w-[1200px] mx-auto w-full animate-in fade-in duration-300 ease-out">
             {children}
           </div>
         </div>
+
+        {/* Mobile Fixed Bottom Navigation Bar */}
+        <nav
+          aria-label="Mobile Bottom Bar"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur border-t border-line px-3 py-2 flex items-center justify-around shadow-lg"
+        >
+          {navItems.slice(0, 4).map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors ${
+                  isActive ? 'text-brand-light font-bold' : 'text-paper-muted hover:text-paper'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-brand-base' : ''}`} />
+                <span className="text-[10px] font-mono2 mt-1 truncate max-w-[65px]">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
       </main>
     </div>
   );

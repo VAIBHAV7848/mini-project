@@ -36,16 +36,46 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setIsMounted(true);
     try {
       const stored = localStorage.getItem('theme') as Theme | null;
-      if (stored === 'light') {
-        setThemeState('light');
-        applyTheme('light');
+      if (stored === 'light' || stored === 'dark') {
+        setThemeState(stored);
+        applyTheme(stored);
       } else {
-        setThemeState('dark');
-        applyTheme('dark');
+        const prefersLight = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        const initialTheme: Theme = prefersLight ? 'light' : 'dark';
+        setThemeState(initialTheme);
+        applyTheme(initialTheme);
       }
     } catch {
       // Handle private browsing or restricted environments safely
     }
+
+    // Dynamic OS preference listener
+    const mediaQuery = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+    const handleMediaChange = (e: MediaQueryListEvent) => {
+      try {
+        if (!localStorage.getItem('theme')) {
+          const nextTheme: Theme = e.matches ? 'light' : 'dark';
+          setThemeState(nextTheme);
+          applyTheme(nextTheme);
+        }
+      } catch {}
+    };
+
+    // Cross-tab synchronization
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'theme' && (e.newValue === 'light' || e.newValue === 'dark')) {
+        setThemeState(e.newValue);
+        applyTheme(e.newValue);
+      }
+    };
+
+    mediaQuery?.addEventListener?.('change', handleMediaChange);
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      mediaQuery?.removeEventListener?.('change', handleMediaChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const setTheme = (newTheme: Theme) => {

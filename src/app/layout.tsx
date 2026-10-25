@@ -4,6 +4,7 @@ import './globals.css';
 import { RoleProvider } from '@/components/layout/RoleContext';
 import { ThemeProvider } from '@/components/theme/ThemeContext';
 import { ThemeScript } from '@/components/theme/ThemeScript';
+import { ToastProvider } from '@/components/ui/Toast';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono', display: 'swap' });
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body className="bg-charcoal text-paper antialiased font-sans selection:bg-brand-base selection:text-charcoal min-h-screen">
         <ThemeProvider>
           <RoleProvider>
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </RoleProvider>
         </ThemeProvider>
       </body>

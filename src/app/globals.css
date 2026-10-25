@@ -8,16 +8,16 @@
   --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* ---- Neutrals (Dark Workspace) ---- */
-  --color-charcoal: #0a0a0a;
-  --color-surface: #121212;
-  --color-surface-elevated: #1a1a1a;
-  --color-surface-highlight: #222222;
-  --color-paper: #ffffff;
-  --color-paper-muted: #a3a3a3;
-  --color-paper-faint: #737373;
-  --color-line: rgba(255, 255, 255, 0.12);
-  --color-line-strong: rgba(255, 255, 255, 0.25);
+  /* ---- Neutrals (Dynamic CSS Variable Tokens) ---- */
+  --color-charcoal: var(--charcoal);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-highlight: var(--surface-highlight);
+  --color-paper: var(--paper);
+  --color-paper-muted: var(--paper-muted);
+  --color-paper-faint: var(--paper-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
 
   /* ---- GigaFlow Brand Accent ---- */
   --color-brand-base: #fc6c00;
@@ -65,6 +65,16 @@
    ========================================================================== */
 @layer base {
   :root, html.dark {
+    --charcoal: #0a0a0a;
+    --surface: #121212;
+    --surface-elevated: #1a1a1a;
+    --surface-highlight: #222222;
+    --paper: #ffffff;
+    --paper-muted: #a3a3a3;
+    --paper-faint: #737373;
+    --line: rgba(255, 255, 255, 0.12);
+    --line-strong: rgba(255, 255, 255, 0.25);
+
     --color-charcoal: #0a0a0a;
     --color-surface: #121212;
     --color-surface-elevated: #1a1a1a;
@@ -74,19 +84,31 @@
     --color-paper-faint: #737373;
     --color-line: rgba(255, 255, 255, 0.12);
     --color-line-strong: rgba(255, 255, 255, 0.25);
+    --grid-line-color: rgba(255, 255, 255, 0.04);
     color-scheme: dark;
   }
 
   html.light {
+    --charcoal: #f8fafc;
+    --surface: #ffffff;
+    --surface-elevated: #f1f5f9;
+    --surface-highlight: #e2e8f0;
+    --paper: #09090b;
+    --paper-muted: #475569;
+    --paper-faint: #64748b;
+    --line: rgba(0, 0, 0, 0.08);
+    --line-strong: rgba(0, 0, 0, 0.16);
+
     --color-charcoal: #f8fafc;
     --color-surface: #ffffff;
     --color-surface-elevated: #f1f5f9;
     --color-surface-highlight: #e2e8f0;
     --color-paper: #09090b;
-    --color-paper-muted: #64748b;
-    --color-paper-faint: #94a3b8;
+    --color-paper-muted: #475569;
+    --color-paper-faint: #64748b;
     --color-line: rgba(0, 0, 0, 0.08);
     --color-line-strong: rgba(0, 0, 0, 0.16);
+    --grid-line-color: rgba(0, 0, 0, 0.04);
     color-scheme: light;
   }
 
@@ -194,8 +216,8 @@
 }
 
 @utility grid-lines {
-  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-image: linear-gradient(var(--grid-line-color, rgba(255, 255, 255, 0.04)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line-color, rgba(255, 255, 255, 0.04)) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
