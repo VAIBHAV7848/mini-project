@@ -18,7 +18,7 @@ export default function AdminFinancePage() {
           <div className="w-14 h-14 rounded-2xl bg-danger-tint border border-danger/30 flex items-center justify-center text-danger mx-auto mb-4">
             <ShieldAlert className="w-7 h-7" />
           </div>
-          <h1 className="font-display font-bold text-xl text-white">Access Restricted</h1>
+          <h1 className="font-display font-bold text-xl text-paper">Access Restricted</h1>
           <p className="text-sm text-paper-muted mt-2">
             The Financial Verification & Settlement portal is strictly restricted to authorized Administrators.
           </p>
@@ -37,7 +37,7 @@ export default function AdminFinancePage() {
               <Landmark className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-2xl text-white">Financial Ledger & Settlement Operations</h1>
+              <h1 className="font-display font-bold text-2xl text-paper">Financial Ledger & Settlement Operations</h1>
               <p className="text-xs text-paper-muted font-mono2">
                 Engine 03 (DBMS) & Engine 04 (Web) — Dual-Entry Bank Verification & Payout Rail
               </p>
@@ -51,7 +51,7 @@ export default function AdminFinancePage() {
               onClick={() => setActiveTab('deposits')}
               className={`py-2 px-4 rounded-xl text-xs font-bold font-mono2 transition-all flex items-center gap-2 border cursor-pointer ${
                 activeTab === 'deposits'
-                  ? 'bg-brand-base text-charcoal border-brand-base shadow-sm'
+                  ? 'bg-brand-base text-black font-extrabold border-brand-base shadow-sm'
                   : 'bg-surface hover:bg-surface-elevated text-paper-muted border-line'
               }`}
             >
@@ -63,7 +63,7 @@ export default function AdminFinancePage() {
               onClick={() => setActiveTab('settlements')}
               className={`py-2 px-4 rounded-xl text-xs font-bold font-mono2 transition-all flex items-center gap-2 border cursor-pointer ${
                 activeTab === 'settlements'
-                  ? 'bg-brand-base text-charcoal border-brand-base shadow-sm'
+                  ? 'bg-brand-base text-black font-extrabold border-brand-base shadow-sm'
                   : 'bg-surface hover:bg-surface-elevated text-paper-muted border-line'
               }`}
             >

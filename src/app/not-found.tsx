@@ -14,7 +14,7 @@ export default function NotFound() {
           <p className="font-mono2 text-xs uppercase tracking-widest text-brand-base font-bold">
             HTTP 404 — Not Found
           </p>
-          <h1 className="font-display text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="font-display text-3xl font-extrabold text-paper tracking-tight">
             Destination Uncharted
           </h1>
           <p className="text-sm text-paper-muted leading-relaxed">
@@ -25,7 +25,7 @@ export default function NotFound() {
         <div className="pt-4">
           <Link
             href="/dashboard"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold bg-brand-base text-charcoal hover:bg-brand-light transition-colors shadow-lg shadow-brand-base/10"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold bg-brand-base text-white hover:bg-brand-light transition-colors shadow-lg shadow-brand-base/10"
           >
             <ArrowLeft className="w-4 h-4" />
             Return to Dashboard

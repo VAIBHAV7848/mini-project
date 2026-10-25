@@ -68,7 +68,7 @@ export function DeliverableInspector({
           <span className="font-mono2 text-[10px] font-bold uppercase tracking-wider text-brand-base px-2 py-0.5 rounded bg-brand-base/10 border border-brand-base/20">
             Engine 02 · Web Crypto SHA-256
           </span>
-          <span className="text-xs text-white font-bold">Deliverable Integrity Inspector</span>
+          <span className="text-xs text-paper font-bold">Deliverable Integrity Inspector</span>
         </div>
         {expectedChecksum && (
           <span className="text-[11px] font-mono2 text-paper-faint">
@@ -99,7 +99,7 @@ export function DeliverableInspector({
             </p>
             {fileName && (
               <p className="text-[11px] text-paper-faint font-mono2">
-                Deliverable Artifact: <span className="text-white">{fileName}</span>
+                Deliverable Artifact: <span className="text-paper">{fileName}</span>
               </p>
             )}
           </div>
@@ -119,7 +119,7 @@ export function DeliverableInspector({
             <div className="flex flex-col items-center justify-center gap-2 pointer-events-none">
               <Upload className="w-6 h-6 text-brand-base" />
               <div>
-                <p className="text-xs font-bold text-white">
+                <p className="text-xs font-bold text-paper">
                   {file ? file.name : 'Drop deliverable file here to inspect'}
                 </p>
                 <p className="text-[11px] text-paper-muted mt-0.5">
@@ -156,7 +156,7 @@ export function DeliverableInspector({
               <div className="p-3.5 rounded-xl bg-success-tint/40 border border-success text-success-light flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 shrink-0 text-success" />
                 <div className="text-xs">
-                  <p className="font-bold text-white">100% CRYPTOGRAPHIC MATCH · AUTHENTIC DELIVERABLE</p>
+                  <p className="font-bold text-paper">100% CRYPTOGRAPHIC MATCH · AUTHENTIC DELIVERABLE</p>
                   <p className="text-paper-muted">
                     The local file hash is identical to the immutable ledger record. No corruption or tampering
                     detected.
@@ -169,7 +169,7 @@ export function DeliverableInspector({
               <div className="p-3.5 rounded-xl bg-danger-tint/40 border border-danger text-danger-light flex items-center gap-3">
                 <ShieldAlert className="w-5 h-5 shrink-0 text-danger" />
                 <div className="text-xs">
-                  <p className="font-bold text-white">CHECKSUM MISMATCH · TAMPER WARNING</p>
+                  <p className="font-bold text-paper">CHECKSUM MISMATCH · TAMPER WARNING</p>
                   <p className="text-paper-muted">
                     The local file does not match the registered milestone proof. The deliverable has been modified or
                     substituted.

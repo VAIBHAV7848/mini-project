@@ -94,8 +94,8 @@
     --surface-elevated: #f1f5f9;
     --surface-highlight: #e2e8f0;
     --paper: #09090b;
-    --paper-muted: #475569;
-    --paper-faint: #64748b;
+    --paper-muted: #334155;
+    --paper-faint: #475569;
     --line: rgba(0, 0, 0, 0.08);
     --line-strong: rgba(0, 0, 0, 0.16);
 
@@ -104,8 +104,8 @@
     --color-surface-elevated: #f1f5f9;
     --color-surface-highlight: #e2e8f0;
     --color-paper: #09090b;
-    --color-paper-muted: #475569;
-    --color-paper-faint: #64748b;
+    --color-paper-muted: #334155;
+    --color-paper-faint: #475569;
     --color-line: rgba(0, 0, 0, 0.08);
     --color-line-strong: rgba(0, 0, 0, 0.16);
     --grid-line-color: rgba(0, 0, 0, 0.04);
@@ -125,22 +125,6 @@
     overflow-x: hidden;
     font-feature-settings: "cv11" 1, "ss01" 1, "rlig" 1, "calt" 1;
     transition: background-color 0.2s ease, color 0.2s ease;
-  }
-
-  html.light .text-white {
-    color: var(--color-paper);
-  }
-
-  html.light .btn-primary,
-  html.light .btn-primary *,
-  html.light .btn-success,
-  html.light .btn-success *,
-  html.light .btn-danger-solid,
-  html.light .btn-danger-solid *,
-  html.light [class*="bg-brand-base"],
-  html.light [class*="bg-emerald-600"],
-  html.light [class*="bg-red-600"] {
-    color: #ffffff;
   }
 
   h1, h2, h3, h4 {
@@ -284,3 +268,102 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   Light Mode Text Contrast Fallback & WCAG AA/AAA Readability System
+   Ensures text-white inside light mode renders in readable dark ink (#09090b),
+   while preserving white text on solid buttons, badges, and dark containers.
+   Also maps pastel badge and status utility colors to rich high-contrast tones.
+   ========================================================================== */
+
+/* 1. Global text-white safety fallback for light mode (excluding dark surfaces and colored buttons) */
+html.light .text-white:not(.btn-primary):not(.btn-primary *):not(.btn-success):not(.btn-success *):not(.btn-danger-solid):not(.btn-danger-solid *):not([class*="bg-brand-"]):not([class*="bg-brand-"] *):not([class*="bg-emerald-"]):not([class*="bg-emerald-"] *):not([class*="bg-red-"]):not([class*="bg-red-"] *):not([class*="bg-amber-"]):not([class*="bg-amber-"] *):not([class*="bg-indigo-"]):not([class*="bg-indigo-"] *):not([class*="bg-violet-"]):not([class*="bg-violet-"] *):not([class*="bg-blue-"]):not([class*="bg-blue-"] *):not([class*="bg-[#0"]):not([class*="bg-[#0"] *):not([class*="bg-[#1"]):not([class*="bg-[#1"] *):not([class*="bg-black"]):not([class*="bg-black"] *):not([class*="bg-neutral-9"]):not([class*="bg-neutral-9"] *) {
+  color: var(--color-paper) !important;
+}
+
+/* 2. On orange brand background (#fc6c00), dark ink (#09090b) achieves 6.94:1 contrast (WCAG AAA) */
+html.light .btn-primary,
+html.light .btn-primary *,
+html.light [class*="bg-brand-base"]:not(.badge):not(.badge *):not(button *) {
+  color: #09090b !important;
+}
+
+/* 3. Solid colored buttons with dark backing retain crisp white text */
+html.light .btn-success,
+html.light .btn-success *,
+html.light .btn-danger-solid,
+html.light .btn-danger-solid *,
+html.light [class*="bg-emerald-600"],
+html.light [class*="bg-emerald-600"] *,
+html.light [class*="bg-red-600"],
+html.light [class*="bg-red-600"] *,
+html.light [class*="bg-blue-600"],
+html.light [class*="bg-blue-600"] * {
+  color: #ffffff !important;
+}
+
+/* 4. Light mode high-contrast status tokens & badges (WCAG 4.5:1+ compliant) */
+html.light .badge-brand {
+  background-color: rgba(252, 108, 0, 0.12);
+  border-color: rgba(252, 108, 0, 0.35);
+  color: var(--color-brand-dark) !important;
+}
+
+html.light .badge-success {
+  background-color: rgba(21, 128, 61, 0.12);
+  border-color: rgba(21, 128, 61, 0.35);
+  color: var(--color-success) !important;
+}
+
+html.light .badge-warning {
+  background-color: rgba(180, 83, 9, 0.12);
+  border-color: rgba(180, 83, 9, 0.35);
+  color: var(--color-warning) !important;
+}
+
+html.light .badge-danger {
+  background-color: rgba(185, 28, 28, 0.12);
+  border-color: rgba(185, 28, 28, 0.35);
+  color: var(--color-danger) !important;
+}
+
+/* 5. Map brand and pastel text utilities to rich dark semantic colors in light mode (WCAG AA/AAA) */
+html.light .text-brand-base { color: var(--color-brand-dark) !important; }
+html.light .text-brand-light { color: var(--color-brand-dark) !important; }
+html.light .text-success-light { color: var(--color-success) !important; }
+html.light .text-warning-light { color: var(--color-warning) !important; }
+html.light .text-danger-light { color: var(--color-danger) !important; }
+
+html.light .text-amber-300,
+html.light .text-amber-400,
+html.light .text-amber-500 { color: #b45309 !important; }
+
+html.light .text-emerald-400,
+html.light .text-emerald-500,
+html.light .text-green-400,
+html.light .text-green-500 { color: #047857 !important; }
+
+html.light .text-blue-400,
+html.light .text-blue-500 { color: #1d4ed8 !important; }
+
+html.light .text-purple-400,
+html.light .text-purple-500 { color: #6b21a8 !important; }
+
+html.light .text-indigo-400,
+html.light .text-indigo-500 { color: #4338ca !important; }
+
+html.light .text-cyan-400,
+html.light .text-cyan-500 { color: #0e7490 !important; }
+
+html.light .text-teal-400,
+html.light .text-teal-500 { color: #0f766e !important; }
+
+html.light .text-red-400,
+html.light .text-red-500 { color: var(--color-danger) !important; }
+
+/* 6. Ensure text-charcoal utility always renders dark ink in light mode */
+html.light .text-charcoal {
+  color: #09090b !important;
+}
+
+

@@ -318,7 +318,7 @@ export default function ProjectsPage() {
         <div className="border-b border-line pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p className="eyebrow mb-2">Marketplace</p>
-            <h1 className="font-display text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 className="font-display text-2xl font-bold text-paper tracking-tight flex items-center gap-2">
               <Layers className="w-5 h-5 text-brand-base" aria-hidden="true" />
               Active Projects
             </h1>
@@ -354,7 +354,7 @@ export default function ProjectsPage() {
               <div className="w-14 h-14 rounded-2xl bg-surface-elevated border border-line flex items-center justify-center mx-auto mb-4">
                 <FolderOpen className="w-6 h-6 text-paper-faint" aria-hidden="true" />
               </div>
-              <h2 className="font-display text-lg font-bold text-white">No Projects Available</h2>
+              <h2 className="font-display text-lg font-bold text-paper">No Projects Available</h2>
               <p className="text-sm text-paper-muted mt-1.5 text-center">There are currently no open projects in the marketplace.</p>
             </div>
           ) : (
@@ -373,7 +373,7 @@ export default function ProjectsPage() {
                           <div className="p-6 flex flex-col sm:flex-row justify-between gap-6 hover:bg-surface-highlight/30 transition-colors">
                             <div className="space-y-4 flex-1">
                               <div className="flex items-center gap-3">
-                                <h3 className="font-display text-xl font-bold text-white group-hover:text-brand-light transition-colors">
+                                <h3 className="font-display text-xl font-bold text-paper group-hover:text-brand-light transition-colors">
                                   {project.title}
                                 </h3>
                                 <span className="badge badge-brand">{project.status}</span>
@@ -391,11 +391,11 @@ export default function ProjectsPage() {
                               <div className="flex items-center gap-6 text-[13px] text-paper-muted font-medium pt-2">
                                 <div className="flex items-center gap-2">
                                   <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Posted By</span>
-                                  <span className="text-white">{project.client?.name}</span>
+                                  <span className="text-paper">{project.client?.name}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Proposals</span>
-                                  <span className="font-mono2 font-bold text-white">{project._count?.proposals || 0}</span>
+                                  <span className="font-mono2 font-bold text-paper">{project._count?.proposals || 0}</span>
                                 </div>
                               </div>
                             </div>
@@ -403,7 +403,7 @@ export default function ProjectsPage() {
                             <div className="flex flex-col sm:items-end justify-between min-w-[150px] gap-4 sm:gap-0">
                               <div className="text-left sm:text-right">
                                 <span className="eyebrow block mb-1">Budget</span>
-                                <div className="font-display text-2xl font-bold text-white">
+                                <div className="font-display text-2xl font-bold text-paper">
                                   ₹{project.budget.toFixed(2)}
                                 </div>
                               </div>
@@ -445,7 +445,7 @@ export default function ProjectsPage() {
                           <div className="p-6 flex flex-col sm:flex-row justify-between gap-6 hover:bg-surface-highlight/30 transition-colors">
                             <div className="space-y-4 flex-1">
                               <div className="flex items-center gap-3">
-                                <h3 className="font-display text-xl font-bold text-white group-hover:text-brand-light transition-colors">
+                                <h3 className="font-display text-xl font-bold text-paper group-hover:text-brand-light transition-colors">
                                   {project.title}
                                 </h3>
                                 <span className="badge badge-brand">{project.status}</span>
@@ -463,11 +463,11 @@ export default function ProjectsPage() {
                               <div className="flex items-center gap-6 text-[13px] text-paper-muted font-medium pt-2">
                                 <div className="flex items-center gap-2">
                                   <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Posted By</span>
-                                  <span className="text-white">{project.client?.name}</span>
+                                  <span className="text-paper">{project.client?.name}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider">Proposals</span>
-                                  <span className="font-mono2 font-bold text-white">{project._count?.proposals || 0}</span>
+                                  <span className="font-mono2 font-bold text-paper">{project._count?.proposals || 0}</span>
                                 </div>
                               </div>
                             </div>
@@ -475,7 +475,7 @@ export default function ProjectsPage() {
                             <div className="flex flex-col sm:items-end justify-between min-w-[150px] gap-4 sm:gap-0">
                               <div className="text-left sm:text-right">
                                 <span className="eyebrow block mb-1">Budget</span>
-                                <div className="font-display text-2xl font-bold text-white">
+                                <div className="font-display text-2xl font-bold text-paper">
                                   ₹{project.budget.toFixed(2)}
                                 </div>
                               </div>
@@ -549,11 +549,11 @@ export default function ProjectsPage() {
               </div>
               <div>
                 <span className="text-[11px] font-mono2 uppercase tracking-wider text-paper-faint block mb-1">Client</span>
-                <span className="text-white font-medium">{selectedProject.client?.name}</span>
+                <span className="text-paper font-medium">{selectedProject.client?.name}</span>
               </div>
               <div>
                 <span className="text-[11px] font-mono2 uppercase tracking-wider text-paper-faint block mb-1">Proposals Submitted</span>
-                <span className="font-mono2 text-white font-bold">{selectedProject._count?.proposals || 0}</span>
+                <span className="font-mono2 text-paper font-bold">{selectedProject._count?.proposals || 0}</span>
               </div>
             </div>
 
@@ -614,7 +614,7 @@ export default function ProjectsPage() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-white text-sm">{prop.freelancer?.name}</span>
+                              <span className="font-bold text-paper text-sm">{prop.freelancer?.name}</span>
                               <span
                                 className={`text-[10px] font-mono2 px-1.5 py-0.5 rounded font-bold ${
                                   prop.status === 'ACCEPTED'
@@ -626,7 +626,7 @@ export default function ProjectsPage() {
                               </span>
                             </div>
                             <p className="text-xs text-paper-muted font-mono2 mt-0.5">
-                              Bid: <span className="text-white font-bold">₹{prop.bidAmount.toFixed(2)}</span>
+                              Bid: <span className="text-paper font-bold">₹{prop.bidAmount.toFixed(2)}</span>
                             </p>
                           </div>
 
@@ -721,20 +721,20 @@ export default function ProjectsPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-white mb-1.5">Project Title</label>
+            <label className="block text-xs font-medium text-paper mb-1.5">Project Title</label>
             <input
               type="text"
               required
               value={postTitle}
               onChange={(e) => setPostTitle(e.target.value)}
               placeholder="e.g. Next.js Escrow Management Dashboard"
-              className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-base"
+              className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-paper focus:outline-none focus:border-brand-base"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-white mb-1.5">Total Budget (₹)</label>
+              <label className="block text-xs font-medium text-paper mb-1.5">Total Budget (₹)</label>
               <input
                 type="number"
                 step="0.01"
@@ -743,31 +743,31 @@ export default function ProjectsPage() {
                 value={postBudget}
                 onChange={(e) => setPostBudget(e.target.value)}
                 placeholder="2000.00"
-                className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-base font-mono2"
+                className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-paper focus:outline-none focus:border-brand-base font-mono2"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-white mb-1.5">Skill Tags (comma-separated)</label>
+              <label className="block text-xs font-medium text-paper mb-1.5">Skill Tags (comma-separated)</label>
               <input
                 type="text"
                 required
                 value={postTags}
                 onChange={(e) => setPostTags(e.target.value)}
                 placeholder="react, typescript, nextjs"
-                className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-base"
+                className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-paper focus:outline-none focus:border-brand-base"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-white mb-1.5">Detailed Scope & Requirements (min 20 chars)</label>
+            <label className="block text-xs font-medium text-paper mb-1.5">Detailed Scope & Requirements (min 20 chars)</label>
             <textarea
               required
               rows={4}
               value={postDescription}
               onChange={(e) => setPostDescription(e.target.value)}
               placeholder="Describe deliverables, technical constraints, milestones, and testing expectations..."
-              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-white focus:outline-none focus:border-brand-base resize-none"
+              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-paper focus:outline-none focus:border-brand-base resize-none"
             />
             <p className="text-[11px] text-paper-faint mt-1">
               {postDescription.length}/20 characters minimum
@@ -824,7 +824,7 @@ export default function ProjectsPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-white mb-1.5">Proposed Bid Amount (₹)</label>
+            <label className="block text-xs font-medium text-paper mb-1.5">Proposed Bid Amount (₹)</label>
             <input
               type="number"
               step="0.01"
@@ -832,7 +832,7 @@ export default function ProjectsPage() {
               required
               value={bidAmount}
               onChange={(e) => setBidAmount(e.target.value)}
-              className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-base font-mono2"
+              className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-paper focus:outline-none focus:border-brand-base font-mono2"
             />
             {selectedProject && (
               <p className="text-[11px] text-paper-faint mt-1">
@@ -842,14 +842,14 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-white mb-1.5">Cover Letter & Approach (min 20 chars)</label>
+            <label className="block text-xs font-medium text-paper mb-1.5">Cover Letter & Approach (min 20 chars)</label>
             <textarea
               required
               rows={4}
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
               placeholder="Outline your engineering approach, previous experience, and timeline..."
-              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-white focus:outline-none focus:border-brand-base resize-none"
+              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-paper focus:outline-none focus:border-brand-base resize-none"
             />
             <p className="text-[11px] text-paper-faint mt-1">
               {coverLetter.length}/20 characters minimum

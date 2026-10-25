@@ -240,7 +240,7 @@ export function UpiTopUpModal({ isOpen, onClose, onSuccess }: UpiTopUpModalProps
               ₹
             </div>
             <div>
-              <h2 id="upi-topup-title" className="font-display font-bold text-lg text-white leading-tight">
+              <h2 id="upi-topup-title" className="font-display font-bold text-lg text-paper leading-tight">
                 Add Balance (UPI Top-Up)
               </h2>
               <p className="text-xs font-mono2 text-paper-muted">GigaFlow Non-Custodial Escrow</p>
@@ -249,7 +249,7 @@ export function UpiTopUpModal({ isOpen, onClose, onSuccess }: UpiTopUpModalProps
           <button
             type="button"
             onClick={handleClose}
-            className="p-1.5 rounded-lg text-paper-muted hover:text-white hover:bg-surface-elevated transition-colors"
+            className="p-1.5 rounded-lg text-paper-muted hover:text-paper hover:bg-surface-elevated transition-colors"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5" aria-hidden="true" />
@@ -285,7 +285,7 @@ export function UpiTopUpModal({ isOpen, onClose, onSuccess }: UpiTopUpModalProps
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="50"
-                    className="w-full bg-surface-elevated border border-line focus:border-brand-base rounded-2xl pl-10 pr-4 py-3.5 text-2xl font-bold font-mono2 text-white placeholder-paper-faint focus:outline-none transition-colors"
+                    className="w-full bg-surface-elevated border border-line focus:border-brand-base rounded-2xl pl-10 pr-4 py-3.5 text-2xl font-bold font-mono2 text-paper placeholder-paper-faint focus:outline-none transition-colors"
                   />
                 </div>
                 <p className="text-[11px] text-paper-faint mt-1.5 font-mono2">
@@ -351,7 +351,7 @@ export function UpiTopUpModal({ isOpen, onClose, onSuccess }: UpiTopUpModalProps
               <div className="p-3.5 bg-surface-elevated rounded-2xl border border-line flex items-center justify-between text-left">
                 <div>
                   <span className="text-[10px] font-mono2 text-paper-faint uppercase">Payable Total</span>
-                  <p className="text-xl font-bold font-mono2 text-white">₹{order.amountInr.toFixed(2)}</p>
+                  <p className="text-xl font-bold font-mono2 text-paper">₹{order.amountInr.toFixed(2)}</p>
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] font-mono2 text-paper-faint uppercase">Order ID</span>
@@ -407,19 +407,19 @@ export function UpiTopUpModal({ isOpen, onClose, onSuccess }: UpiTopUpModalProps
                 <div className="grid grid-cols-3 gap-2">
                   <a
                     href={`tez://upi/pay?pa=${encodeURIComponent(order.payeeVpa)}&pn=${encodeURIComponent(order.payeeName)}&am=${order.amountInr.toFixed(2)}&cu=INR&tr=${order.orderId}`}
-                    className="py-2 px-3 rounded-xl bg-surface-elevated hover:bg-surface-highlight border border-line flex items-center justify-center gap-1.5 text-xs font-bold text-white transition-colors"
+                    className="py-2 px-3 rounded-xl bg-surface-elevated hover:bg-surface-highlight border border-line flex items-center justify-center gap-1.5 text-xs font-bold text-paper transition-colors"
                   >
                     <Smartphone className="w-3.5 h-3.5 text-brand-base" /> Google Pay
                   </a>
                   <a
                     href={`phonepe://pay?pa=${encodeURIComponent(order.payeeVpa)}&pn=${encodeURIComponent(order.payeeName)}&am=${order.amountInr.toFixed(2)}&cu=INR&tr=${order.orderId}`}
-                    className="py-2 px-3 rounded-xl bg-surface-elevated hover:bg-surface-highlight border border-line flex items-center justify-center gap-1.5 text-xs font-bold text-white transition-colors"
+                    className="py-2 px-3 rounded-xl bg-surface-elevated hover:bg-surface-highlight border border-line flex items-center justify-center gap-1.5 text-xs font-bold text-paper transition-colors"
                   >
                     <Smartphone className="w-3.5 h-3.5 text-brand-base" /> PhonePe
                   </a>
                   <a
                     href={`paytmmp://pay?pa=${encodeURIComponent(order.payeeVpa)}&pn=${encodeURIComponent(order.payeeName)}&am=${order.amountInr.toFixed(2)}&cu=INR&tr=${order.orderId}`}
-                    className="py-2 px-3 rounded-xl bg-surface-elevated hover:bg-surface-highlight border border-line flex items-center justify-center gap-1.5 text-xs font-bold text-white transition-colors"
+                    className="py-2 px-3 rounded-xl bg-surface-elevated hover:bg-surface-highlight border border-line flex items-center justify-center gap-1.5 text-xs font-bold text-paper transition-colors"
                   >
                     <Smartphone className="w-3.5 h-3.5 text-brand-base" /> Paytm
                   </a>
@@ -473,7 +473,7 @@ export function UpiTopUpModal({ isOpen, onClose, onSuccess }: UpiTopUpModalProps
                       value={clientUtr}
                       onChange={(e) => setClientUtr(e.target.value.toUpperCase())}
                       placeholder="e.g. 428190382910"
-                      className="flex-1 bg-surface border border-line focus:border-brand-base rounded-lg px-3 py-1.5 text-xs font-mono2 text-white placeholder-paper-faint focus:outline-none"
+                      className="flex-1 bg-surface border border-line focus:border-brand-base rounded-lg px-3 py-1.5 text-xs font-mono2 text-paper placeholder-paper-faint focus:outline-none"
                     />
                     <button
                       type="submit"
@@ -495,7 +495,7 @@ export function UpiTopUpModal({ isOpen, onClose, onSuccess }: UpiTopUpModalProps
                 <CheckCircle2 className="w-8 h-8 text-success-light" />
               </div>
               <div>
-                <p className="font-display font-bold text-xl text-white">Payment Verified & Balance Credited!</p>
+                <p className="font-display font-bold text-xl text-paper">Payment Verified & Balance Credited!</p>
                 <p className="text-sm text-paper-muted mt-1">
                   ₹{order.amountInr.toFixed(2)} has been added to your marketplace wallet balance.
                 </p>
@@ -504,7 +504,7 @@ export function UpiTopUpModal({ isOpen, onClose, onSuccess }: UpiTopUpModalProps
               <div className="w-full p-4 bg-surface-elevated rounded-xl border border-line text-left text-xs font-mono2 space-y-1.5">
                 <div className="flex justify-between">
                   <span className="text-paper-faint">Order ID:</span>
-                  <span className="text-white">{order.orderId}</span>
+                  <span className="text-paper">{order.orderId}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-paper-faint">Status:</span>
@@ -512,7 +512,7 @@ export function UpiTopUpModal({ isOpen, onClose, onSuccess }: UpiTopUpModalProps
                 </div>
                 <div className="flex justify-between">
                   <span className="text-paper-faint">Credited At:</span>
-                  <span className="text-white">{new Date().toLocaleTimeString()}</span>
+                  <span className="text-paper">{new Date().toLocaleTimeString()}</span>
                 </div>
               </div>
 

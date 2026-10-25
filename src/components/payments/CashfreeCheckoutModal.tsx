@@ -57,31 +57,31 @@ export function CashfreeCheckoutModal({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-200"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200"
         onClick={handleClose}
         aria-hidden="true"
       />
 
       {/* Modal Surface */}
-      <div className="relative w-full max-w-lg bg-[#111] border border-neutral-800 rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-lg bg-surface border border-line rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-800 bg-neutral-900/40">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-line bg-surface-elevated/40">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-500 font-bold">
+            <div className="w-9 h-9 rounded-xl bg-brand-base/15 border border-brand-base/30 flex items-center justify-center text-brand-base font-bold">
               ₹
             </div>
             <div>
-              <h2 id="cf-modal-title" className="font-bold text-lg text-white leading-tight">
+              <h2 id="cf-modal-title" className="font-bold text-lg text-paper leading-tight">
                 Cashfree Gateway Deposit
               </h2>
-              <p className="text-xs font-mono text-neutral-400">GigaFlow Real Escrow Funding</p>
+              <p className="text-xs font-mono2 text-paper-muted">GigaFlow Real Escrow Funding</p>
             </div>
           </div>
           {status !== 'verifying' && (
             <button
               type="button"
               onClick={handleClose}
-              className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+              className="p-2 rounded-lg text-paper-muted hover:text-paper hover:bg-surface-elevated transition-colors"
               aria-label="Close dialog"
             >
               <X className="w-5 h-5" aria-hidden="true" />
@@ -92,28 +92,28 @@ export function CashfreeCheckoutModal({
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-6">
           {/* Milestone & Amount Summary Card */}
-          <div className="p-5 rounded-xl bg-neutral-900 border border-neutral-800 space-y-4">
+          <div className="p-5 rounded-xl bg-surface-elevated border border-line space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <span className="text-[11px] uppercase tracking-wider text-neutral-400">Milestone Target</span>
-                <p className="font-bold text-white text-base mt-0.5">
+                <span className="text-[11px] uppercase tracking-wider text-paper-muted">Milestone Target</span>
+                <p className="font-bold text-paper text-base mt-0.5">
                   {params.milestoneTitle || params.contractTitle || 'Contract Milestone'}
                 </p>
               </div>
               <div className="text-right">
-                <span className="text-[11px] uppercase tracking-wider text-neutral-400">Deposit Amount</span>
-                <p className="font-bold text-2xl text-white">
+                <span className="text-[11px] uppercase tracking-wider text-paper-muted">Deposit Amount</span>
+                <p className="font-bold text-2xl text-paper">
                   ₹{inrAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-xs font-mono text-orange-400 font-bold mt-0.5">
+                <p className="text-xs font-mono2 text-brand-base font-bold mt-0.5">
                   = {gfAmount} GF
                 </p>
               </div>
             </div>
 
             {/* Escrow Badge */}
-            <div className="flex items-center gap-2.5 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs text-orange-300 font-medium">
-              <ShieldCheck className="w-4 h-4 text-orange-500 shrink-0" aria-hidden="true" />
+            <div className="flex items-center gap-2.5 p-3 rounded-lg bg-brand-tint border border-brand-base/20 text-xs text-brand-light font-medium">
+              <ShieldCheck className="w-4 h-4 text-brand-base shrink-0" aria-hidden="true" />
               <span>Funds are locked into non-custodial Escrow until deliverable approval.</span>
             </div>
           </div>
@@ -121,12 +121,12 @@ export function CashfreeCheckoutModal({
           {/* Dynamic State Views */}
           {status === 'idle' && (
             <div className="space-y-4">
-              <div className="space-y-2 text-sm text-neutral-400">
+              <div className="space-y-2 text-sm text-paper-muted">
                 <p className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-orange-500" /> Supported: UPI (GPay, PhonePe, Paytm), NetBanking, Cards.
+                  <CreditCard className="w-4 h-4 text-brand-base" /> Supported: UPI (GPay, PhonePe, Paytm), NetBanking, Cards.
                 </p>
                 <p className="flex items-center gap-2">
-                  <Building className="w-4 h-4 text-orange-500" /> Regulated: Cashfree Payments India Pvt. Ltd. (RBI Authorized).
+                  <Building className="w-4 h-4 text-brand-base" /> Regulated: Cashfree Payments India Pvt. Ltd. (RBI Authorized).
                 </p>
               </div>
 
@@ -134,7 +134,7 @@ export function CashfreeCheckoutModal({
                 <button
                   type="button"
                   onClick={handleStart}
-                  className="w-full py-3 px-4 rounded-xl flex items-center justify-center font-bold text-black bg-orange-500 hover:bg-orange-400 transition-colors shadow-lg"
+                  className="w-full btn btn-primary py-3 px-4 rounded-xl flex items-center justify-center font-bold shadow-md cursor-pointer"
                 >
                   <Lock className="w-4 h-4 mr-2" /> Pay ₹{inrAmount.toLocaleString('en-IN')} via Cashfree
                 </button>
@@ -144,19 +144,19 @@ export function CashfreeCheckoutModal({
 
           {status === 'loading' && (
             <div className="py-10 flex flex-col items-center justify-center space-y-3" role="status" aria-live="polite">
-              <Loader2 className="w-9 h-9 text-orange-500 animate-spin" aria-hidden="true" />
-              <p className="font-medium text-white text-sm">Initializing Cashfree Checkout Session…</p>
-              <p className="text-xs text-neutral-500">Connecting to Cashfree Secure API</p>
+              <Loader2 className="w-9 h-9 text-brand-base animate-spin" aria-hidden="true" />
+              <p className="font-medium text-paper text-sm">Initializing Cashfree Checkout Session…</p>
+              <p className="text-xs text-paper-muted">Connecting to Cashfree Secure API</p>
             </div>
           )}
 
           {status === 'gateway_active' && (
             <div className="py-8 flex flex-col items-center justify-center space-y-3 text-center" role="status" aria-live="polite">
-              <div className="w-12 h-12 rounded-full bg-orange-500/15 border border-orange-500/30 flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-orange-500 animate-pulse" />
+              <div className="w-12 h-12 rounded-full bg-brand-tint border border-brand-base/30 flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-brand-base animate-pulse" />
               </div>
-              <p className="font-medium text-white text-base">Cashfree Gateway Active</p>
-              <p className="text-xs text-neutral-400 max-w-xs">
+              <p className="font-medium text-paper text-base">Cashfree Gateway Active</p>
+              <p className="text-xs text-paper-muted max-w-xs">
                 Complete your payment in the Cashfree modal window.
               </p>
             </div>
@@ -165,18 +165,18 @@ export function CashfreeCheckoutModal({
           {status === 'verifying' && (
             <div className="py-10 flex flex-col items-center justify-center space-y-4 text-center" role="status" aria-live="assertive">
               <div className="relative">
-                <div className="w-14 h-14 rounded-full bg-orange-500/15 flex items-center justify-center border border-orange-500/40">
-                  <RefreshCw className="w-7 h-7 text-orange-500 animate-spin" />
+                <div className="w-14 h-14 rounded-full bg-brand-tint flex items-center justify-center border border-brand-base/40">
+                  <RefreshCw className="w-7 h-7 text-brand-base animate-spin" />
                 </div>
-                <div className="absolute inset-0 rounded-full border-2 border-orange-500 animate-ping opacity-25" />
+                <div className="absolute inset-0 rounded-full border-2 border-brand-base animate-ping opacity-25" />
               </div>
               <div>
-                <p className="font-bold text-lg text-white">Verifying with payment gateway…</p>
-                <p className="text-xs text-neutral-400 max-w-sm mt-1">
+                <p className="font-bold text-lg text-paper">Verifying with payment gateway…</p>
+                <p className="text-xs text-paper-muted max-w-sm mt-1">
                   Communicating with Cashfree Webhook & Ledger Engine. Do not refresh or close this window.
                 </p>
               </div>
-              <div className="inline-flex px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 font-mono text-xs">
+              <div className="inline-flex px-2.5 py-1 rounded-full bg-brand-tint border border-brand-base/30 text-brand-light font-mono2 text-xs">
                 ACID Verification in Progress
               </div>
             </div>
@@ -184,28 +184,28 @@ export function CashfreeCheckoutModal({
 
           {status === 'success' && receipt && (
             <div className="py-6 flex flex-col items-center justify-center space-y-4 text-center" role="alert" aria-live="assertive">
-              <div className="w-16 h-16 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-green-400" />
+              <div className="w-16 h-16 rounded-full bg-success-tint border border-success/30 flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-success" />
               </div>
               <div>
-                <p className="font-bold text-xl text-white">Escrow Funded & Locked</p>
-                <p className="text-sm text-neutral-400 mt-1">
-                  Cashfree payment of <span className="text-white font-mono font-bold">₹{receipt.amount}</span> was verified and locked.
+                <p className="font-bold text-xl text-paper">Escrow Funded & Locked</p>
+                <p className="text-sm text-paper-muted mt-1">
+                  Cashfree payment of <span className="text-paper font-mono2 font-bold">₹{receipt.amount}</span> was verified and locked.
                 </p>
               </div>
 
-              <div className="w-full p-4 bg-neutral-900 rounded-xl border border-neutral-800 text-left text-xs font-mono space-y-1.5">
+              <div className="w-full p-4 bg-surface-elevated rounded-xl border border-line text-left text-xs font-mono2 space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Order ID:</span>
-                  <span className="text-white">{receipt.orderId}</span>
+                  <span className="text-paper-muted">Order ID:</span>
+                  <span className="text-paper">{receipt.orderId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Gateway Ref:</span>
-                  <span className="text-white">{receipt.providerReferenceId}</span>
+                  <span className="text-paper-muted">Gateway Ref:</span>
+                  <span className="text-paper">{receipt.providerReferenceId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Ledger Hash:</span>
-                  <span className="text-orange-400 truncate max-w-[200px]">{receipt.transactionHash}</span>
+                  <span className="text-paper-muted">Ledger Hash:</span>
+                  <span className="text-brand-light truncate max-w-[200px]">{receipt.transactionHash}</span>
                 </div>
               </div>
 
@@ -217,7 +217,7 @@ export function CashfreeCheckoutModal({
                       onViewReceipt(receipt);
                       handleClose();
                     }}
-                    className="flex-1 py-2.5 px-4 rounded-xl border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-white font-medium text-sm transition-colors"
+                    className="flex-1 py-2.5 px-4 rounded-xl border border-line bg-surface-elevated hover:bg-surface-highlight text-paper font-medium text-sm transition-colors cursor-pointer"
                   >
                     View Receipt
                   </button>
@@ -228,7 +228,7 @@ export function CashfreeCheckoutModal({
                     if (onPaymentSuccess) onPaymentSuccess(receipt);
                     handleClose();
                   }}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-bold text-sm flex items-center justify-center transition-colors"
+                  className="flex-1 py-2.5 px-4 rounded-xl btn btn-primary text-sm flex items-center justify-center transition-colors cursor-pointer"
                 >
                   Continue to Contract <ArrowRight className="w-4 h-4 ml-1" />
                 </button>
@@ -238,26 +238,26 @@ export function CashfreeCheckoutModal({
 
           {(status === 'error' || status === 'cancelled') && (
             <div className="py-6 flex flex-col items-center justify-center space-y-4 text-center" role="alert" aria-live="assertive">
-              <div className="w-14 h-14 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center">
-                <AlertTriangle className="w-7 h-7 text-red-400" />
+              <div className="w-14 h-14 rounded-full bg-danger-tint border border-danger/30 flex items-center justify-center">
+                <AlertTriangle className="w-7 h-7 text-danger" />
               </div>
               <div>
-                <p className="font-bold text-lg text-white">Payment Unsuccessful</p>
-                <p className="text-sm text-red-400 mt-1 max-w-sm">{error || 'Gateway transaction could not be completed.'}</p>
+                <p className="font-bold text-lg text-paper">Payment Unsuccessful</p>
+                <p className="text-sm text-danger mt-1 max-w-sm">{error || 'Gateway transaction could not be completed.'}</p>
               </div>
 
               <div className="flex gap-3 w-full pt-2">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="flex-1 py-2.5 px-4 rounded-xl border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-white font-medium text-sm transition-colors"
+                  className="flex-1 py-2.5 px-4 rounded-xl border border-line bg-surface-elevated hover:bg-surface-highlight text-paper font-medium text-sm transition-colors cursor-pointer"
                 >
                   Dismiss
                 </button>
                 <button
                   type="button"
                   onClick={retry}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-bold text-sm flex items-center justify-center transition-colors"
+                  className="flex-1 py-2.5 px-4 rounded-xl btn btn-primary text-sm flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" /> Try Again
                 </button>

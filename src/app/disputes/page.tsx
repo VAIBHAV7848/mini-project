@@ -257,7 +257,7 @@ export default function DisputesPage() {
         <div className="border-b border-line pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p className="eyebrow mb-2">Arbitration & Evidence</p>
-            <h1 className="font-display text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 className="font-display text-2xl font-bold text-paper tracking-tight flex items-center gap-2">
               <ShieldAlert className="w-5 h-5 text-danger-light" aria-hidden="true" />
               Dispute Cases
             </h1>
@@ -280,7 +280,7 @@ export default function DisputesPage() {
                 <ShieldCheck className="w-5 h-5 text-success-light" aria-hidden="true" />
               </div>
               <div>
-                <h3 className="font-display text-base font-bold text-white">No active disputes</h3>
+                <h3 className="font-display text-base font-bold text-paper">No active disputes</h3>
                 <p className="text-sm text-paper-muted">All active escrow contracts are progressing normally without an open dispute case.</p>
               </div>
             </div>
@@ -307,7 +307,7 @@ export default function DisputesPage() {
                         </td>
                         <td className="py-4 px-4 align-top">
                           <div className="flex flex-col gap-1 max-w-md">
-                            <span className="font-display font-bold text-white line-clamp-1">{dispute.milestone.title}</span>
+                            <span className="font-display font-bold text-paper line-clamp-1">{dispute.milestone.title}</span>
                             <span className="text-sm text-paper-muted line-clamp-1">"{dispute.reason}"</span>
                           </div>
                         </td>
@@ -357,7 +357,7 @@ export default function DisputesPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="eyebrow mb-1">Engine 02 Verification Pipeline</p>
-              <h2 className="font-display text-xl font-bold text-white tracking-tight">
+              <h2 className="font-display text-xl font-bold text-paper tracking-tight">
                 Cryptographic Evidence & Tamper Resistance Inspection
               </h2>
             </div>
@@ -422,7 +422,7 @@ export default function DisputesPage() {
               </div>
               <div>
                 <span className="text-[11px] font-mono2 uppercase tracking-wider text-paper-faint block">Raised By</span>
-                <span className="text-white font-medium">{selectedDispute.raisedBy.name} ({selectedDispute.raisedBy.role})</span>
+                <span className="text-paper font-medium">{selectedDispute.raisedBy.name} ({selectedDispute.raisedBy.role})</span>
               </div>
             </div>
 
@@ -439,7 +439,7 @@ export default function DisputesPage() {
                 <div className="p-3 bg-success-tint/20 border border-success/40 rounded-xl space-y-1">
                   <div className="flex items-center gap-2">
                     <Scale className="w-4 h-4 text-success-light" />
-                    <span className="font-bold text-white">{selectedDispute.ruling.replace(/_/g, ' ')}</span>
+                    <span className="font-bold text-paper">{selectedDispute.ruling.replace(/_/g, ' ')}</span>
                   </div>
                   {selectedDispute.rulingNotes && (
                     <p className="text-xs text-paper-muted pt-1">{selectedDispute.rulingNotes}</p>
@@ -452,7 +452,7 @@ export default function DisputesPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-xs font-mono2 uppercase tracking-wider text-paper-faint flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-brand-base" /> Evidence Exhibits (SHA-256 Verified)
+                  <ShieldCheck className="w-5 h-5 text-brand-base" /> Evidence Exhibits (SHA-256 Verified)
                 </h4>
                 <span className="text-[11px] font-mono2 text-paper-faint">
                   {selectedDispute.evidenceItems?.length || 0} exhibit(s)
@@ -468,7 +468,7 @@ export default function DisputesPage() {
                   {selectedDispute.evidenceItems.map((item, idx) => (
                     <div key={item.id} className="p-3 bg-surface-elevated border border-line rounded-xl space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-white">Exhibit #{idx + 1}: {item.description}</span>
+                        <span className="font-bold text-paper">Exhibit #{idx + 1}: {item.description}</span>
                         {item.submittedBy && (
                           <span className="text-[11px] text-paper-faint">By: {item.submittedBy.name}</span>
                         )}
@@ -549,7 +549,7 @@ export default function DisputesPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-white mb-2">Ruling Decision</label>
+            <label className="block text-xs font-medium text-paper mb-2">Ruling Decision</label>
             <div className="grid grid-cols-2 gap-3">
               <label
                 className={`p-3.5 rounded-xl border cursor-pointer flex flex-col gap-1 transition-all ${
@@ -565,7 +565,7 @@ export default function DisputesPage() {
                   onChange={() => setRulingChoice('RELEASE_TO_FREELANCER')}
                   className="hidden"
                 />
-                <span className="font-bold text-white text-xs">Release to Freelancer</span>
+                <span className="font-bold text-paper text-xs">Release to Freelancer</span>
                 <span className="text-[11px] text-paper-muted">Deliverable fulfilled contract specification</span>
               </label>
 
@@ -583,21 +583,21 @@ export default function DisputesPage() {
                   onChange={() => setRulingChoice('REFUND_TO_CLIENT')}
                   className="hidden"
                 />
-                <span className="font-bold text-white text-xs">Refund to Client</span>
+                <span className="font-bold text-paper text-xs">Refund to Client</span>
                 <span className="text-[11px] text-paper-muted">Critical defects or missing core requirements</span>
               </label>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-white mb-1.5">Arbitration Analysis & Legal Rationale (min 20 chars)</label>
+            <label className="block text-xs font-medium text-paper mb-1.5">Arbitration Analysis & Legal Rationale (min 20 chars)</label>
             <textarea
               required
               rows={4}
               value={rulingNotes}
               onChange={(e) => setRulingNotes(e.target.value)}
               placeholder="Detail evidence items reviewed, Merkle tree root verification, and basis for decision..."
-              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-white focus:outline-none focus:border-brand-base resize-none"
+              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-paper focus:outline-none focus:border-brand-base resize-none"
             />
             <p className="text-[11px] text-paper-faint mt-1">
               {rulingNotes.length}/20 characters minimum
@@ -654,7 +654,7 @@ export default function DisputesPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-white mb-1.5">
+            <label className="block text-xs font-semibold text-paper mb-1.5">
               Evidence Document / Log / Proof File
             </label>
             <div className="relative border-2 border-dashed border-line hover:border-brand-base rounded-xl p-4 text-center transition-colors">
@@ -697,14 +697,14 @@ export default function DisputesPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-white mb-1.5">Description of Exhibit (min 5 chars)</label>
+            <label className="block text-xs font-medium text-paper mb-1.5">Description of Exhibit (min 5 chars)</label>
             <textarea
               required
               rows={3}
               value={evidenceDescription}
               onChange={(e) => setEvidenceDescription(e.target.value)}
               placeholder="Describe what this exhibit proves (e.g. test logs, specification agreement)..."
-              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-white focus:outline-none focus:border-brand-base resize-none"
+              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-paper focus:outline-none focus:border-brand-base resize-none"
             />
           </div>
         </form>

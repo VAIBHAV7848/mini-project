@@ -15,7 +15,7 @@ export default function SettingsPage() {
         <div className="border-b border-line pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p className="eyebrow mb-2">System Administration</p>
-            <h1 className="font-display text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 className="font-display text-2xl font-bold text-paper tracking-tight flex items-center gap-2">
               <Settings className="w-5 h-5 text-brand-base" aria-hidden="true" />
               Platform Settings
             </h1>
@@ -27,7 +27,7 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Card 1: System Info */}
           <div className="bg-surface rounded-panel border border-line p-5">
-            <h2 className="font-display text-sm font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="font-display text-sm font-bold text-paper mb-4 flex items-center gap-2">
               <Server className="w-4 h-4 text-brand-base" aria-hidden="true" />
               Runtime Environment
             </h2>
@@ -57,7 +57,7 @@ export default function SettingsPage() {
 
           {/* Card 2: Security Configuration */}
           <div className="bg-surface rounded-panel border border-line p-5">
-            <h2 className="font-display text-sm font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="font-display text-sm font-bold text-paper mb-4 flex items-center gap-2">
               <Shield className="w-4 h-4 text-brand-base" aria-hidden="true" />
               Security Policies
             </h2>
@@ -87,7 +87,7 @@ export default function SettingsPage() {
 
           {/* Card 3: Engine Status */}
           <div className="bg-surface rounded-panel border border-line p-5">
-            <h2 className="font-display text-sm font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="font-display text-sm font-bold text-paper mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4 text-brand-base" aria-hidden="true" />
               Engine Health
             </h2>

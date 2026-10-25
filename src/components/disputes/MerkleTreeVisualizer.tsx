@@ -208,7 +208,7 @@ export function MerkleTreeVisualizer({
             </span>
             <span className="text-paper-faint text-xs font-mono2">Tree ID: {disputeId}</span>
           </div>
-          <h3 className="font-display text-lg font-bold text-white mt-1 flex items-center gap-2">
+          <h3 className="font-display text-lg font-bold text-paper mt-1 flex items-center gap-2">
             <GitBranch className="w-4 h-4 text-brand-base" />
             Cryptographic Merkle Evidence Tree
           </h3>
@@ -246,7 +246,7 @@ export function MerkleTreeVisualizer({
             className={`w-full max-w-xl p-4 rounded-xl border transition-all duration-300 text-center ${
               treeNodes.isTampered
                 ? 'bg-danger-tint/30 border-danger/60 text-danger-light shadow-lg shadow-danger/10'
-                : 'bg-surface-elevated border-brand-base/40 text-white shadow-sm'
+                : 'bg-surface-elevated border-brand-base/40 text-paper shadow-sm'
             }`}
           >
             <div className="flex items-center justify-between mb-1.5">
@@ -337,7 +337,7 @@ export function MerkleTreeVisualizer({
                       <span className="w-5 h-5 rounded flex items-center justify-center font-mono2 text-[10px] font-bold bg-surface-highlight border border-line text-paper-muted">
                         L{idx}
                       </span>
-                      <p className="text-xs font-bold text-white line-clamp-1">{leaf.label}</p>
+                      <p className="text-xs font-bold text-paper line-clamp-1">{leaf.label}</p>
                     </div>
                     {leaf.isDeliverable && (
                       <span className="text-[9px] font-mono2 uppercase px-1.5 py-0.5 rounded bg-brand-base/15 text-brand-light border border-brand-base/30">
@@ -403,7 +403,7 @@ export function MerkleTreeVisualizer({
               <p className="text-[10px] font-mono2 uppercase font-bold text-brand-light">
                 Evaluator Demonstration Mode
               </p>
-              <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+              <h4 className="text-sm font-bold text-paper flex items-center gap-1.5">
                 <AlertTriangle className="w-4 h-4 text-warning-light" />
                 Simulate Tamper-Evident Attack Vector
               </h4>

@@ -93,17 +93,17 @@ export function PayoutSettings() {
   };
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-[#111] p-6 sm:p-8 shadow-xl">
-      <div className="flex items-center justify-between border-b border-neutral-800 pb-5 mb-6">
+    <div className="rounded-2xl border border-line bg-surface p-6 sm:p-8 shadow-xl">
+      <div className="flex items-center justify-between border-b border-line pb-5 mb-6">
         <div>
-          <span className="text-[11px] uppercase tracking-wider text-orange-400 font-mono">Freelancer Earnings</span>
-          <h2 className="font-bold text-xl text-white mt-1">Payout Destination Settings</h2>
-          <p className="text-xs text-neutral-400 mt-0.5">
+          <span className="text-[11px] uppercase tracking-wider text-brand-base font-mono2">Freelancer Earnings</span>
+          <h2 className="font-bold text-xl text-paper mt-1">Payout Destination Settings</h2>
+          <p className="text-xs text-paper-muted mt-0.5">
             Configure where approved milestone escrow releases will be disbursed.
           </p>
         </div>
-        <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-xs">
-          <ShieldCheck className="w-3.5 h-3.5 text-orange-500" /> Cashfree Payouts
+        <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-tint border border-brand-base/20 text-brand-base font-mono2 text-xs">
+          <ShieldCheck className="w-3.5 h-3.5 text-brand-base" /> Cashfree Payouts
         </div>
       </div>
 
@@ -117,14 +117,14 @@ export function PayoutSettings() {
           }}
           className={`p-4 rounded-xl border text-left flex items-center gap-3 transition-colors cursor-pointer ${
             method === 'UPI'
-              ? 'bg-orange-500/10 border-orange-500 text-white'
-              : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+              ? 'bg-brand-tint border-brand-base text-paper'
+              : 'bg-surface-elevated border-line text-paper-muted hover:text-paper'
           }`}
         >
-          <Smartphone className={`w-5 h-5 ${method === 'UPI' ? 'text-orange-500' : 'text-neutral-500'}`} />
+          <Smartphone className={`w-5 h-5 ${method === 'UPI' ? 'text-brand-base' : 'text-paper-muted'}`} />
           <div>
             <p className="font-bold text-sm">UPI VPA</p>
-            <p className="text-[11px] text-neutral-500">Instant transfer to any UPI app</p>
+            <p className="text-[11px] text-paper-muted">Instant transfer to any UPI app</p>
           </div>
         </button>
 
@@ -136,14 +136,14 @@ export function PayoutSettings() {
           }}
           className={`p-4 rounded-xl border text-left flex items-center gap-3 transition-colors cursor-pointer ${
             method === 'BANK'
-              ? 'bg-orange-500/10 border-orange-500 text-white'
-              : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+              ? 'bg-brand-tint border-brand-base text-paper'
+              : 'bg-surface-elevated border-line text-paper-muted hover:text-paper'
           }`}
         >
-          <Building2 className={`w-5 h-5 ${method === 'BANK' ? 'text-orange-500' : 'text-neutral-500'}`} />
+          <Building2 className={`w-5 h-5 ${method === 'BANK' ? 'text-brand-base' : 'text-paper-muted'}`} />
           <div>
             <p className="font-bold text-sm">Bank Account (IMPS/NEFT)</p>
-            <p className="text-[11px] text-neutral-500">Direct bank account settlement</p>
+            <p className="text-[11px] text-paper-muted">Direct bank account settlement</p>
           </div>
         </button>
       </div>
@@ -152,7 +152,7 @@ export function PayoutSettings() {
       <form onSubmit={handleSave} className="space-y-4">
         {method === 'UPI' ? (
           <div>
-            <label htmlFor="upiId" className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
+            <label htmlFor="upiId" className="block text-xs font-mono2 uppercase tracking-wider text-paper-muted mb-1.5">
               UPI ID / VPA
             </label>
             <input
@@ -161,15 +161,15 @@ export function PayoutSettings() {
               placeholder="e.g. dev1@okhdfcbank"
               value={upiId}
               onChange={(e) => setUpiId(e.target.value)}
-              className="w-full h-11 px-4 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono text-sm focus:outline-none focus:border-orange-500"
+              className="w-full h-11 px-4 rounded-xl bg-surface-elevated border border-line text-paper font-mono2 text-sm focus:outline-none focus:border-brand-base"
               required
             />
-            <p className="text-[11px] text-neutral-500 mt-1">Verified with NPCI handles (GPay, PhonePe, Paytm, BHIM).</p>
+            <p className="text-[11px] text-paper-muted mt-1">Verified with NPCI handles (GPay, PhonePe, Paytm, BHIM).</p>
           </div>
         ) : (
           <div className="space-y-4">
             <div>
-              <label htmlFor="beneName" className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
+              <label htmlFor="beneName" className="block text-xs font-mono2 uppercase tracking-wider text-paper-muted mb-1.5">
                 Account Holder Name
               </label>
               <input
@@ -178,13 +178,13 @@ export function PayoutSettings() {
                 placeholder="Developer Name"
                 value={beneficiaryName}
                 onChange={(e) => setBeneficiaryName(e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-neutral-900 border border-neutral-800 text-white text-sm focus:outline-none focus:border-orange-500"
+                className="w-full h-11 px-4 rounded-xl bg-surface-elevated border border-line text-paper text-sm focus:outline-none focus:border-brand-base"
                 required
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="accNum" className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
+                <label htmlFor="accNum" className="block text-xs font-mono2 uppercase tracking-wider text-paper-muted mb-1.5">
                   Bank Account Number
                 </label>
                 <input
@@ -193,12 +193,12 @@ export function PayoutSettings() {
                   placeholder="••••••••••••"
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full h-11 px-4 rounded-xl bg-surface-elevated border border-line text-paper font-mono2 text-sm focus:outline-none focus:border-brand-base"
                   required
                 />
               </div>
               <div>
-                <label htmlFor="confirmAccNum" className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
+                <label htmlFor="confirmAccNum" className="block text-xs font-mono2 uppercase tracking-wider text-paper-muted mb-1.5">
                   Confirm Account Number
                 </label>
                 <input
@@ -207,13 +207,13 @@ export function PayoutSettings() {
                   placeholder="Re-enter account number"
                   value={confirmAccountNumber}
                   onChange={(e) => setConfirmAccountNumber(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full h-11 px-4 rounded-xl bg-surface-elevated border border-line text-paper font-mono2 text-sm focus:outline-none focus:border-brand-base"
                   required
                 />
               </div>
             </div>
             <div>
-              <label htmlFor="ifscCode" className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
+              <label htmlFor="ifscCode" className="block text-xs font-mono2 uppercase tracking-wider text-paper-muted mb-1.5">
                 IFSC Code
               </label>
               <input
@@ -222,7 +222,7 @@ export function PayoutSettings() {
                 placeholder="e.g. HDFC0000123"
                 value={ifsc}
                 onChange={(e) => setIfsc(e.target.value.toUpperCase())}
-                className="w-full h-11 px-4 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono text-sm uppercase focus:outline-none focus:border-orange-500"
+                className="w-full h-11 px-4 rounded-xl bg-surface-elevated border border-line text-paper font-mono2 text-sm uppercase focus:outline-none focus:border-brand-base"
                 required
               />
             </div>
@@ -233,8 +233,8 @@ export function PayoutSettings() {
           <div
             className={`p-3 rounded-lg text-xs flex items-center gap-2 ${
               message.type === 'success'
-                ? 'bg-green-500/10 border border-green-500/20 text-green-400'
-                : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                ? 'bg-success-tint border border-success/20 text-success'
+                : 'bg-danger-tint border border-danger/20 text-danger'
             }`}
           >
             {message.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
@@ -246,7 +246,7 @@ export function PayoutSettings() {
           <button
             type="submit"
             disabled={saving}
-            className="py-2.5 px-5 rounded-xl bg-orange-500 hover:bg-orange-400 text-black font-bold text-sm flex items-center transition-colors cursor-pointer disabled:opacity-50"
+            className="btn btn-primary py-2.5 px-5 rounded-xl font-bold text-sm flex items-center transition-colors cursor-pointer disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
             Save Beneficiary Details

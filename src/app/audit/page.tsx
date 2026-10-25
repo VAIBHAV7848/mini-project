@@ -84,7 +84,7 @@ export default function AuditPage() {
         <div className="border-b border-line pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p className="eyebrow mb-2">System Administration</p>
-            <h1 className="font-display text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 className="font-display text-2xl font-bold text-paper tracking-tight flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-brand-base" aria-hidden="true" />
               Audit Trail
             </h1>
@@ -103,7 +103,7 @@ export default function AuditPage() {
               <Database className="w-4 h-4 text-paper-faint" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="font-display text-sm font-bold text-white">No items found</h3>
+              <h3 className="font-display text-sm font-bold text-paper">No items found</h3>
               <p className="text-[13px] text-paper-muted">Failed to load audit logs.</p>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function AuditPage() {
                   <Database className="w-4 h-4" />
                   <span className="text-sm font-medium">Total Records</span>
                 </div>
-                <div className="font-display text-2xl font-bold text-white font-mono2">
+                <div className="font-display text-2xl font-bold text-paper font-mono2">
                   {data.totalRecords}
                 </div>
               </div>
@@ -151,7 +151,7 @@ export default function AuditPage() {
                   <Clock className="w-4 h-4" />
                   <span className="text-sm font-medium">Latest Entry</span>
                 </div>
-                <div className="font-display text-base font-bold text-white font-mono2">
+                <div className="font-display text-base font-bold text-paper font-mono2">
                   {data.logs.length > 0 ? formatDate(data.logs[0].timestamp) : 'N/A'}
                 </div>
               </div>
@@ -164,7 +164,7 @@ export default function AuditPage() {
                    <ShieldCheck className="w-4 h-4 text-paper-faint" aria-hidden="true" />
                  </div>
                  <div>
-                   <h3 className="font-display text-sm font-bold text-white">No logs found</h3>
+                   <h3 className="font-display text-sm font-bold text-paper">No logs found</h3>
                    <p className="text-[13px] text-paper-muted">The audit trail is currently empty.</p>
                  </div>
                </div>
@@ -192,16 +192,16 @@ export default function AuditPage() {
                           <td className="px-4 py-3 text-sm text-paper-muted">
                             {log.entityName} <span className="font-mono2 text-paper-faint">({truncate(log.entityId, 8)})</span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-white font-medium">{log.action}</td>
+                          <td className="px-4 py-3 text-sm text-paper font-medium">{log.action}</td>
                           <td className="px-4 py-3 text-sm text-paper-muted">
                             {log.previousState ? (
                               <div className="flex items-center gap-2">
                                 <span className="line-through opacity-70">{log.previousState}</span>
                                 <span>&rarr;</span>
-                                <span className="text-white">{log.newState}</span>
+                                <span className="text-paper">{log.newState}</span>
                               </div>
                             ) : (
-                              <span className="text-white">{log.newState || '—'}</span>
+                              <span className="text-paper">{log.newState || '—'}</span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-sm text-paper-muted font-mono2">

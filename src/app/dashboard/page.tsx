@@ -459,7 +459,7 @@ export default function DashboardPage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow mb-2">Overview</p>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-white">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-paper">
               Good {daypart}, {firstName}
             </h1>
             <p className="text-sm text-paper-muted mt-1 font-medium">
@@ -507,9 +507,9 @@ export default function DashboardPage() {
                         ) : (
                           <p className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider mb-1">{item.milestone}</p>
                         )}
-                        <p className="text-base font-bold text-white truncate">{item.title}</p>
+                        <p className="text-base font-bold text-paper truncate">{item.title}</p>
                         <p className="text-sm text-paper-muted mt-0.5">
-                          <span className="font-mono2 text-white">{formatRupee(item.amount)}</span> · {item.action === 'DEPOSIT' ? 'Escrow is not yet funded.' : item.detail}
+                          <span className="font-mono2 text-paper">{formatRupee(item.amount)}</span> · {item.action === 'DEPOSIT' ? 'Escrow is not yet funded.' : item.detail}
                         </p>
                       </div>
                       {item.link ? (
@@ -551,7 +551,7 @@ export default function DashboardPage() {
                   <div className="w-12 h-12 rounded-2xl bg-surface-elevated border border-line flex items-center justify-center mx-auto mb-4">
                     <FileText className="w-5 h-5 text-paper-faint" aria-hidden="true" />
                   </div>
-                  <h3 className="font-display text-base font-bold text-white">No active contracts</h3>
+                  <h3 className="font-display text-base font-bold text-paper">No active contracts</h3>
                   <p className="text-sm text-paper-muted mt-1 max-w-sm text-center">
                     There are no escrow contracts assigned to your role right now.
                   </p>
@@ -564,7 +564,7 @@ export default function DashboardPage() {
                         <div className="p-5 sm:p-6 border-b border-line bg-surface-highlight/30">
                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                             <div className="min-w-0">
-                              <h3 className="font-display text-xl font-bold text-white leading-snug">
+                              <h3 className="font-display text-xl font-bold text-paper leading-snug">
                                 {contract.project?.title || 'Contract Agreement'}
                               </h3>
                               <p className="text-sm text-paper-muted mt-1 font-medium">
@@ -605,7 +605,7 @@ export default function DashboardPage() {
                                         <p className="font-mono2 text-[11px] text-paper-muted mb-1">
                                           M-{String(m.sequenceOrder).padStart(2, '0')}
                                         </p>
-                                        <p className={`text-base font-bold leading-snug ${done ? 'text-paper-muted line-through decoration-paper-faint/50' : 'text-white'}`}>
+                                        <p className={`text-base font-bold leading-snug ${done ? 'text-paper-muted line-through decoration-paper-faint/50' : 'text-paper'}`}>
                                           <span className={done ? 'sr-only' : 'hidden'}>Completed: </span>
                                           {m.title}
                                         </p>
@@ -644,7 +644,7 @@ export default function DashboardPage() {
                         <div className="px-5 sm:px-6 py-4 bg-surface-highlight/30 border-t border-line flex items-center justify-between gap-4">
                           <div className="flex items-center gap-2 text-sm text-paper-muted">
                             <ShieldCheck className="w-4 h-4 text-brand-base" aria-hidden="true" />
-                            <span>Escrow <span className="font-mono2 font-bold text-white ml-1">{formatRupee(contract.escrowBalance)}</span> protected</span>
+                            <span>Escrow <span className="font-mono2 font-bold text-paper ml-1">{formatRupee(contract.escrowBalance)}</span> protected</span>
                           </div>
                           <button
                             type="button"
@@ -676,7 +676,7 @@ export default function DashboardPage() {
                     </h2>
                     <span className="badge badge-brand text-[10px]">Liquid</span>
                   </div>
-                  <p className="font-display text-4xl font-bold tracking-tight text-white mb-2">
+                  <p className="font-display text-4xl font-bold tracking-tight text-paper mb-2">
                     {formatRupee(walletBalance)}
                   </p>
                   <p className="text-xs text-paper-muted">
@@ -699,7 +699,7 @@ export default function DashboardPage() {
             <section className="panel p-0 overflow-hidden">
               <div className="p-6 bg-surface-highlight/20 border-b border-line">
                 <h2 className="eyebrow mb-4">Total Escrow</h2>
-                <p className="font-display text-4xl font-bold tracking-tight text-white mb-1">
+                <p className="font-display text-4xl font-bold tracking-tight text-paper mb-1">
                   {formatRupee(totalProtected)}
                 </p>
                 <p className="text-xs font-bold uppercase tracking-wider text-brand-base flex items-center gap-1.5">
@@ -716,10 +716,10 @@ export default function DashboardPage() {
                       return (
                         <li key={c.id} className="group">
                           <div className="flex items-baseline justify-between gap-3 mb-1">
-                            <p className="text-[13px] font-bold text-white truncate group-hover:text-brand-light transition-colors">
+                            <p className="text-[13px] font-bold text-paper truncate group-hover:text-brand-light transition-colors">
                               {c.project?.title || 'Contract Agreement'}
                             </p>
-                            <p className="text-[13px] font-mono2 font-bold text-white shrink-0">
+                            <p className="text-[13px] font-mono2 font-bold text-paper shrink-0">
                               {formatRupee(c.escrowBalance)}
                             </p>
                           </div>
@@ -790,7 +790,7 @@ export default function DashboardPage() {
 
               {transactionState.action === 'SUBMIT_DELIVERABLE' && (
                 <div className="mt-4 space-y-3">
-                  <label className="block text-xs font-semibold text-white">
+                  <label className="block text-xs font-semibold text-paper">
                     Deliverable File (SHA-256 Calculated Locally)
                   </label>
                   <div className="relative border-2 border-dashed border-line hover:border-brand-base rounded-lg p-4 text-center transition-colors">
@@ -840,7 +840,7 @@ export default function DashboardPage() {
                       onChange={(e) => setSubmissionNotes(e.target.value)}
                       placeholder="e.g. Completed initial design deliverables with test suite pass."
                       rows={2}
-                      className="w-full bg-surface-elevated border border-line rounded px-3 py-1.5 text-xs text-white placeholder-paper-faint focus:outline-none focus:border-brand-base"
+                      className="w-full bg-surface-elevated border border-line rounded px-3 py-1.5 text-xs text-paper placeholder-paper-faint focus:outline-none focus:border-brand-base"
                     />
                   </div>
                 </div>
@@ -855,7 +855,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] font-mono2 uppercase tracking-wider text-paper-faint block">
                         Submitted Deliverable Artifact
                       </span>
-                      <p className="font-bold text-white text-sm">
+                      <p className="font-bold text-paper text-sm">
                         {targetM?.deliverable?.fileName || 'milestone-deliverable-v1.zip'}
                       </p>
                       {targetM?.deliverable?.submissionNotes && (
@@ -882,7 +882,7 @@ export default function DashboardPage() {
 
               {transactionState.action === 'RAISE_DISPUTE' && (
                 <div className="mt-4 space-y-2">
-                  <label className="block text-xs font-semibold text-white">
+                  <label className="block text-xs font-semibold text-paper">
                     Reason for Dispute (Minimum 15 characters)
                   </label>
                   <textarea
@@ -890,7 +890,7 @@ export default function DashboardPage() {
                     onChange={(e) => setDisputeReason(e.target.value)}
                     placeholder="Describe specific acceptance criteria defects, missing artifacts, or deadline breaches..."
                     rows={3}
-                    className="w-full bg-surface-elevated border border-line rounded p-2.5 text-xs text-white placeholder-paper-faint focus:outline-none focus:border-danger"
+                    className="w-full bg-surface-elevated border border-line rounded p-2.5 text-xs text-paper placeholder-paper-faint focus:outline-none focus:border-danger"
                   />
                   <div className="flex justify-between items-center text-[11px]">
                     <span className={disputeReason.trim().length >= 15 ? 'text-success' : 'text-paper-faint'}>
@@ -925,7 +925,7 @@ export default function DashboardPage() {
                 <CheckCircle className="w-7 h-7 text-success" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-base font-bold text-white mb-1">Transaction successful</p>
+                <p className="text-base font-bold text-paper mb-1">Transaction successful</p>
                 <p className="text-sm text-paper-muted max-w-[280px] mx-auto">{transactionState.message}</p>
               </div>
             </div>
@@ -937,7 +937,7 @@ export default function DashboardPage() {
                 <XCircle className="w-7 h-7 text-danger-light" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-base font-bold text-white mb-1">Transaction failed</p>
+                <p className="text-base font-bold text-paper mb-1">Transaction failed</p>
                 <p className="text-sm text-danger-light max-w-[280px] mx-auto">{transactionState.message}</p>
               </div>
             </div>

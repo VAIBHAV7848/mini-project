@@ -4,6 +4,7 @@ import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { AppShell } from '@/components/layout/AppShell';
 import { Dialog } from '@/components/ui/Dialog';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { RoleProvider } from '@/components/layout/RoleContext';
 import { ThemeProvider } from '@/components/theme/ThemeContext';
 
@@ -148,6 +149,35 @@ describe('Engine 04 (Web) - UI Components', () => {
         fireEvent.click(backdrop);
         expect(onClose).toHaveBeenCalled();
       }
+    });
+  });
+
+  describe('Theme Toggling & Document Contrast State', () => {
+    it('should toggle between dark and light themes and update documentElement class', () => {
+      localStorage.clear();
+      document.documentElement.className = '';
+
+      render(
+        <ThemeProvider>
+          <ThemeToggle />
+        </ThemeProvider>
+      );
+
+      const toggleBtn = screen.getByRole('button', { name: /Toggle light or dark theme/i });
+      expect(toggleBtn).toBeDefined();
+
+      // Initial theme defaults to dark
+      expect(document.documentElement.classList.contains('dark')).toBe(true);
+
+      // Toggle to light mode
+      fireEvent.click(toggleBtn);
+      expect(document.documentElement.classList.contains('light')).toBe(true);
+      expect(localStorage.getItem('theme')).toBe('light');
+
+      // Toggle back to dark mode
+      fireEvent.click(toggleBtn);
+      expect(document.documentElement.classList.contains('dark')).toBe(true);
+      expect(localStorage.getItem('theme')).toBe('dark');
     });
   });
 });

@@ -129,7 +129,7 @@ export function AdminDepositVerification() {
       {/* Action Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-lg font-bold text-white flex items-center gap-2">
+          <h2 className="font-display text-lg font-bold text-paper flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-brand-base" /> Pending UPI Deposit Approvals
           </h2>
           <p className="text-xs text-paper-muted">Verify incoming client UPI transactions and credit platform marketplace balance.</p>
@@ -167,7 +167,7 @@ export function AdminDepositVerification() {
       ) : deposits.length === 0 ? (
         <div className="py-12 px-6 bg-surface border border-dashed border-line rounded-panel text-center">
           <CheckCircle2 className="w-8 h-8 text-paper-faint mx-auto mb-2" />
-          <p className="text-sm font-bold text-white">No Pending UPI Deposits</p>
+          <p className="text-sm font-bold text-paper">No Pending UPI Deposits</p>
           <p className="text-xs text-paper-muted mt-0.5">All incoming client deposits have been reviewed and credited.</p>
         </div>
       ) : (
@@ -192,12 +192,12 @@ export function AdminDepositVerification() {
                   return (
                     <tr key={dep.orderId} className="hover:bg-surface-elevated/40 transition-colors">
                       <td className="p-4">
-                        <p className="font-bold text-white">{dep.orderId}</p>
+                        <p className="font-bold text-paper">{dep.orderId}</p>
                         <p className="text-paper-muted font-sans text-xs mt-0.5">{dep.clientName} ({dep.clientEmail})</p>
                       </td>
 
                       <td className="p-4">
-                        <p className="text-base font-bold text-white">₹{dep.amount.toFixed(2)}</p>
+                        <p className="text-base font-bold text-paper">₹{dep.amount.toFixed(2)}</p>
                         <p className="text-[10px] text-brand-light">{dep.amountPaise} paise</p>
                       </td>
 
@@ -222,7 +222,7 @@ export function AdminDepositVerification() {
                           value={currentUtr}
                           onChange={(e) => handleUtrChange(dep.orderId, e.target.value)}
                           placeholder="Confirm 12-digit UTR"
-                          className="w-48 bg-surface-elevated border border-line focus:border-brand-base rounded-lg px-2.5 py-1 text-xs text-white placeholder-paper-faint focus:outline-none"
+                          className="w-48 bg-surface-elevated border border-line focus:border-brand-base rounded-lg px-2.5 py-1 text-xs text-paper placeholder-paper-faint focus:outline-none"
                         />
                       </td>
 

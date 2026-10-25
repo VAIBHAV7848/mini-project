@@ -139,7 +139,7 @@ export function MilestoneFsmGraph({
           <span className="font-mono2 text-[10px] font-bold uppercase tracking-wider text-brand-base px-2 py-0.5 rounded bg-brand-base/10 border border-brand-base/20">
             Engine 01 · OS FSM
           </span>
-          <span className="text-xs text-white font-bold truncate max-w-xs">{milestoneTitle || 'Milestone State Lifecycle'}</span>
+          <span className="text-xs text-paper font-bold truncate max-w-xs">{milestoneTitle || 'Milestone State Lifecycle'}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-mono2 text-paper-faint">FSM Status:</span>
@@ -227,7 +227,7 @@ export function MilestoneFsmGraph({
                   <div className="w-full">
                     <p
                       className={`text-xs font-bold leading-tight ${
-                        isCurrent ? 'text-white' : isPast ? 'text-paper' : 'text-paper-muted'
+                        isCurrent ? 'text-brand-light font-extrabold' : isPast ? 'text-paper' : 'text-paper-muted'
                       }`}
                     >
                       {step.label}
@@ -248,7 +248,7 @@ export function MilestoneFsmGraph({
                 <Clock className="w-4 h-4 animate-spin text-brand-base" />
               </div>
               <div className="text-xs">
-                <p className="font-bold text-white">Engine 01 Review Timeout Scheduler</p>
+                <p className="font-bold text-paper">Engine 01 Review Timeout Scheduler</p>
                 <p className="text-paper-muted">
                   Client has a strict 7-day review window. If no dispute is filed before timeout, freelancer can
                   unilaterally claim escrow release.

@@ -115,7 +115,7 @@ export function AdminSettlementDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-display text-lg font-bold text-white flex items-center gap-2">
+          <h2 className="font-display text-lg font-bold text-paper flex items-center gap-2">
             <Landmark className="w-5 h-5 text-brand-base" /> Freelancer Manual Payout Settlements
           </h2>
           <p className="text-xs text-paper-muted">Confirm external bank disbursements for released milestone deliverables.</p>
@@ -152,7 +152,7 @@ export function AdminSettlementDashboard() {
       ) : settlements.length === 0 ? (
         <div className="py-12 px-6 bg-surface border border-dashed border-line rounded-panel text-center">
           <CheckCircle2 className="w-8 h-8 text-paper-faint mx-auto mb-2" />
-          <p className="text-sm font-bold text-white">No Pending Settlements</p>
+          <p className="text-sm font-bold text-paper">No Pending Settlements</p>
           <p className="text-xs text-paper-muted mt-0.5">All approved freelancer milestones are fully settled.</p>
         </div>
       ) : (
@@ -178,11 +178,11 @@ export function AdminSettlementDashboard() {
                   return (
                     <tr key={s.id} className="hover:bg-surface-elevated/40 transition-colors">
                       <td className="p-4">
-                        <p className="font-bold text-white font-sans">{s.milestoneTitle}</p>
+                        <p className="font-bold text-paper font-sans">{s.milestoneTitle}</p>
                         <p className="text-paper-muted text-[11px] mt-0.5 font-sans">{s.projectTitle}</p>
                       </td>
                       <td className="p-4">
-                        <p className="font-bold text-white font-sans">{s.freelancerName}</p>
+                        <p className="font-bold text-paper font-sans">{s.freelancerName}</p>
                         {s.beneficiaryVpa ? (
                           <span className="badge badge-brand mt-1 inline-flex items-center gap-1">
                             <Smartphone className="w-3 h-3" /> {s.beneficiaryVpa}
@@ -196,14 +196,14 @@ export function AdminSettlementDashboard() {
                         )}
                       </td>
                       <td className="p-4">
-                        <p className="text-base font-bold text-white">₹{s.netDisbursed.toFixed(2)}</p>
+                        <p className="text-base font-bold text-paper">₹{s.netDisbursed.toFixed(2)}</p>
                         <p className="text-[10px] text-paper-faint">Fee: ₹{s.platformFee.toFixed(2)}</p>
                       </td>
                       <td className="p-4">
                         <select
                           value={currentRail}
                           onChange={(e) => handleRailChange(s.id, e.target.value)}
-                          className="bg-surface-elevated border border-line focus:border-brand-base rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none"
+                          className="bg-surface-elevated border border-line focus:border-brand-base rounded-lg px-2.5 py-1 text-xs text-paper focus:outline-none"
                         >
                           <option value="MANUAL_UPI">UPI Transfer</option>
                           <option value="MANUAL_IMPS">IMPS</option>
@@ -217,7 +217,7 @@ export function AdminSettlementDashboard() {
                           value={currentUtr}
                           onChange={(e) => handleUtrChange(s.id, e.target.value)}
                           placeholder="e.g. 428190382910"
-                          className="w-48 bg-surface-elevated border border-line focus:border-brand-base rounded-lg px-2.5 py-1 text-xs text-white placeholder-paper-faint focus:outline-none"
+                          className="w-48 bg-surface-elevated border border-line focus:border-brand-base rounded-lg px-2.5 py-1 text-xs text-paper placeholder-paper-faint focus:outline-none"
                         />
                       </td>
                       <td className="p-4 text-right">

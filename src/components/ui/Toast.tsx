@@ -73,10 +73,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             role="status"
             className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-xl backdrop-blur-md transition-all animate-in slide-in-from-bottom-5 fade-in duration-300 ${
               toast.type === 'success'
-                ? 'bg-surface border-green-500/30 text-white'
+                ? 'bg-surface border-green-500/30 text-paper'
                 : toast.type === 'error'
-                ? 'bg-surface border-red-500/30 text-white'
-                : 'bg-surface border-brand-base/30 text-white'
+                ? 'bg-surface border-red-500/30 text-paper'
+                : 'bg-surface border-brand-base/30 text-paper'
             }`}
           >
             <div className="shrink-0 mt-0.5">
@@ -85,7 +85,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               {toast.type === 'info' && <Info className="w-5 h-5 text-brand-base" />}
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-display text-sm font-bold tracking-tight text-white">
+              <h4 className="font-display text-sm font-bold tracking-tight text-paper">
                 {toast.title}
               </h4>
               {toast.description && (
@@ -96,7 +96,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             </div>
             <button
               onClick={() => dismissToast(toast.id)}
-              className="shrink-0 text-paper-muted hover:text-white transition-colors p-1 rounded-md"
+              className="shrink-0 text-paper-muted hover:text-paper transition-colors p-1 rounded-md"
               aria-label="Dismiss notification"
             >
               <X className="w-4 h-4" />

@@ -227,7 +227,7 @@ export default function GigsPage() {
         <div className="border-b border-line pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p className="eyebrow mb-2">Marketplace</p>
-            <h1 className="font-display text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 className="font-display text-2xl font-bold text-paper tracking-tight flex items-center gap-2">
               <Layers className="w-5 h-5 text-brand-base" aria-hidden="true" />
               Available Gigs
             </h1>
@@ -263,7 +263,7 @@ export default function GigsPage() {
               <div className="w-14 h-14 rounded-2xl bg-surface-elevated border border-line flex items-center justify-center mx-auto mb-4">
                 <FolderOpen className="w-6 h-6 text-paper-faint" aria-hidden="true" />
               </div>
-              <h3 className="font-display text-lg font-bold text-white">No Gigs Available</h3>
+              <h3 className="font-display text-lg font-bold text-paper">No Gigs Available</h3>
               <p className="text-sm text-paper-muted mt-1.5 text-center">There are currently no active gigs in the marketplace.</p>
             </div>
           ) : (
@@ -289,7 +289,7 @@ export default function GigsPage() {
                           <td className="py-4 px-4 align-top">
                             <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-brand-base opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="flex flex-col gap-1 max-w-xl">
-                              <span className="font-display font-bold text-white group-hover:text-brand-light transition-colors">{gig.title}</span>
+                              <span className="font-display font-bold text-paper group-hover:text-brand-light transition-colors">{gig.title}</span>
                               <span className="text-sm text-paper-muted line-clamp-2">{gig.description}</span>
                             </div>
                           </td>
@@ -298,7 +298,7 @@ export default function GigsPage() {
                               {gig.category}
                             </span>
                           </td>
-                          <td className="py-4 px-4 align-top text-sm font-medium text-white">
+                          <td className="py-4 px-4 align-top text-sm font-medium text-paper">
                             {gig.freelancer?.name}
                           </td>
                           <td className="py-4 px-4 align-top text-right">
@@ -309,7 +309,7 @@ export default function GigsPage() {
                           </td>
                           <td className="py-4 px-4 align-top text-right">
                             <span className="font-mono2 text-xs text-paper-muted">
-                              From <span className="font-bold text-white">₹{minPrice.toFixed(0)}</span>
+                              From <span className="font-bold text-paper">₹{minPrice.toFixed(0)}</span>
                             </span>
                           </td>
                           <td className="py-4 px-4 align-top text-right">
@@ -388,7 +388,7 @@ export default function GigsPage() {
             <div className="p-4 rounded-xl bg-surface-elevated border border-line flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-mono2 uppercase tracking-wider text-paper-faint block">Freelancer</span>
-                <span className="text-white font-bold">{selectedGig.freelancer?.name}</span>
+                <span className="text-paper font-bold">{selectedGig.freelancer?.name}</span>
               </div>
               <div className="text-right">
                 <span className="text-[11px] font-mono2 uppercase tracking-wider text-paper-faint block">DevScore</span>
@@ -421,7 +421,7 @@ export default function GigsPage() {
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-bold text-white text-xs uppercase tracking-wider">{tier.name}</span>
+                        <span className="font-bold text-paper text-xs uppercase tracking-wider">{tier.name}</span>
                         {isSelected && <Check className="w-3.5 h-3.5 text-brand-base" />}
                       </div>
                       <div className="font-display text-lg font-bold text-brand-light mb-1">
@@ -489,24 +489,24 @@ export default function GigsPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-white mb-1.5">Gig Title</label>
+            <label className="block text-xs font-medium text-paper mb-1.5">Gig Title</label>
             <input
               type="text"
               required
               value={gigTitle}
               onChange={(e) => setGigTitle(e.target.value)}
               placeholder="e.g. Smart Contract Security Audit & Formal Verification"
-              className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-base"
+              className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-paper focus:outline-none focus:border-brand-base"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-white mb-1.5">Category</label>
+              <label className="block text-xs font-medium text-paper mb-1.5">Category</label>
               <select
                 value={gigCategory}
                 onChange={(e) => setGigCategory(e.target.value)}
-                className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-base"
+                className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-paper focus:outline-none focus:border-brand-base"
               >
                 <option value="WEB_DEV">Web Development</option>
                 <option value="SECURITY">Security & Audit</option>
@@ -515,33 +515,33 @@ export default function GigsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-white mb-1.5">Standard Price (₹)</label>
+              <label className="block text-xs font-medium text-paper mb-1.5">Standard Price (₹)</label>
               <input
                 type="number"
                 min="1"
                 required
                 value={standardPrice}
                 onChange={(e) => setStandardPrice(e.target.value)}
-                className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-base font-mono2"
+                className="w-full bg-surface-elevated border border-line rounded-xl px-3.5 py-2.5 text-sm text-paper focus:outline-none focus:border-brand-base font-mono2"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-white mb-1.5">Description (min 20 characters)</label>
+            <label className="block text-xs font-medium text-paper mb-1.5">Description (min 20 characters)</label>
             <textarea
               required
               rows={3}
               value={gigDescription}
               onChange={(e) => setGigDescription(e.target.value)}
               placeholder="Detail what is included, your methodology, and delivery milestones..."
-              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-white focus:outline-none focus:border-brand-base resize-none"
+              className="w-full bg-surface-elevated border border-line rounded-xl p-3 text-sm text-paper focus:outline-none focus:border-brand-base resize-none"
             />
           </div>
 
           {/* Tier breakdown preview */}
           <div className="p-3 bg-surface-elevated border border-line rounded-xl space-y-2 text-xs">
-            <span className="font-bold text-white uppercase text-[10px] tracking-wider block">Default Tier Configuration</span>
+            <span className="font-bold text-paper uppercase text-[10px] tracking-wider block">Default Tier Configuration</span>
             <div className="grid grid-cols-3 gap-2 font-mono2 text-paper-muted">
               <div>Basic: ₹{basicPrice} ({basicDays}d)</div>
               <div>Standard: ₹{standardPrice} ({standardDays}d)</div>

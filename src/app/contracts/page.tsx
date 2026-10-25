@@ -73,14 +73,7 @@ export default function ContractsPage() {
       case 'REFUNDED':
         return <span className="badge">Refunded</span>;
       case 'DISPUTED':
-        return (
-          <span
-            className="badge"
-            style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}
-          >
-            Disputed
-          </span>
-        );
+        return <span className="badge badge-danger">Disputed</span>;
       default:
         return <span className="badge">{status}</span>;
     }
@@ -93,7 +86,7 @@ export default function ContractsPage() {
         <div className="border-b border-line pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p className="eyebrow mb-2">Escrow Management</p>
-            <h1 className="font-display text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 className="font-display text-2xl font-bold text-paper tracking-tight flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-brand-base" aria-hidden="true" />
               Contracts
             </h1>
@@ -111,7 +104,7 @@ export default function ContractsPage() {
             </div>
             <div>
               <p className="text-[13px] text-paper-muted font-medium mb-1">Total Contracts</p>
-              <p className="font-display text-lg font-bold text-white">{totalContracts}</p>
+              <p className="font-display text-lg font-bold text-paper">{totalContracts}</p>
             </div>
           </div>
           <div className="bg-surface rounded-panel border border-line p-4 flex items-center gap-4">
@@ -120,7 +113,7 @@ export default function ContractsPage() {
             </div>
             <div>
               <p className="text-[13px] text-paper-muted font-medium mb-1">Total Escrow Locked</p>
-              <p className="font-mono2 text-lg font-bold text-white">
+              <p className="font-mono2 text-lg font-bold text-paper">
                 ₹{totalEscrowLocked.toFixed(2)}
               </p>
             </div>
@@ -131,7 +124,7 @@ export default function ContractsPage() {
             </div>
             <div>
               <p className="text-[13px] text-paper-muted font-medium mb-1">Active Contracts</p>
-              <p className="font-display text-lg font-bold text-white">{activeContracts}</p>
+              <p className="font-display text-lg font-bold text-paper">{activeContracts}</p>
             </div>
           </div>
         </div>
@@ -152,7 +145,7 @@ export default function ContractsPage() {
                 <ShieldCheck className="w-4 h-4 text-paper-faint" aria-hidden="true" />
               </div>
               <div>
-                <h3 className="font-display text-sm font-bold text-white">No contracts found</h3>
+                <h3 className="font-display text-sm font-bold text-paper">No contracts found</h3>
                 <p className="text-[13px] text-paper-muted">You do not have any contracts yet.</p>
               </div>
             </div>
@@ -190,13 +183,13 @@ export default function ContractsPage() {
                             </span>
                           </td>
                           <td className="p-4 align-middle">
-                            <p className="text-sm font-medium text-white line-clamp-1">{contract.project?.title}</p>
+                            <p className="text-sm font-medium text-paper line-clamp-1">{contract.project?.title}</p>
                           </td>
                           <td className="p-4 align-middle">
                             <p className="text-[13px] text-paper-muted">{counterparty?.name}</p>
                           </td>
                           <td className="p-4 align-middle text-right">
-                            <p className="font-mono2 text-[13px] text-white">₹{(contract.totalAmount || 0).toFixed(2)}</p>
+                            <p className="font-mono2 text-[13px] text-paper">₹{(contract.totalAmount || 0).toFixed(2)}</p>
                             <p className="font-mono2 text-[12px] text-brand-base">₹{(contract.escrowBalance || 0).toFixed(2)}</p>
                           </td>
                           <td className="p-4 align-middle text-center">
