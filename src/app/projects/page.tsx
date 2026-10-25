@@ -335,9 +335,12 @@ export default function ProjectsPage() {
                 setFormSuccess(null);
                 setIsPostModalOpen(true);
               }}
-              className="btn btn-primary"
+              className="group relative inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-b from-[#ff8522] via-[#fc6c00] to-[#e65500] hover:from-[#ff9438] hover:via-[#ff7914] hover:to-[#f05e00] border border-orange-400/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_2px_4px_rgba(0,0,0,0.1),0_6px_20px_rgba(252,108,0,0.35)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_8px_26px_rgba(252,108,0,0.48)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 cursor-pointer overflow-hidden select-none"
             >
-              <Plus className="w-4 h-4" aria-hidden="true" /> Post Project
+              <span className="flex items-center justify-center w-5 h-5 rounded-lg bg-white/20 text-white shadow-xs transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110">
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" aria-hidden="true" />
+              </span>
+              <span className="tracking-tight drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]">Post Project</span>
             </button>
           )}
         </div>

@@ -459,13 +459,13 @@ export default function DashboardPage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow mb-2">Overview</p>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-paper">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
               Good {daypart}, {firstName}
             </h1>
             <p className="text-sm text-paper-muted mt-1 font-medium">
-              <span className="font-mono2 text-paper">{contracts.length}</span> active contract{contracts.length === 1 ? '' : 's'}
+              <span className="font-mono2 text-zinc-900 dark:text-white">{contracts.length}</span> active contract{contracts.length === 1 ? '' : 's'}
               <span className="mx-1.5 text-paper-faint">·</span>
-              <span className="font-mono2 text-paper">{formatRupee(totalProtected)}</span> protected
+              <span className="font-mono2 text-zinc-900 dark:text-white">{formatRupee(totalProtected)}</span> protected
             </p>
           </div>
           <button type="button" onClick={fetchContracts} disabled={loading} className="btn btn-sm btn-ghost">
@@ -507,9 +507,9 @@ export default function DashboardPage() {
                         ) : (
                           <p className="font-mono2 text-[11px] text-paper-faint uppercase tracking-wider mb-1">{item.milestone}</p>
                         )}
-                        <p className="text-base font-bold text-paper truncate">{item.title}</p>
+                        <p className="text-base font-bold text-zinc-900 dark:text-white truncate">{item.title}</p>
                         <p className="text-sm text-paper-muted mt-0.5">
-                          <span className="font-mono2 text-paper">{formatRupee(item.amount)}</span> · {item.action === 'DEPOSIT' ? 'Escrow is not yet funded.' : item.detail}
+                          <span className="font-mono2 text-zinc-900 dark:text-white">{formatRupee(item.amount)}</span> · {item.action === 'DEPOSIT' ? 'Escrow is not yet funded.' : item.detail}
                         </p>
                       </div>
                       {item.link ? (
@@ -564,10 +564,10 @@ export default function DashboardPage() {
                         <div className="p-5 sm:p-6 border-b border-line bg-surface-highlight/30">
                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                             <div className="min-w-0">
-                              <h3 className="font-display text-xl font-bold text-paper leading-snug">
+                              <h3 className="font-display text-xl font-bold text-zinc-900 dark:text-white leading-snug">
                                 {contract.project?.title || 'Contract Agreement'}
                               </h3>
-                              <p className="text-sm text-paper-muted mt-1 font-medium">
+                              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 font-medium">
                                 {contract.client?.name} <span aria-hidden="true" className="mx-1 text-paper-faint">·</span> {contract.freelancer?.name}
                               </p>
                             </div>
@@ -605,12 +605,12 @@ export default function DashboardPage() {
                                         <p className="font-mono2 text-[11px] text-paper-muted mb-1">
                                           M-{String(m.sequenceOrder).padStart(2, '0')}
                                         </p>
-                                        <p className={`text-base font-bold leading-snug ${done ? 'text-paper-muted line-through decoration-paper-faint/50' : 'text-paper'}`}>
+                                        <p className={`text-base font-bold leading-snug ${done ? 'text-zinc-400 dark:text-paper-muted line-through decoration-paper-faint/50' : 'text-zinc-900 dark:text-white'}`}>
                                           <span className={done ? 'sr-only' : 'hidden'}>Completed: </span>
                                           {m.title}
                                         </p>
                                         <p className="text-[13px] text-paper-muted mt-1">
-                                          <span className="font-mono2 text-paper">{formatRupee(m.amount)}</span>
+                                          <span className="font-mono2 font-bold text-zinc-900 dark:text-white">{formatRupee(m.amount)}</span>
                                           <span className="mx-1.5 text-paper-faint">·</span>
                                           {WAITING_TEXT[m.status] ?? m.status}
                                         </p>
@@ -644,7 +644,7 @@ export default function DashboardPage() {
                         <div className="px-5 sm:px-6 py-4 bg-surface-highlight/30 border-t border-line flex items-center justify-between gap-4">
                           <div className="flex items-center gap-2 text-sm text-paper-muted">
                             <ShieldCheck className="w-4 h-4 text-brand-base" aria-hidden="true" />
-                            <span>Escrow <span className="font-mono2 font-bold text-paper ml-1">{formatRupee(contract.escrowBalance)}</span> protected</span>
+                            <span>Escrow <span className="font-mono2 font-bold text-zinc-900 dark:text-white ml-1">{formatRupee(contract.escrowBalance)}</span> protected</span>
                           </div>
                           <button
                             type="button"
@@ -671,15 +671,15 @@ export default function DashboardPage() {
               <section className="panel p-0 overflow-hidden border border-brand-base/30 shadow-md">
                 <div className="p-6 bg-brand-tint/20 border-b border-line">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="eyebrow flex items-center gap-1.5 text-brand-base">
+                    <h2 className="eyebrow flex items-center gap-1.5 text-brand-dark dark:text-brand-base font-bold">
                       <Wallet className="w-3.5 h-3.5" /> Marketplace Wallet
                     </h2>
                     <span className="badge badge-brand text-[10px]">Liquid</span>
                   </div>
-                  <p className="font-display text-4xl font-bold tracking-tight text-paper mb-2">
+                  <p className="font-display text-4xl font-bold tracking-tight text-zinc-900 dark:text-white mb-2">
                     {formatRupee(walletBalance)}
                   </p>
-                  <p className="text-xs text-paper-muted">
+                  <p className="text-xs text-zinc-600 dark:text-paper-muted">
                     Available to fund project milestones.
                   </p>
                 </div>
@@ -699,10 +699,10 @@ export default function DashboardPage() {
             <section className="panel p-0 overflow-hidden">
               <div className="p-6 bg-surface-highlight/20 border-b border-line">
                 <h2 className="eyebrow mb-4">Total Escrow</h2>
-                <p className="font-display text-4xl font-bold tracking-tight text-paper mb-1">
+                <p className="font-display text-4xl font-bold tracking-tight text-zinc-900 dark:text-white mb-1">
                   {formatRupee(totalProtected)}
                 </p>
-                <p className="text-xs font-bold uppercase tracking-wider text-brand-base flex items-center gap-1.5">
+                <p className="text-xs font-bold uppercase tracking-wider text-brand-dark dark:text-brand-base flex items-center gap-1.5">
                   <Lock className="w-3 h-3" aria-hidden="true" /> Locked & Protected
                 </p>
               </div>
@@ -716,10 +716,10 @@ export default function DashboardPage() {
                       return (
                         <li key={c.id} className="group">
                           <div className="flex items-baseline justify-between gap-3 mb-1">
-                            <p className="text-[13px] font-bold text-paper truncate group-hover:text-brand-light transition-colors">
+                            <p className="text-[13px] font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-brand-light transition-colors">
                               {c.project?.title || 'Contract Agreement'}
                             </p>
-                            <p className="text-[13px] font-mono2 font-bold text-paper shrink-0">
+                            <p className="text-[13px] font-mono2 font-bold text-zinc-900 dark:text-zinc-100 shrink-0">
                               {formatRupee(c.escrowBalance)}
                             </p>
                           </div>

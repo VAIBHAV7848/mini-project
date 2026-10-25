@@ -127,10 +127,11 @@
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  h1, h2, h3, h4 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     text-wrap: balance;
     letter-spacing: -0.02em;
+    color: var(--color-paper);
   }
 
   p, li {
@@ -220,14 +221,47 @@
 
   /* Buttons */
   .btn {
-    @apply inline-flex items-center justify-center font-bold whitespace-nowrap select-none transition-all duration-[160ms] ease-[var(--ease-forge)] active:scale-[0.975] disabled:opacity-55 disabled:pointer-events-none;
+    @apply relative inline-flex items-center justify-center font-bold whitespace-nowrap select-none transition-all duration-[180ms] ease-[var(--ease-forge)] active:scale-[0.975] disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed outline-none cursor-pointer;
+    /* Default size fallback */
+    @apply h-11 px-5 text-sm rounded-xl gap-2 min-w-[44px];
   }
   .btn-sm { @apply h-9 px-3.5 text-[13px] rounded-xl gap-1.5 min-w-[36px]; }
   .btn-md { @apply h-11 px-5 text-sm rounded-xl gap-2 min-w-[44px]; }
-  .btn-lg { @apply h-12 px-6 text-[15px] rounded-2xl gap-2 min-w-[48px]; }
+  .btn-lg { @apply h-12 px-6 text-[15px] rounded-2xl gap-2.5 min-w-[48px]; }
 
   .btn-primary {
-    @apply bg-brand-base text-charcoal shadow-xs hover:bg-brand-light disabled:hover:bg-brand-base;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #ff8228 0%, #fc6c00 50%, #e65600 100%);
+    color: #09090b !important;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.45),
+      inset 0 -1.5px 0 0 rgba(194, 65, 12, 0.5),
+      0 1px 2px 0 rgba(0, 0, 0, 0.2),
+      0 4px 14px -1px rgba(252, 108, 0, 0.38);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ff8f3e 0%, #ff740a 50%, #ea580c 100%);
+    transform: translateY(-1.5px);
+    border-color: rgba(255, 255, 255, 0.38);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.65),
+      inset 0 -1.5px 0 0 rgba(194, 65, 12, 0.6),
+      0 2px 6px 0 rgba(0, 0, 0, 0.2),
+      0 8px 24px -2px rgba(252, 108, 0, 0.52);
+  }
+
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(0.5px) scale(0.98);
+    background: linear-gradient(180deg, #ea580c 0%, #fc6c00 65%, #e65600 100%);
+    box-shadow:
+      inset 0 2px 4px 0 rgba(0, 0, 0, 0.35),
+      inset 0 -0.5px 0 0 rgba(255, 255, 255, 0.1),
+      0 1px 2px 0 rgba(0, 0, 0, 0.25);
   }
   .btn-secondary {
     @apply bg-surface-elevated text-paper border border-line hover:border-brand-base hover:text-brand-light;
@@ -277,12 +311,35 @@
    ========================================================================== */
 
 /* 1. Global text-white safety fallback for light mode (excluding dark surfaces and colored buttons) */
-html.light .text-white:not(.btn-primary):not(.btn-primary *):not(.btn-success):not(.btn-success *):not(.btn-danger-solid):not(.btn-danger-solid *):not([class*="bg-brand-"]):not([class*="bg-brand-"] *):not([class*="bg-emerald-"]):not([class*="bg-emerald-"] *):not([class*="bg-red-"]):not([class*="bg-red-"] *):not([class*="bg-amber-"]):not([class*="bg-amber-"] *):not([class*="bg-indigo-"]):not([class*="bg-indigo-"] *):not([class*="bg-violet-"]):not([class*="bg-violet-"] *):not([class*="bg-blue-"]):not([class*="bg-blue-"] *):not([class*="bg-[#0"]):not([class*="bg-[#0"] *):not([class*="bg-[#1"]):not([class*="bg-[#1"] *):not([class*="bg-black"]):not([class*="bg-black"] *):not([class*="bg-neutral-9"]):not([class*="bg-neutral-9"] *) {
+html.light .text-white:not(.btn-primary):not(.btn-primary *):not(.btn-success):not(.btn-success *):not(.btn-danger-solid):not(.btn-danger-solid *):not([class*="bg-emerald-6"]):not([class*="bg-emerald-6"] *):not([class*="bg-red-6"]):not([class*="bg-red-6"] *):not([class*="bg-blue-6"]):not([class*="bg-blue-6"] *):not([class*="bg-[#0"]):not([class*="bg-[#0"] *):not([class*="bg-[#1"]):not([class*="bg-[#1"] *):not([class*="bg-black"]):not([class*="bg-black"] *),
+html.light .text-zinc-100:not(.btn-primary):not(.btn-primary *):not([class*="bg-black"]):not([class*="bg-black"] *),
+html.light .text-zinc-200:not(.btn-primary):not(.btn-primary *):not([class*="bg-black"]):not([class*="bg-black"] *),
+html.light .text-slate-100:not(.btn-primary):not(.btn-primary *):not([class*="bg-black"]):not([class*="bg-black"] *) {
   color: var(--color-paper) !important;
 }
 
-/* 2. On orange brand background (#fc6c00), dark ink (#09090b) achieves 6.94:1 contrast (WCAG AAA) */
-html.light .btn-primary,
+/* 2. Primary Button Styling in Light Mode */
+html.light .btn-primary {
+  background: linear-gradient(180deg, #ff7b20 0%, #fc6c00 50%, #e65100 100%);
+  color: #09090b !important;
+  border: 1px solid rgba(194, 65, 12, 0.4);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1.5px 0 0 rgba(194, 65, 12, 0.55),
+    0 1px 3px 0 rgba(0, 0, 0, 0.12),
+    0 4px 14px -1px rgba(234, 88, 12, 0.32);
+}
+
+html.light .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ff8935 0%, #ff7306 50%, #ea580c 100%);
+  border-color: rgba(194, 65, 12, 0.55);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1.5px 0 0 rgba(194, 65, 12, 0.65),
+    0 3px 8px 0 rgba(0, 0, 0, 0.14),
+    0 8px 24px -2px rgba(234, 88, 12, 0.42);
+}
+
 html.light .btn-primary *,
 html.light [class*="bg-brand-base"]:not(.badge):not(.badge *):not(button *) {
   color: #09090b !important;
