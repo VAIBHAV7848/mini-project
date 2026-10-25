@@ -63,6 +63,16 @@ export async function GET(request: Request) {
             status: true,
             sequenceOrder: true,
             reviewDeadline: true,
+            deliverable: {
+              select: {
+                id: true,
+                fileName: true,
+                fileUrl: true,
+                sha256Checksum: true,
+                submissionNotes: true,
+                submittedAt: true,
+              },
+            },
           },
         },
       },
@@ -108,6 +118,14 @@ export async function POST(request: Request) {
       RbacEnforcer.enforceContractAccess(session, contract);
 
       const milestoneId = validated.milestoneId;
+      if (milestoneId) {
+        const milestoneCheck = await prisma.milestone.findUnique({ where: { id: milestoneId } });
+        if (!milestoneCheck) throw new NotFoundError('Milestone', milestoneId);
+        if (milestoneCheck.contractId !== contract.id) {
+          throw new ValidationError('Milestone does not belong to the specified contract.');
+        }
+      }
+
       const lockKey = milestoneId || contractId;
       const releaseLock = await globalKeyedMutex.acquire(lockKey);
 
@@ -126,7 +144,7 @@ export async function POST(request: Request) {
             const receipt = await globalLedgerCoordinator.depositEscrow({
               contractId,
               clientId: contract.clientId,
-              amount: validated.amount || contract.totalAmount,
+              amount: contract.totalAmount,
             });
             return NextResponse.json(formatSuccessResponse(receipt));
           }
@@ -167,12 +185,20 @@ export async function POST(request: Request) {
 
           case 'RELEASE_ESCROW': {
             if (!milestoneId) throw new ValidationError('milestoneId is required.');
-            RbacEnforcer.enforceRole(session, ['CLIENT', 'ADMIN']);
-            if (session.role === 'CLIENT' && session.userId !== contract.clientId) {
-              throw new AuthorizationError('Only the contracted client can authorize escrow release.');
-            }
             const milestone = await prisma.milestone.findUnique({ where: { id: milestoneId } });
             if (!milestone) throw new NotFoundError('Milestone', milestoneId);
+
+            if (milestone.status === 'REVIEW_TIMEOUT') {
+              RbacEnforcer.enforceRole(session, ['CLIENT', 'FREELANCER', 'ADMIN']);
+              if (session.role === 'FREELANCER' && session.userId !== contract.freelancerId) {
+                throw new AuthorizationError('Only the assigned freelancer can claim funds on review timeout.');
+              }
+            } else {
+              RbacEnforcer.enforceRole(session, ['CLIENT', 'ADMIN']);
+              if (session.role === 'CLIENT' && session.userId !== contract.clientId) {
+                throw new AuthorizationError('Only the contracted client can authorize escrow release.');
+              }
+            }
 
             const receipt = await globalLedgerCoordinator.releaseMilestoneEscrow({
               contractId,

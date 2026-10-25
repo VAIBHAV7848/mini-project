@@ -10,6 +10,14 @@ const matcher = new HeuristicSemanticMatcher();
 
 export async function GET(request: Request) {
   try {
+    const session = await SessionService.getSessionFromHeaders(request.headers);
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required.' } },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
 
@@ -20,8 +28,26 @@ export async function GET(request: Request) {
       );
     }
 
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      throw new NotFoundError('Project', projectId);
+    }
+
+    const whereClause: any = { projectId };
+    if (session.role === 'FREELANCER') {
+      whereClause.freelancerId = session.userId;
+    } else if (session.role === 'CLIENT' && project.clientId !== session.userId) {
+      return NextResponse.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'You are not authorized to view proposals for this project.' } },
+        { status: 403 }
+      );
+    }
+
     const proposals = await prisma.proposal.findMany({
-      where: { projectId },
+      where: whereClause,
       include: {
         freelancer: {
           select: { id: true, name: true, devScore: true, githubProfile: true },

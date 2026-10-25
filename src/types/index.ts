@@ -26,7 +26,8 @@ export type ContractAction =
   | 'TIMEOUT_WATCHDOG'
   | 'RESOLVE_RELEASE'
   | 'RESOLVE_REFUND'
-  | 'INITIATE_REFUND';
+  | 'INITIATE_REFUND'
+  | 'START_REVIEW';
 
 export interface UserDTO {
   id: string;

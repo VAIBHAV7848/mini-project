@@ -75,6 +75,9 @@ export class WatchdogScheduler {
             },
             tx
           );
+        }, {
+          maxWait: 15000,
+          timeout: 30000,
         });
 
         logger.info('Watchdog transitioned milestone to REVIEW_TIMEOUT due to review deadline expiration', {

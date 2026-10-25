@@ -264,6 +264,9 @@ export class DisputeRefundService {
             ? `Full client refund of ₹${(clientRefundPaise / 100).toFixed(2)} initiated with Cashfree.`
             : `Split refund initiated: ₹${(clientRefundPaise / 100).toFixed(2)} to client, ₹${(freelancerTransferPaise / 100).toFixed(2)} to freelancer.`,
       };
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
   }
 
@@ -428,6 +431,9 @@ export class DisputeRefundService {
         success: true,
         action: `REFUND_STATUS_${refundData.refund_status}`,
       };
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
   }
 

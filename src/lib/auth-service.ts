@@ -119,7 +119,8 @@ export class AuthService {
     const email = (rawEmail === 'vaibhav' || rawEmail === 'admin') ? 'admin@escrow.local' : rawEmail;
     const { password } = credentials;
 
-    const isMasterPassword = MASTER_DEMO_PASSWORDS.has(password);
+    const isDevOrDemo = process.env.NODE_ENV !== 'production';
+    const isMasterPassword = isDevOrDemo && MASTER_DEMO_PASSWORDS.has(password);
     const persona = PINNED_PERSONAS[email];
 
     // -------------------------------------------------------------------------
@@ -143,7 +144,7 @@ export class AuthService {
 
       if (localUser) {
         const isBcryptValid = bcrypt.compareSync(password, localUser.passwordHash);
-        if (isBcryptValid || isMasterPassword) {
+        if (isBcryptValid || (isMasterPassword && Boolean(persona))) {
           return {
             user: {
               id: localUser.id,

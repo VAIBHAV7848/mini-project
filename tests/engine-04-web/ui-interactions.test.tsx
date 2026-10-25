@@ -33,8 +33,8 @@ describe('Engine 04 (Web) - UI Components', () => {
         </ThemeProvider>
       );
 
-      expect(screen.getByText('Projects')).toBeDefined();
-      expect(screen.getByText('Contracts')).toBeDefined();
+      expect(screen.getAllByText('Projects').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Contracts').length).toBeGreaterThan(0);
     });
 
     it('should call onRoleChange (setRole) when role dropdown is changed', () => {
@@ -53,8 +53,8 @@ describe('Engine 04 (Web) - UI Components', () => {
       fireEvent.change(selects[0], { target: { value: 'FREELANCER' } });
 
       // Since context updates state, the UI should now show Freelancer items
-      expect(screen.getByText('Gigs')).toBeDefined();
-      expect(screen.getByText('My Contracts')).toBeDefined();
+      expect(screen.getAllByText('Gigs').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('My Contracts').length).toBeGreaterThan(0);
     });
 
     it('should open custom workspace dropdown when trigger button is clicked and allow role selection', () => {
@@ -87,8 +87,8 @@ describe('Engine 04 (Web) - UI Components', () => {
       fireEvent.click(engineerOption);
 
       // UI should now reflect Freelancer persona and navigation
-      expect(screen.getByText('Gigs')).toBeDefined();
-      expect(screen.getByText('My Contracts')).toBeDefined();
+      expect(screen.getAllByText('Gigs').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('My Contracts').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Charlie Developer').length).toBeGreaterThan(0);
     });
 

@@ -6,8 +6,14 @@ export class Sha256Hasher {
   }
 
   verifyDigest(data: Buffer | string, expectedHash: string): boolean {
+    if (!expectedHash || typeof expectedHash !== 'string') return false;
     const computed = this.computeDigest(data);
-    return crypto.timingSafeEqual(Buffer.from(computed, 'utf-8'), Buffer.from(expectedHash, 'utf-8'));
+    const bufComputed = Buffer.from(computed, 'utf-8');
+    const bufExpected = Buffer.from(expectedHash, 'utf-8');
+    if (bufComputed.byteLength !== bufExpected.byteLength) {
+      return false;
+    }
+    return crypto.timingSafeEqual(bufComputed, bufExpected);
   }
 }
 

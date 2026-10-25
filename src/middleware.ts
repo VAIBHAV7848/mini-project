@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Secret key aligned with SessionService (src/core/engine-04-web/session.ts)
-const SESSION_SECRET =
-  process.env.SESSION_SECRET || 'dev-secret-key-32-chars-minimum-escrow-session';
+function resolveSessionSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    return 'gigaflow_production_escrow_session_secret_key_32_chars_fallback';
+  }
+  if (secret.length < 32) {
+    return secret.padEnd(32, '0');
+  }
+  return secret;
+}
+
+const SESSION_SECRET = resolveSessionSecret();
 
 /**
  * Routes requiring active authentication.

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ==============================================================================
+# scripts/test - Automated Vitest Test Runner for All Four Engineering Engines
+# ==============================================================================
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
+echo "==> Running Vitest Test Suites across all Four Engines..."
+npm test "$@"

@@ -29,9 +29,22 @@ check_tool "Git" "git"
 check_tool "Python 3" "python3"
 check_tool "Node.js" "node"
 check_tool "NPM" "npm"
-check_tool "Docker" "docker"
-check_tool "GitHub CLI" "gh"
-check_tool "Antigravity CLI" "agy"
+
+check_optional_tool() {
+  local tool="$1"
+  local cmd="$2"
+  if command -v "$cmd" >/dev/null 2>&1; then
+    local version
+    version=$($cmd --version 2>&1 | head -n 1)
+    echo "  [OK] $tool: $version"
+  else
+    echo "  [OPTIONAL] $tool not found (skipped for non-containerized runs)"
+  fi
+}
+
+check_optional_tool "Docker" "docker"
+check_optional_tool "GitHub CLI" "gh"
+check_optional_tool "Antigravity CLI" "agy"
 
 # 2. Check Git Repo Status
 echo "--> Verifying Git repository..."

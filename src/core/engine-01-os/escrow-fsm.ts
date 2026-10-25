@@ -38,6 +38,12 @@ export class EscrowFsmValidator {
       to: 'SUBMITTED',
     },
     {
+      from: 'SUBMITTED',
+      action: 'START_REVIEW',
+      allowedRoles: ['CLIENT', 'SYSTEM'],
+      to: 'UNDER_REVIEW',
+    },
+    {
       from: 'IN_PROGRESS',
       action: 'RAISE_DISPUTE',
       allowedRoles: ['CLIENT'],
@@ -82,7 +88,7 @@ export class EscrowFsmValidator {
     {
       from: 'REVIEW_TIMEOUT',
       action: 'RELEASE_ESCROW',
-      allowedRoles: ['CLIENT', 'SYSTEM'],
+      allowedRoles: ['CLIENT', 'FREELANCER', 'SYSTEM'],
       to: 'RELEASED',
     },
     {

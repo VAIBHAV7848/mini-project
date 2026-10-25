@@ -10,6 +10,14 @@ export interface MilestonePollItem {
   reviewDeadline: string | null;
   hasDeliverable: boolean;
   hasDispute: boolean;
+  deliverable?: {
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    sha256Checksum: string;
+    submissionNotes?: string | null;
+    submittedAt?: string;
+  } | null;
 }
 
 export interface ContractPollSnapshot {
@@ -42,7 +50,16 @@ export class StatePoller {
             amount: true,
             status: true,
             reviewDeadline: true,
-            deliverable: { select: { id: true } },
+            deliverable: {
+              select: {
+                id: true,
+                fileName: true,
+                fileUrl: true,
+                sha256Checksum: true,
+                submissionNotes: true,
+                submittedAt: true,
+              },
+            },
             dispute: { select: { id: true } },
           },
           orderBy: { sequenceOrder: 'asc' },
@@ -69,6 +86,16 @@ export class StatePoller {
         reviewDeadline: m.reviewDeadline ? m.reviewDeadline.toISOString() : null,
         hasDeliverable: !!m.deliverable,
         hasDispute: !!m.dispute,
+        deliverable: m.deliverable
+          ? {
+              id: m.deliverable.id,
+              fileName: m.deliverable.fileName,
+              fileUrl: m.deliverable.fileUrl,
+              sha256Checksum: m.deliverable.sha256Checksum,
+              submissionNotes: m.deliverable.submissionNotes,
+              submittedAt: m.deliverable.submittedAt.toISOString(),
+            }
+          : null,
       })),
     };
   }

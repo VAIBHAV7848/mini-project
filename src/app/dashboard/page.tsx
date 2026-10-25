@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { UpiTopUpModal } from '@/components/payments/UpiTopUpModal';
 import { calculateFileSha256, formatBytes } from '@/lib/crypto-hash';
+import { MilestoneFsmGraph } from '@/components/milestones/MilestoneFsmGraph';
+import { DeliverableInspector } from '@/components/evidence/DeliverableInspector';
 
 interface MilestoneItem {
   id: string;
@@ -33,6 +35,15 @@ interface MilestoneItem {
   amount: number;
   status: string;
   sequenceOrder: number;
+  reviewDeadline?: string | null;
+  deliverable?: {
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    sha256Checksum: string;
+    submissionNotes?: string | null;
+    submittedAt?: string;
+  } | null;
 }
 
 interface ContractItem {
@@ -614,6 +625,20 @@ export default function DashboardPage() {
                               );
                             })}
                           </ol>
+
+                          {(() => {
+                            const activeM = currentMilestoneOf(contract);
+                            return activeM ? (
+                              <div className="mt-6 pt-5 border-t border-line">
+                                <MilestoneFsmGraph
+                                  currentState={activeM.status}
+                                  milestoneTitle={`Milestone ${String(activeM.sequenceOrder).padStart(2, '0')}: ${activeM.title}`}
+                                  reviewDeadline={activeM.reviewDeadline}
+                                  userRole={role}
+                                />
+                              </div>
+                            ) : null;
+                          })()}
                         </div>
 
                         <div className="px-5 sm:px-6 py-4 bg-surface-highlight/30 border-t border-line flex items-center justify-between gap-4">
@@ -820,6 +845,40 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
+
+              {transactionState.action === 'APPROVE_MILESTONE' && (() => {
+                const targetC = contracts.find((c) => c.id === transactionState.contractId);
+                const targetM = targetC?.milestones.find((m) => m.id === transactionState.milestoneId);
+                return (
+                  <div className="mt-4 space-y-4">
+                    <div className="p-3 bg-charcoal border border-line rounded-lg space-y-1 text-xs">
+                      <span className="text-[10px] font-mono2 uppercase tracking-wider text-paper-faint block">
+                        Submitted Deliverable Artifact
+                      </span>
+                      <p className="font-bold text-white text-sm">
+                        {targetM?.deliverable?.fileName || 'milestone-deliverable-v1.zip'}
+                      </p>
+                      {targetM?.deliverable?.submissionNotes && (
+                        <p className="text-paper-muted text-xs italic pt-1">
+                          "{targetM.deliverable.submissionNotes}"
+                        </p>
+                      )}
+                    </div>
+
+                    {targetM?.deliverable?.sha256Checksum ? (
+                      <DeliverableInspector
+                        expectedChecksum={targetM.deliverable.sha256Checksum}
+                        milestoneTitle={targetM.title}
+                        fileName={targetM.deliverable.fileName}
+                      />
+                    ) : (
+                      <div className="p-3 bg-charcoal border border-line rounded-lg text-xs text-paper-muted">
+                        Reviewing deliverable artifacts before triggering fund release.
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {transactionState.action === 'RAISE_DISPUTE' && (
                 <div className="mt-4 space-y-2">

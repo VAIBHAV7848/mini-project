@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Dialog } from '@/components/ui/Dialog';
 import { useRole } from '@/components/layout/RoleContext';
 import { calculateFileSha256, formatBytes } from '@/lib/crypto-hash';
+import { MerkleTreeVisualizer } from '@/components/disputes/MerkleTreeVisualizer';
 import {
   AlertTriangle,
   Loader2,
@@ -350,6 +351,22 @@ export default function DisputesPage() {
             </div>
           )}
         </div>
+
+        {/* Engine 02 Cryptographic Merkle Evidence Tree Sandbox */}
+        <section className="pt-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="eyebrow mb-1">Engine 02 Verification Pipeline</p>
+              <h2 className="font-display text-xl font-bold text-white tracking-tight">
+                Cryptographic Evidence & Tamper Resistance Inspection
+              </h2>
+            </div>
+          </div>
+          <MerkleTreeVisualizer
+            disputeId={disputes[0]?.id ? `DSP-${disputes[0].id.slice(0, 8)}` : 'DSP-ACTIVE-SUITE'}
+            milestoneTitle={disputes[0]?.milestone?.title || 'Contract Deliverables & Counter-Evidence'}
+          />
+        </section>
       </div>
 
       {/* Dispute Details & Evidence Tree Modal */}
@@ -464,6 +481,21 @@ export default function DisputesPage() {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Interactive Merkle Tree Component */}
+            <div className="pt-2">
+              <MerkleTreeVisualizer
+                disputeId={`DSP-${selectedDispute.id.slice(0, 8)}`}
+                milestoneTitle={selectedDispute.milestone.title}
+                leaves={selectedDispute.evidenceItems?.map((item) => ({
+                  id: item.id,
+                  description: item.description,
+                  sha256Checksum: item.sha256Checksum,
+                  submittedBy: item.submittedBy?.name,
+                  isDeliverable: false,
+                }))}
+              />
             </div>
           </div>
         )}

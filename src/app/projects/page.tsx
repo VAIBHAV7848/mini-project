@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { Dialog } from '@/components/ui/Dialog';
 import { useRole } from '@/components/layout/RoleContext';
@@ -32,7 +33,19 @@ interface Project {
   _count: { proposals: number };
 }
 
+interface ProposalItem {
+  id: string;
+  projectId: string;
+  bidAmount: number;
+  coverLetter: string;
+  aiMatchScore: number;
+  status: string;
+  createdAt: string;
+  freelancer: { id: string; name: string; email?: string };
+}
+
 export default function ProjectsPage() {
+  const router = useRouter();
   const { role, currentPersona } = useRole();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +63,11 @@ export default function ProjectsPage() {
   const [postTags, setPostTags] = useState('');
   const [bidAmount, setBidAmount] = useState('');
   const [coverLetter, setCoverLetter] = useState('');
+
+  // Proposals for selected project
+  const [projectProposals, setProjectProposals] = useState<ProposalItem[]>([]);
+  const [loadingProposals, setLoadingProposals] = useState(false);
+  const [acceptingProposalId, setAcceptingProposalId] = useState<string | null>(null);
 
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -86,6 +104,81 @@ export default function ProjectsPage() {
   const handleOpenDetails = (project: Project) => {
     setSelectedProject(project);
     setIsDetailsOpen(true);
+    setFormError(null);
+    setFormSuccess(null);
+
+    // Fetch proposals for this project if Client or Admin
+    if (role === 'CLIENT' || role === 'ADMIN') {
+      setLoadingProposals(true);
+      fetch(`/api/proposals?projectId=${project.id}`, {
+        headers: { 'x-user-id': currentPersona.id },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setProjectProposals(data.data || []);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoadingProposals(false));
+    }
+  };
+
+  // Handle Accept Proposal (CLIENT / ADMIN) -> Forms Contract in AWAITING_DEPOSIT
+  const handleAcceptProposal = async (proposal: ProposalItem) => {
+    if (!selectedProject) return;
+    setAcceptingProposalId(proposal.id);
+    setFormError(null);
+    setFormSuccess(null);
+    try {
+      const halfAmount = Math.round((proposal.bidAmount / 2) * 100) / 100;
+      const remainder = Math.round((proposal.bidAmount - halfAmount) * 100) / 100;
+      const now = new Date();
+      const due1 = new Date(now.getTime() + 7 * 24 * 3600 * 1000).toISOString();
+      const due2 = new Date(now.getTime() + 14 * 24 * 3600 * 1000).toISOString();
+
+      const res = await fetch('/api/contracts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': currentPersona.id,
+        },
+        body: JSON.stringify({
+          proposalId: proposal.id,
+          milestones: [
+            {
+              title: 'Milestone 01: Core Architecture & Checksum Pipeline',
+              description: 'Implement initial system foundation, data models, and deliverable checksums.',
+              amount: halfAmount,
+              dueDate: due1,
+            },
+            {
+              title: 'Milestone 02: End-to-End Verification & Final Acceptance',
+              description: 'Complete final deliverables, test suites, and cryptographic evidence verification.',
+              amount: remainder,
+              dueDate: due2,
+            },
+          ],
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setFormSuccess('Proposal accepted! Contract created in Awaiting Deposit state.');
+        fetchProjects();
+        setTimeout(() => {
+          setIsDetailsOpen(false);
+          setFormSuccess(null);
+          router.push('/dashboard');
+        }, 1500);
+      } else {
+        setFormError(data.error?.message || 'Failed to form contract.');
+      }
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'Network error occurred.');
+    } finally {
+      setAcceptingProposalId(null);
+    }
   };
 
   // Open proposal modal
@@ -479,6 +572,103 @@ export default function ProjectsPage() {
                 ))}
               </div>
             </div>
+
+            {/* Proposals Section (CLIENT / ADMIN) */}
+            {(role === 'CLIENT' || role === 'ADMIN') && (
+              <div className="pt-3 border-t border-line space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-mono2 uppercase tracking-wider text-paper-faint flex items-center gap-1.5 font-bold">
+                    <Sparkles className="w-3.5 h-3.5 text-brand-base" />
+                    Bids & AI Match Rankings ({projectProposals.length})
+                  </h4>
+                  {loadingProposals && (
+                    <div className="flex items-center gap-1.5 text-xs text-brand-light font-mono2">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Loading bids...</span>
+                    </div>
+                  )}
+                </div>
+
+                {formError && (
+                  <div className="p-2.5 rounded-lg bg-danger-tint text-danger-light text-xs font-medium">
+                    {formError}
+                  </div>
+                )}
+                {formSuccess && (
+                  <div className="p-2.5 rounded-lg bg-success-tint text-success-light text-xs font-medium">
+                    {formSuccess}
+                  </div>
+                )}
+
+                {projectProposals.length === 0 && !loadingProposals ? (
+                  <div className="p-4 rounded-xl bg-surface-elevated border border-line text-center text-xs text-paper-muted">
+                    No proposals submitted for this project yet.
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-72 overflow-y-auto">
+                    {projectProposals.map((prop) => (
+                      <div
+                        key={prop.id}
+                        className="p-3.5 rounded-xl bg-surface-elevated border border-line hover:border-line-strong transition-colors space-y-2"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-white text-sm">{prop.freelancer?.name}</span>
+                              <span
+                                className={`text-[10px] font-mono2 px-1.5 py-0.5 rounded font-bold ${
+                                  prop.status === 'ACCEPTED'
+                                    ? 'bg-success/20 text-success-light border border-success/30'
+                                    : 'bg-surface-highlight text-paper-muted'
+                                }`}
+                              >
+                                {prop.status}
+                              </span>
+                            </div>
+                            <p className="text-xs text-paper-muted font-mono2 mt-0.5">
+                              Bid: <span className="text-white font-bold">₹{prop.bidAmount.toFixed(2)}</span>
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <span className="text-[10px] font-mono2 text-paper-faint uppercase block">
+                                AI Match
+                              </span>
+                              <span className="font-mono2 text-xs font-bold text-brand-light flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 text-brand-base" />
+                                {(prop.aiMatchScore * 100).toFixed(0)}% Fit
+                              </span>
+                            </div>
+
+                            {prop.status === 'PENDING' && (
+                              <button
+                                type="button"
+                                disabled={acceptingProposalId === prop.id}
+                                onClick={() => handleAcceptProposal(prop)}
+                                className="btn btn-sm btn-primary shrink-0"
+                              >
+                                {acceptingProposalId === prop.id ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> Forming Contract...
+                                  </>
+                                ) : (
+                                  'Accept & Form Escrow'
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-paper-muted italic line-clamp-2 bg-charcoal p-2 rounded-lg border border-line/60">
+                          "{prop.coverLetter}"
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </Dialog>

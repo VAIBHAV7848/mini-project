@@ -151,6 +151,9 @@ export class ContractManager {
         where: { id: contract.id },
         include: { milestones: true, client: true, freelancer: true, project: true },
       });
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
   }
 
@@ -316,6 +319,9 @@ export class ContractManager {
       );
 
       return updatedMilestone;
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
   }
 
@@ -456,6 +462,9 @@ export class ContractManager {
       );
 
       return dispute;
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
   }
 

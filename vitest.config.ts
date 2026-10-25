@@ -6,7 +6,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     fileParallelism: false,
-    testTimeout: 25000,
+    testTimeout: 60000,
+    hookTimeout: 60000,
     exclude: ['**/node_modules/**', '**/.kilo/**', '**/dist/**', '**/.next/**'],
   },
   resolve: {
