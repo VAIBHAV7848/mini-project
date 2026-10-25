@@ -20,7 +20,8 @@
     "test:engine4": "vitest run tests/engine-04-web",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "clean:db": "tsx scripts/clean-database.ts"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",
