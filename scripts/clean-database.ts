@@ -106,6 +106,7 @@ async function main() {
       update: {
         name: p.name,
         role: p.role,
+        passwordHash,
         balance: 0.0,
         balancePaise: 0,
         devScore: p.devScore,

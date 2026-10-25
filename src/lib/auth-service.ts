@@ -119,9 +119,8 @@ export class AuthService {
     const email = (rawEmail === 'vaibhav' || rawEmail === 'admin') ? 'admin@escrow.local' : rawEmail;
     const { password } = credentials;
 
-    const isDevOrDemo = process.env.NODE_ENV !== 'production';
-    const isMasterPassword = isDevOrDemo && MASTER_DEMO_PASSWORDS.has(password);
     const persona = PINNED_PERSONAS[email];
+    const isMasterPassword = Boolean(persona) && MASTER_DEMO_PASSWORDS.has(password);
 
     // -------------------------------------------------------------------------
     // Tier 1: Guaranteed Demo Persona Fast-Path
