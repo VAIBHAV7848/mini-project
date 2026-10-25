@@ -23,6 +23,12 @@ export class KeyedMutex {
 
     try {
       await Promise.race([existingLock, timeoutPromise]);
+    } catch (err) {
+      releaseLock();
+      if (this.locks.get(key) === acquired) {
+        this.locks.delete(key);
+      }
+      throw err;
     } finally {
       if (timerId) clearTimeout(timerId);
     }
@@ -37,6 +43,15 @@ export class KeyedMutex {
         }
       }
     };
+  }
+
+  async runExclusive<T>(key: string, fn: () => Promise<T>, timeoutMs = 15000): Promise<T> {
+    const release = await this.acquire(key, timeoutMs);
+    try {
+      return await fn();
+    } finally {
+      release();
+    }
   }
 }
 

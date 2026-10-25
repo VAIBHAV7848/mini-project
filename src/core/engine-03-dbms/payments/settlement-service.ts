@@ -48,9 +48,9 @@ export class SettlementService {
           ifsc TEXT,
           bank_name TEXT,
           verification_status TEXT NOT NULL DEFAULT 'PENDING',
-          verified_at DATETIME,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          verified_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
 
@@ -71,9 +71,9 @@ export class SettlementService {
           failure_code TEXT,
           failure_reason TEXT,
           retry_count INTEGER DEFAULT 0,
-          next_retry_at DATETIME,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          settled_at DATETIME
+          next_retry_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          settled_at TIMESTAMP
         );
       `);
 
@@ -83,13 +83,13 @@ export class SettlementService {
           level TEXT NOT NULL,
           message TEXT NOT NULL,
           details TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
 
       SettlementService.initialized = true;
     } catch (err) {
-      console.error('Failed to initialize settlement SQLite tables:', err);
+      console.error('Failed to initialize settlement tables:', err);
     }
   }
 
@@ -128,11 +128,11 @@ export class SettlementService {
     const id = `payout_m_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const nowIso = new Date().toISOString();
 
-    // Persist to SQLite table using UPSERT
+    // Persist to user_payout_methods table using UPSERT
     await prisma.$executeRawUnsafe(
       `INSERT INTO user_payout_methods
        (id, user_id, vendor_id, account_type, account_identifier, ifsc, bank_name, verification_status, verified_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        ON CONFLICT(user_id) DO UPDATE SET
        vendor_id=excluded.vendor_id,
        account_type=excluded.account_type,
@@ -150,9 +150,9 @@ export class SettlementService {
       input.ifsc ?? null,
       input.bankName ?? null,
       verificationStatus,
-      verifiedAt,
-      nowIso,
-      nowIso
+      verifiedAt ? new Date(verifiedAt) : null,
+      new Date(nowIso),
+      new Date(nowIso)
     );
 
     const record: UserPayoutMethod = {
@@ -188,7 +188,7 @@ export class SettlementService {
     await this.ensureTablesExist();
 
     const rows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM user_payout_methods WHERE user_id = ? LIMIT 1`,
+      `SELECT * FROM user_payout_methods WHERE user_id = $1 LIMIT 1`,
       userId
     );
 
@@ -296,11 +296,11 @@ export class SettlementService {
 
           const nowIso = new Date().toISOString();
 
-          // Persist to SQLite settlement_transfers table
+          // Persist to settlement_transfers table
           await tx.$executeRawUnsafe(
             `INSERT INTO settlement_transfers
              (id, contract_id, milestone_id, freelancer_id, beneficiary_id, gateway_transfer_id, idempotency_key, gross_amount_paise, platform_fee_paise, net_disbursed_paise, currency, status, retry_count, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
             transferId,
             input.contractId,
             input.milestoneId,
@@ -314,7 +314,7 @@ export class SettlementService {
             'INR',
             'PENDING',
             0,
-            nowIso
+            new Date(nowIso)
           );
 
           const rec: SettlementTransferRecord = {
@@ -348,7 +348,8 @@ export class SettlementService {
           );
 
           return rec;
-        }
+        },
+        { maxWait: 15000, timeout: 30000 }
       );
 
       // 5. Phase 2: Gateway API Call (Executed outside SQL transaction lock)
@@ -406,7 +407,7 @@ export class SettlementService {
       if (gatewayResponse.status === 'PENDING') {
         // Asynchronous processing (bank clearing in progress)
         await prisma.$executeRawUnsafe(
-          `UPDATE settlement_transfers SET status = 'IN_FLIGHT', gateway_transfer_id = ? WHERE id = ?`,
+          `UPDATE settlement_transfers SET status = 'IN_FLIGHT', gateway_transfer_id = $1 WHERE id = $2`,
           gatewayResponse.gatewayTransferId ?? null,
           transferId
         );
@@ -477,98 +478,101 @@ export class SettlementService {
       return; // Idempotent no-op
     }
 
-    await prisma.$transaction(async (tx) => {
-      // 1. Decrement contract escrow balance
-      const updatedContract = await tx.contract.update({
-        where: { id: transfer.contractId },
-        data: {
-          escrowBalance: { decrement: transfer.grossAmountPaise / 100 },
-        },
-      });
-
-      // 2. Increment freelancer balance with net proceeds
-      await tx.user.update({
-        where: { id: transfer.freelancerId },
-        data: {
-          balance: { increment: transfer.netDisbursedPaise / 100 },
-        },
-      });
-
-      // 3. Milestone status to RELEASED
-      await tx.milestone.update({
-        where: { id: transfer.milestoneId },
-        data: { status: 'RELEASED' },
-      });
-
-      // 4. Update next sequential milestone if covered
-      const allMilestones = await tx.milestone.findMany({
-        where: { contractId: transfer.contractId },
-        orderBy: { sequenceOrder: 'asc' },
-      });
-
-      const currentMilestone = allMilestones.find((m) => m.id === transfer.milestoneId);
-      if (currentMilestone) {
-        const nextMilestone = allMilestones.find(
-          (m) => m.sequenceOrder === currentMilestone.sequenceOrder + 1 && m.status === 'PENDING'
-        );
-
-        if (nextMilestone && updatedContract.escrowBalance >= nextMilestone.amount) {
-          await tx.milestone.update({
-            where: { id: nextMilestone.id },
-            data: { status: 'FUNDED' },
-          });
-        }
-      }
-
-      // Check if all milestones resolved
-      const allResolved = allMilestones.every(
-        (m) => m.id === transfer.milestoneId || m.status === 'RELEASED' || m.status === 'REFUNDED'
-      );
-
-      if (allResolved) {
-        await tx.contract.update({
+    await prisma.$transaction(
+      async (tx) => {
+        // 1. Decrement contract escrow balance
+        const updatedContract = await tx.contract.update({
           where: { id: transfer.contractId },
+          data: {
+            escrowBalance: { decrement: transfer.grossAmountPaise / 100 },
+          },
+        });
+
+        // 2. Increment freelancer balance with net proceeds
+        await tx.user.update({
+          where: { id: transfer.freelancerId },
+          data: {
+            balance: { increment: transfer.netDisbursedPaise / 100 },
+          },
+        });
+
+        // 3. Milestone status to RELEASED
+        await tx.milestone.update({
+          where: { id: transfer.milestoneId },
           data: { status: 'RELEASED' },
         });
-      }
 
-      // 5. Create immutable EscrowTransaction record
-      await tx.escrowTransaction.create({
-        data: {
-          contractId: transfer.contractId,
-          milestoneId: transfer.milestoneId,
-          fromUserId: null,
-          toUserId: transfer.freelancerId,
-          amount: transfer.grossAmountPaise / 100,
-          type: 'RELEASE',
-          status: 'COMPLETED',
-        },
-      });
+        // 4. Update next sequential milestone if covered
+        const allMilestones = await tx.milestone.findMany({
+          where: { contractId: transfer.contractId },
+          orderBy: { sequenceOrder: 'asc' },
+        });
 
-      // 6. Update transfer record in SQLite table
-      const nowIso = new Date().toISOString();
-      await tx.$executeRawUnsafe(
-        `UPDATE settlement_transfers
-         SET status = 'SUCCESS', gateway_transfer_id = ?, settled_at = ?
-         WHERE id = ?`,
-        gatewayTransferId,
-        nowIso,
-        transferId
-      );
+        const currentMilestone = allMilestones.find((m) => m.id === transfer.milestoneId);
+        if (currentMilestone) {
+          const nextMilestone = allMilestones.find(
+            (m) => m.sequenceOrder === currentMilestone.sequenceOrder + 1 && m.status === 'PENDING'
+          );
 
-      // 7. Append chained SHA-256 AuditLog entry
-      await this.auditLogger.logAction(
-        {
-          actorId,
-          entityName: 'Milestone',
-          entityId: transfer.milestoneId,
-          action: 'RELEASE_ESCROW',
-          previousState: 'SETTLING',
-          newState: 'RELEASED',
-        },
-        tx
-      );
-    });
+          if (nextMilestone && updatedContract.escrowBalance >= nextMilestone.amount) {
+            await tx.milestone.update({
+              where: { id: nextMilestone.id },
+              data: { status: 'FUNDED' },
+            });
+          }
+        }
+
+        // Check if all milestones resolved
+        const allResolved = allMilestones.every(
+          (m) => m.id === transfer.milestoneId || m.status === 'RELEASED' || m.status === 'REFUNDED'
+        );
+
+        if (allResolved) {
+          await tx.contract.update({
+            where: { id: transfer.contractId },
+            data: { status: 'RELEASED' },
+          });
+        }
+
+        // 5. Create immutable EscrowTransaction record
+        await tx.escrowTransaction.create({
+          data: {
+            contractId: transfer.contractId,
+            milestoneId: transfer.milestoneId,
+            fromUserId: null,
+            toUserId: transfer.freelancerId,
+            amount: transfer.grossAmountPaise / 100,
+            type: 'RELEASE',
+            status: 'COMPLETED',
+          },
+        });
+
+        // 6. Update transfer record in settlement_transfers table
+        const nowIso = new Date().toISOString();
+        await tx.$executeRawUnsafe(
+          `UPDATE settlement_transfers
+           SET status = 'SUCCESS', gateway_transfer_id = $1, settled_at = $2
+           WHERE id = $3`,
+          gatewayTransferId,
+          new Date(nowIso),
+          transferId
+        );
+
+        // 7. Append chained SHA-256 AuditLog entry
+        await this.auditLogger.logAction(
+          {
+            actorId,
+            entityName: 'Milestone',
+            entityId: transfer.milestoneId,
+            action: 'RELEASE_ESCROW',
+            previousState: 'SETTLING',
+            newState: 'RELEASED',
+          },
+          tx
+        );
+      },
+      { maxWait: 15000, timeout: 30000 }
+    );
   }
 
   /**
@@ -588,36 +592,39 @@ export class SettlementService {
       throw new NotFoundError('SettlementTransfer', transferId);
     }
 
-    await prisma.$transaction(async (tx) => {
-      // Update SQLite transfer record
-      await tx.$executeRawUnsafe(
-        `UPDATE settlement_transfers
-         SET status = 'FAILED', failure_code = ?, failure_reason = ?
-         WHERE id = ?`,
-        failureCode,
-        failureReason,
-        transferId
-      );
+    await prisma.$transaction(
+      async (tx) => {
+        // Update transfer record
+        await tx.$executeRawUnsafe(
+          `UPDATE settlement_transfers
+           SET status = 'FAILED', failure_code = $1, failure_reason = $2
+           WHERE id = $3`,
+          failureCode,
+          failureReason,
+          transferId
+        );
 
-      // Revert milestone back to APPROVED so client/admin can review or retry
-      await tx.milestone.update({
-        where: { id: transfer.milestoneId },
-        data: { status: 'APPROVED' },
-      });
+        // Revert milestone back to APPROVED so client/admin can review or retry
+        await tx.milestone.update({
+          where: { id: transfer.milestoneId },
+          data: { status: 'APPROVED' },
+        });
 
-      // Append AuditLog
-      await this.auditLogger.logAction(
-        {
-          actorId,
-          entityName: 'Milestone',
-          entityId: transfer.milestoneId,
-          action: 'SETTLEMENT_FAILED',
-          previousState: 'SETTLING',
-          newState: 'APPROVED',
-        },
-        tx
-      );
-    });
+        // Append AuditLog
+        await this.auditLogger.logAction(
+          {
+            actorId,
+            entityName: 'Milestone',
+            entityId: transfer.milestoneId,
+            action: 'SETTLEMENT_FAILED',
+            previousState: 'SETTLING',
+            newState: 'APPROVED',
+          },
+          tx
+        );
+      },
+      { maxWait: 15000, timeout: 30000 }
+    );
 
     // Alert Admin
     await this.createAdminAlert('WARNING', `Settlement transfer ${transferId} failed on gateway.`, {
@@ -649,11 +656,11 @@ export class SettlementService {
 
     await prisma.$executeRawUnsafe(
       `UPDATE settlement_transfers
-       SET status = 'QUEUED_INSUFFICIENT_FUNDS', failure_code = ?, failure_reason = ?, next_retry_at = ?
-       WHERE id = ?`,
+       SET status = 'QUEUED_INSUFFICIENT_FUNDS', failure_code = $1, failure_reason = $2, next_retry_at = $3
+       WHERE id = $4`,
       gatewayResponse.failureCode || 'LOW_BALANCE',
       gatewayResponse.failureReason || 'Platform payout float depleted.',
-      nextRetry,
+      new Date(nextRetry),
       transferId
     );
 
@@ -728,9 +735,9 @@ export class SettlementService {
       } else if (gatewayResult.status === 'INSUFFICIENT_BALANCE') {
         const nextRetry = new Date(Date.now() + 30 * 60 * 1000).toISOString();
         await prisma.$executeRawUnsafe(
-          `UPDATE settlement_transfers SET retry_count = ?, next_retry_at = ? WHERE id = ?`,
+          `UPDATE settlement_transfers SET retry_count = $1, next_retry_at = $2 WHERE id = $3`,
           nextRetryCount,
-          nextRetry,
+          new Date(nextRetry),
           row.id
         );
         break;
@@ -828,15 +835,15 @@ export class SettlementService {
     try {
       await prisma.$executeRawUnsafe(
         `INSERT INTO settlement_admin_alerts (id, level, message, details, created_at)
-         VALUES (?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5)`,
         id,
         level,
         message,
         JSON.stringify(details),
-        nowIso
+        new Date(nowIso)
       );
     } catch (err) {
-      console.error('Failed to log admin alert to SQLite:', err);
+      console.error('Failed to log admin alert:', err);
     }
 
     console.warn(`[ADMIN ALERT - ${level}] ${message}`, details);
@@ -868,7 +875,7 @@ export class SettlementService {
     await this.ensureTablesExist();
 
     const rows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM settlement_transfers WHERE id = ? LIMIT 1`,
+      `SELECT * FROM settlement_transfers WHERE id = $1 LIMIT 1`,
       transferId
     );
 

@@ -1,10 +1,13 @@
 import prisma from '@/lib/db';
 import { AuditLogger, globalAuditLogger } from '@/core/engine-03-dbms/audit-logger';
+import { KeyedMutex, globalKeyedMutex } from '@/core/engine-01-os/mutex';
 import {
   InsufficientFundsError,
   DoubleAllocationError,
   NotFoundError,
   InvalidStateTransitionError,
+  ValidationError,
+  AuthorizationError,
 } from '@/lib/errors';
 
 export interface DepositEscrowInput {
@@ -41,9 +44,11 @@ export interface TransactionReceipt {
 
 export class LedgerCoordinator {
   private auditLogger: AuditLogger;
+  private mutex: KeyedMutex;
 
-  constructor(auditLogger: AuditLogger = globalAuditLogger) {
+  constructor(auditLogger: AuditLogger = globalAuditLogger, mutex: KeyedMutex = globalKeyedMutex) {
     this.auditLogger = auditLogger;
+    this.mutex = mutex;
   }
 
   /**
@@ -52,7 +57,8 @@ export class LedgerCoordinator {
    * Mathematical invariant: Delta Client (-amount) + Delta Escrow (+amount) = 0.
    */
   async depositEscrow(input: DepositEscrowInput): Promise<TransactionReceipt> {
-    return await prisma.$transaction(async (tx) => {
+    return await this.mutex.runExclusive(input.contractId, async () => {
+      return await prisma.$transaction(async (tx) => {
       // 1. Read & validate client balance
       const client = await tx.user.findUnique({
         where: { id: input.clientId },
@@ -149,6 +155,10 @@ export class LedgerCoordinator {
         type: 'DEPOSIT',
         timestamp: txRecord.createdAt,
       };
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
+    });
     });
   }
 
@@ -158,7 +168,8 @@ export class LedgerCoordinator {
    * Mathematical invariant: Delta Escrow (-amount) + Delta Freelancer (+amount) = 0.
    */
   async releaseMilestoneEscrow(input: ReleaseEscrowInput): Promise<TransactionReceipt> {
-    return await prisma.$transaction(async (tx) => {
+    return await this.mutex.runExclusive(input.contractId, async () => {
+      return await prisma.$transaction(async (tx) => {
       // 1. Read & validate contract escrow funds
       const contract = await tx.contract.findUnique({
         where: { id: input.contractId },
@@ -180,6 +191,18 @@ export class LedgerCoordinator {
 
       if (!milestone) {
         throw new NotFoundError('Milestone', input.milestoneId);
+      }
+
+      if (milestone.contractId !== contract.id) {
+        throw new ValidationError('Milestone does not belong to the specified contract.');
+      }
+
+      if (input.freelancerId !== contract.freelancerId) {
+        throw new AuthorizationError('Payout recipient must match the contract freelancer.');
+      }
+
+      if (Math.abs(input.amount - milestone.amount) > 0.001) {
+        throw new ValidationError('Release amount must exactly match the milestone amount.');
       }
 
       if (
@@ -280,6 +303,10 @@ export class LedgerCoordinator {
         type: 'RELEASE',
         timestamp: txRecord.createdAt,
       };
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
+    });
     });
   }
 
@@ -289,7 +316,8 @@ export class LedgerCoordinator {
    * Mathematical invariant: Delta Escrow (-amount) + Delta Client (+amount) = 0.
    */
   async refundMilestoneEscrow(input: RefundEscrowInput): Promise<TransactionReceipt> {
-    return await prisma.$transaction(async (tx) => {
+    return await this.mutex.runExclusive(input.contractId, async () => {
+      return await prisma.$transaction(async (tx) => {
       // 1. Read & validate contract escrow funds
       const contract = await tx.contract.findUnique({
         where: { id: input.contractId },
@@ -326,6 +354,16 @@ export class LedgerCoordinator {
         });
 
         if (milestone) {
+          if (milestone.contractId !== contract.id) {
+            throw new ValidationError('Milestone does not belong to the specified contract.');
+          }
+          if (milestone.status === 'RELEASED') {
+            throw new InvalidStateTransitionError(
+              milestone.status,
+              'REFUND_ESCROW',
+              'Cannot refund an already released milestone.'
+            );
+          }
           await tx.milestone.update({
             where: { id: input.milestoneId },
             data: { status: 'REFUNDED' },
@@ -387,6 +425,10 @@ export class LedgerCoordinator {
         type: 'REFUND',
         timestamp: txRecord.createdAt,
       };
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
+    });
     });
   }
 }

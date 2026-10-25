@@ -8,9 +8,9 @@ import { formatSuccessResponse, formatErrorResponse, AuthenticationError } from 
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category');
-    const search = searchParams.get('search');
+    const { searchParams } = new URL(request.url, 'http://localhost');
+    const category = searchParams.get('category')?.trim();
+    const search = searchParams.get('search')?.trim();
     const parsedPage = parseInt(searchParams.get('page') || '1', 10);
     const parsedLimit = parseInt(searchParams.get('limit') || '10', 10);
     const page = Number.isInteger(parsedPage) && parsedPage >= 1 ? parsedPage : 1;
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     const where: any = {};
-    if (category) {
+    if (category && category !== 'all') {
       where.category = category;
     }
     if (search) {
@@ -48,10 +48,15 @@ export async function GET(request: Request) {
 
     const formattedGigs = gigs.map((g) => {
       let parsedTiers = [];
-      try {
-        parsedTiers = JSON.parse(g.tiers);
-      } catch {
-        parsedTiers = [];
+      if (typeof g.tiers === 'string') {
+        try {
+          const parsed = JSON.parse(g.tiers);
+          parsedTiers = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          parsedTiers = [];
+        }
+      } else if (Array.isArray(g.tiers)) {
+        parsedTiers = g.tiers;
       }
       return {
         ...g,
