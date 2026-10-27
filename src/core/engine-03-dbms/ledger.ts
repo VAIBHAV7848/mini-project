@@ -1,3 +1,12 @@
+/**
+ * Engine 03 (DBMS Engine) — Double-Entry Transaction Ledger & Contract Manager
+ * Owner: Purvi Sammatshetti (Roll No: 11, SRN: 02FE24BCS022)
+ * Verified GitHub Account: purvisammatshetti <sammatshettipurvi@gmail.com>
+ *
+ * Implements ACID relational transaction boundaries, double-entry escrow balances,
+ * and tamper-resistant audit logging in accordance with BCNF relational specifications.
+ */
+
 import prisma from '@/lib/db';
 import { AuditLogger, globalAuditLogger } from '@/core/engine-03-dbms/audit-logger';
 import { KeyedMutex, globalKeyedMutex } from '@/core/engine-01-os/mutex';

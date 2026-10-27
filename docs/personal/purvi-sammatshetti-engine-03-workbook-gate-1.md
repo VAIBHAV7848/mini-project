@@ -2,6 +2,7 @@
 ## Engine 03: DBMS Engine (Transaction Ledger & Contract Manager)
 
 **Student Lead**: Purvi Sammatshetti (Roll No: 11, SRN: `02FE24BCS022`)
+**GitHub**: [`purvisammatshetti`](https://github.com/purvisammatshetti) (`sammatshettipurvi@gmail.com`)
 **Department**: Department of Computer Science & Engineering
 **Institution**: KLE Technological University (Dr. M. S. Sheshgiri College of Engineering & Technology, Belagavi)
 **Team**: Team 07 (Theme 01)
