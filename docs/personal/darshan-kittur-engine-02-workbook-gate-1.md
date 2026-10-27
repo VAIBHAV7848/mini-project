@@ -1,12 +1,12 @@
 # Personal Engineering Record Book: Stage S1 (Gate 1 Baseline)
 ## Engine 02: DAA & SE Engine (Evidence & Quality Assurance Engine)
 
-**Student Lead**: Darshan Kittur (Roll No: 18, SRN: `02FE24BCS053`)  
-**Department**: Department of Computer Science & Engineering  
-**Institution**: KLE Technological University (Dr. M. S. Sheshgiri College of Engineering & Technology, Belagavi)  
-**Team**: Team 07 (Theme 01)  
-**Project Title**: Milestone-Based Escrow & Evidence-Based Dispute Resolution Workflow  
-**Evaluation Stage**: Gate 1 Requirements Baseline & Individual Course Synthesis  
+**Student Lead**: Darshan Kittur (Roll No: 18, SRN: `02FE24BCS053`)
+**Department**: Department of Computer Science & Engineering
+**Institution**: KLE Technological University (Dr. M. S. Sheshgiri College of Engineering & Technology, Belagavi)
+**Team**: Team 07 (Theme 01)
+**Project Title**: Milestone-Based Escrow & Evidence-Based Dispute Resolution Workflow
+**Evaluation Stage**: Gate 1 Requirements Baseline & Individual Course Synthesis
 
 ---
 

@@ -70,15 +70,15 @@ const PERSONAS: PersonaCard[] = [
   },
   {
     role: 'ADMIN',
-    name: 'Vaibhav Chavanpatil (VAIBHAV)',
+    name: 'Admin (Platform Operations)',
     email: 'admin@escrow.local',
     password: 'Password123!',
-    title: 'Lead Architect & System Admin',
+    title: 'System Operations & Ledger Admin',
     balance: 'Full Authority',
     icon: ShieldCheck,
     badgeBg: 'bg-purple-500/10 border-purple-500/30',
     badgeColor: 'text-purple-400',
-    description: 'Oversees Cashfree/UPI settlements, inspects the append-only ledger audit trail, and manages engine health.',
+    description: 'Oversees simulated settlements, inspects the append-only ledger audit trail, and manages engine health.',
     capabilities: ['Ledger Reconciliation', 'Append-Only Audit Trail', 'Timeout Watchdog Control', 'System Administration'],
   },
 ];
@@ -120,13 +120,13 @@ export function PersonaQuickLaunchpad() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <span className="font-mono2 text-xs uppercase tracking-widest text-brand-base font-bold">
-            One-Click Evaluation
+            Interactive Workspaces
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-paper tracking-tight mt-1">
-            Persona Launchpad
+            Role-Based Demo Launchpad
           </h2>
           <p className="text-xs sm:text-sm text-paper-muted mt-1 max-w-2xl">
-            Select any role below to instantly authenticate and evaluate the system from that persona&apos;s perspective.
+            Select any role below to explore GigaFlow across its full permission matrix with live pre-configured accounts.
           </p>
         </div>
 

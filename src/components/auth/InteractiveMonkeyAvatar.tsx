@@ -1152,17 +1152,17 @@ export function InteractiveMonkeyAvatar({
       <div
         role="status"
         aria-live="polite"
-        className="mt-4 px-3.5 py-1.5 rounded-full bg-[#12151b] border border-[#242934] text-xs font-mono text-[#ff9d47] flex items-center gap-2 shadow-sm whitespace-nowrap min-h-[34px]"
+        className="mt-4 px-3.5 py-1.5 rounded-full bg-surface-elevated border border-line text-xs font-mono text-brand-base dark:text-[#ff9d47] flex items-center gap-2 shadow-sm whitespace-nowrap min-h-[34px] transition-colors"
       >
         <span
           className={`w-2 h-2 rounded-full ${
             isPasswordFocused && isShowPassword
-              ? 'bg-[#4ade80] animate-pulse'
+              ? 'bg-emerald-500 animate-pulse'
               : isPasswordFocused
-              ? 'bg-[#fc6c00] animate-ping'
+              ? 'bg-brand-base animate-ping'
               : emailValue.length > 0 || isEmailFocused
-              ? 'bg-[#ff9d47]'
-              : 'bg-[#fc6c00]'
+              ? 'bg-brand-light'
+              : 'bg-brand-base'
           }`}
         />
         <span>
