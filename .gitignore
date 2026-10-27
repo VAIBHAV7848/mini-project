@@ -84,6 +84,7 @@ htmlcov/
 !.vscode/launch.json
 !.vscode/extensions.json
 .idea/
+opencode.jsonc
 *.sublime-project
 *.sublime-workspace
 *.swp

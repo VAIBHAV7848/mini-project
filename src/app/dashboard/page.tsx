@@ -790,11 +790,12 @@ export default function DashboardPage() {
 
               {transactionState.action === 'SUBMIT_DELIVERABLE' && (
                 <div className="mt-4 space-y-3">
-                  <label className="block text-xs font-semibold text-paper">
+                  <label htmlFor="deliverable-file" className="block text-xs font-semibold text-paper">
                     Deliverable File (SHA-256 Calculated Locally)
                   </label>
                   <div className="relative border-2 border-dashed border-line hover:border-brand-base rounded-lg p-4 text-center transition-colors">
                     <input
+                      id="deliverable-file"
                       type="file"
                       onChange={handleFileChange}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"

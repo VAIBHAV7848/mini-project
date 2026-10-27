@@ -71,7 +71,7 @@
     --surface-highlight: #222222;
     --paper: #ffffff;
     --paper-muted: #a3a3a3;
-    --paper-faint: #737373;
+    --paper-faint: #9a9a9a;
     --line: rgba(255, 255, 255, 0.12);
     --line-strong: rgba(255, 255, 255, 0.25);
 
@@ -81,10 +81,21 @@
     --color-surface-highlight: #222222;
     --color-paper: #ffffff;
     --color-paper-muted: #a3a3a3;
-    --color-paper-faint: #737373;
+    --color-paper-faint: #9a9a9a;
     --color-line: rgba(255, 255, 255, 0.12);
     --color-line-strong: rgba(255, 255, 255, 0.25);
     --grid-line-color: rgba(255, 255, 255, 0.04);
+
+    /* Mascot palette — dark mode keeps the original near-black fur. */
+    --monkey-fur: #1c212d;
+    --monkey-fur-shade: #242b3a;
+    --monkey-skin-warm: #f5ebe1;
+    --monkey-skin-cool: #ddf1fa;
+    --monkey-housing-top: #181d28;
+    --monkey-housing-mid: #10141c;
+    --monkey-housing-base: #07090e;
+    --monkey-housing-border: #2b3345;
+    --monkey-housing-shadow: rgba(0, 0, 0, 0.9);
     color-scheme: dark;
   }
 
@@ -109,6 +120,18 @@
     --color-line: rgba(0, 0, 0, 0.08);
     --color-line-strong: rgba(0, 0, 0, 0.16);
     --grid-line-color: rgba(0, 0, 0, 0.04);
+
+    /* Mascot palette — light mode flips the fur to white and lightens the
+       housing, while the backdrop disc stays dark for contrast. */
+    --monkey-fur: #ffffff;
+    --monkey-fur-shade: #e2e8f0;
+    --monkey-skin-warm: #e5e7eb;
+    --monkey-skin-cool: #e2e8f0;
+    --monkey-housing-top: #ffffff;
+    --monkey-housing-mid: #f1f5f9;
+    --monkey-housing-base: #e2e8f0;
+    --monkey-housing-border: #94a3b8;
+    --monkey-housing-shadow: rgba(15, 23, 42, 0.18);
     color-scheme: light;
   }
 
@@ -204,6 +227,79 @@
   background-image: linear-gradient(var(--grid-line-color, rgba(255, 255, 255, 0.04)) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line-color, rgba(255, 255, 255, 0.04)) 1px, transparent 1px);
   background-size: 44px 44px;
+}
+
+/* ==========================================================================
+   Motion utilities
+   Replaces the classes that used to depend on an uninstalled animation
+   plugin (animate-in / fade-in / zoom-in-95 / slide-in-*), plus the two
+   bespoke entrance helpers used on the login screen.
+   ========================================================================== */
+@keyframes ui-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ui-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ui-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ui-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-3px); }
+  40%, 60% { transform: translateX(3px); }
+}
+
+.animate-in {
+  animation: ui-enter 200ms var(--ease-forge) both;
+}
+
+.animate-in.slide-in-from-left {
+  animation-name: ui-slide-in-left;
+}
+
+.animate-fadeIn {
+  animation: ui-fade-in 260ms var(--ease-forge) both;
+}
+
+.animate-shake {
+  animation: ui-shake 420ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Tailwind's outline-none removes the visible focus ring. Restore it for
+   keyboard users while keeping the utility's intent for pointer users. */
+.outline-none:focus-visible {
+  outline: 2px solid var(--color-brand-base);
+  outline-offset: 2px;
+}
+
+/* Theme-aware mascot: fill/stroke tokens animate so the fur flips smoothly
+   between white (light mode) and near-black (dark mode). */
+.monkey-themed path,
+.monkey-themed rect,
+.monkey-themed circle,
+.monkey-themed polygon,
+.monkey-themed ellipse {
+  transition: fill 300ms var(--ease-forge), stroke 300ms var(--ease-forge);
 }
 
 /* ==========================================================================

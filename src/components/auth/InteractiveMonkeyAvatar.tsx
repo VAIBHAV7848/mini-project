@@ -50,6 +50,7 @@ export function InteractiveMonkeyAvatar({
   const pupilRRef = useRef<SVGGElement>(null);
   const closedEyeLRef = useRef<SVGGElement>(null);
   const closedEyeRRef = useRef<SVGGElement>(null);
+  const peekOpenedRef = useRef(false);
 
   const noseRef = useRef<SVGPathElement>(null);
   const mouthRef = useRef<SVGGElement>(null);
@@ -73,7 +74,8 @@ export function InteractiveMonkeyAvatar({
   const coverTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
   const effectiveInputRef = emailInputRef || inputRef;
-  const skinColor = skinTone === 'cool' ? '#ddf1fa' : '#f5ebe1';
+  const skinColor =
+    skinTone === 'cool' ? 'var(--monkey-skin-cool)' : 'var(--monkey-skin-warm)';
   const nailColor = skinTone === 'cool' ? '#a9ddf3' : '#fc6c00';
 
   // 1. Initial GSAP Rigging & Resting Poses
@@ -378,6 +380,7 @@ export function InteractiveMonkeyAvatar({
     gsap.killTweensOf([
       armL,
       armR,
+      twoFingersRef.current,
       pupilL,
       pupilR,
       eyeL,
@@ -400,7 +403,7 @@ export function InteractiveMonkeyAvatar({
       eyesCoveredRef.current = true;
 
       if (prefersReducedMotion) {
-        gsap.set([armL, armR], { autoAlpha: 1, x: -93, y: 18, rotation: 0 });
+        gsap.set([armL, armR], { autoAlpha: 1, x: -93, y: 10, rotation: 0 });
         if (pupilL && pupilR) gsap.set([pupilL, pupilR], { scaleY: 0, opacity: 0, y: -4 });
         if (closedEyeLRef.current && closedEyeRRef.current) {
           gsap.set([closedEyeLRef.current, closedEyeRRef.current], { opacity: 1, y: 0 });
@@ -443,13 +446,13 @@ export function InteractiveMonkeyAvatar({
       tl.set([armL, armR], { autoAlpha: 1 }, 0.12);
 
       // --- STAGE 2: Smooth Biological Eye Closure & Bilateral Arm Covering ---
-      // 3. Bilateral arm sweep upward landing directly over eyes at y: 18 (NOT on forehead y: 0)
+      // 3. Bilateral arm sweep upward landing directly over eyes at canonical y: 10 (NOT on forehead y: 0)
       const armCurve = 'cubic-bezier(0.28, 0, 0.18, 1)';
       tl.to(
         armL,
         {
           x: -93,
-          y: 18,
+          y: 10,
           rotation: 0,
           duration: 0.44,
           transformOrigin: 'top left',
@@ -462,7 +465,7 @@ export function InteractiveMonkeyAvatar({
         armR,
         {
           x: -93,
-          y: 18,
+          y: 10,
           rotation: 0,
           duration: 0.46,
           transformOrigin: 'top right',
@@ -534,6 +537,7 @@ export function InteractiveMonkeyAvatar({
     } else {
       // --- RESTORE ON BLUR: Graceful, gravity-assisted descent & smooth eye re-opening ---
       eyesCoveredRef.current = false;
+      peekOpenedRef.current = false;
 
       // Snap twoFingers peek closed if it was active
       if (twoFingersRef.current) {
@@ -645,8 +649,25 @@ export function InteractiveMonkeyAvatar({
     const pupilL = pupilLRef.current;
     if (!twoFingers) return;
 
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     if (isPasswordFocused && isShowPassword) {
-      // Spread two fingers to reveal pupil aperture
+      peekOpenedRef.current = true;
+
+      // Stop timeline and previous animations from conflicting with peek
+      gsap.killTweensOf([twoFingers, pupilL, closedEyeLRef.current]);
+
+      if (prefersReducedMotion) {
+        gsap.set(twoFingers, { rotation: 30, x: -9, y: -2, transformOrigin: 'bottom left' });
+        if (closedEyeLRef.current) gsap.set(closedEyeLRef.current, { opacity: 0 });
+        if (pupilL) gsap.set(pupilL, { scaleY: 1, opacity: 1, y: 0, x: 0 });
+        return;
+      }
+
+      // Spread two fingers to reveal pupil aperture while pointer finger stays anchored to palm
       gsap.to(twoFingers, {
         rotation: 30,
         x: -9,
@@ -663,15 +684,25 @@ export function InteractiveMonkeyAvatar({
 
       if (pupilL) {
         gsap.to(pupilL, {
-          scaleY: 0.85,
+          scaleY: 1,
           opacity: 1,
-          y: -2,
+          y: 0,
+          x: 0,
           duration: 0.25,
           transformOrigin: 'center center',
           ease: 'power2.out',
         });
       }
     } else if (isPasswordFocused && !isShowPassword) {
+      gsap.killTweensOf([twoFingers, pupilL, closedEyeLRef.current]);
+
+      if (prefersReducedMotion) {
+        gsap.set(twoFingers, { rotation: 0, x: 0, y: 0, transformOrigin: 'bottom left' });
+        if (closedEyeLRef.current) gsap.set(closedEyeLRef.current, { opacity: 1, y: 0 });
+        if (pupilL) gsap.set(pupilL, { scaleY: 0, opacity: 0, y: -4.0 });
+        return;
+      }
+
       // Snap fingers tightly closed
       gsap.to(twoFingers, {
         rotation: 0,
@@ -681,6 +712,12 @@ export function InteractiveMonkeyAvatar({
         transformOrigin: 'bottom left',
         ease: 'power2.inOut',
       });
+
+      // Only re-close the peeked eye if the aperture was actually opened. On initial
+      // focus the cover timeline owns the closure, so animating it here as well races
+      // the timeline and desynchronises the left eye from the right.
+      if (!peekOpenedRef.current) return;
+      peekOpenedRef.current = false;
 
       // Re-close left eye tightly
       if (pupilL) {
@@ -701,13 +738,18 @@ export function InteractiveMonkeyAvatar({
     }
   }, [isPasswordFocused, isShowPassword]);
 
+  const avatarState = isPasswordFocused
+    ? (isShowPassword ? 'peeking' : 'covering')
+    : (isEmailFocused || emailValue.length > 0 ? 'tracking' : 'idle');
+
   return (
     <div
       ref={containerRef}
+      data-avatar-state={avatarState}
       className={`flex flex-col items-center justify-center select-none ${className}`}
     >
       {/* Outer Housing Container with Laser Orange Standby Glow */}
-      <div className="relative p-2.5 rounded-full bg-gradient-to-b from-[#181d28] via-[#10141c] to-[#07090e] border-2 border-[#2b3345] shadow-[0_16px_50px_rgba(0,0,0,0.9)]">
+      <div className="relative p-2.5 rounded-full bg-gradient-to-b from-[var(--monkey-housing-top)] via-[var(--monkey-housing-mid)] to-[var(--monkey-housing-base)] border-2 border-[var(--monkey-housing-border)] shadow-[0_16px_50px_var(--monkey-housing-shadow)]">
         {/* Ambient Pulse Ring */}
         <div
           className={`absolute inset-0 rounded-full blur-xl pointer-events-none transition-all duration-500 ${
@@ -723,14 +765,14 @@ export function InteractiveMonkeyAvatar({
         {/* Master SVG Canvas */}
         <div
           style={{ width: size, height: size }}
-          className="relative rounded-full overflow-hidden border border-[#fc6c00]/40 shadow-inner bg-[#0a0c10]"
+          className="relative rounded-full overflow-hidden border border-[#fc6c00]/40 shadow-inner bg-[var(--monkey-housing-base)]"
         >
           <svg
             ref={svgRef}
             viewBox="0 0 200 200"
             width={size}
             height={size}
-            className="overflow-visible select-none pointer-events-none"
+            className="monkey-themed overflow-visible select-none pointer-events-none"
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
           >
@@ -753,14 +795,14 @@ export function InteractiveMonkeyAvatar({
               <path
                 ref={bodyChangedRef}
                 className="opacity-0"
-                fill="#1c212d"
+                fill="var(--monkey-fur)"
                 stroke="#fc6c00"
                 strokeWidth="2.5"
                 d="M200,122h-35h-14.9V72c0-27.6-22.4-50-50-50s-50,22.4-50,50v50H35.8H0l0,91h200L200,122z"
               />
               <path
                 ref={bodyNormalRef}
-                fill="#1c212d"
+                fill="var(--monkey-fur)"
                 stroke="#fc6c00"
                 strokeWidth="2.5"
                 strokeLinecap="round"
@@ -768,7 +810,7 @@ export function InteractiveMonkeyAvatar({
                 d="M200,158.5c0-20.2-14.8-36.5-35-36.5h-14.9V72.8c0-27.4-21.7-50.4-49.1-50.8c-28-0.5-50.9,22.1-50.9,50v50 H35.8C16,122,0,138,0,157.8L0,213h200L200,158.5z"
               />
               <path
-                fill="#242b3a"
+                fill="var(--monkey-fur-shade)"
                 d="M100,156.4c-22.9,0-43,11.1-54.1,27.7c15.6,10,34.2,15.9,54.1,15.9s38.5-5.8,54.1-15.9 C143,167.5,122.9,156.4,100,156.4z"
               />
             </g>
@@ -790,10 +832,10 @@ export function InteractiveMonkeyAvatar({
                 />
               </g>
               <g ref={earHairLRef} className="earHair">
-                <rect x="51" y="64" fill="#1c212d" width="15" height="35" />
+                <rect x="51" y="64" fill="var(--monkey-fur)" width="15" height="35" />
                 <path
                   d="M53.4 62.8C48.5 67.4 45 72.2 42.8 77c3.4-.1 6.8-.1 10.1.1-4 3.7-6.8 7.6-8.2 11.6 2.1 0 4.2 0 6.3.2-2.6 4.1-3.8 8.3-3.7 12.5 1.2-.7 3.4-1.4 5.2-1.9"
-                  fill="#1c212d"
+                  fill="var(--monkey-fur)"
                   stroke="#fc6c00"
                   strokeWidth="2.5"
                   strokeLinecap="round"
@@ -819,9 +861,9 @@ export function InteractiveMonkeyAvatar({
                 />
               </g>
               <g ref={earHairRRef} className="earHair">
-                <rect x="134" y="64" fill="#1c212d" width="15" height="35" />
+                <rect x="134" y="64" fill="var(--monkey-fur)" width="15" height="35" />
                 <path
-                  fill="#1c212d"
+                  fill="var(--monkey-fur)"
                   stroke="#fc6c00"
                   strokeWidth="2.5"
                   strokeLinecap="round"
@@ -855,7 +897,7 @@ export function InteractiveMonkeyAvatar({
             <path
               ref={hairRef}
               className="hair"
-              fill="#1c212d"
+              fill="var(--monkey-fur)"
               stroke="#fc6c00"
               strokeWidth="2.5"
               strokeLinecap="round"
@@ -866,7 +908,7 @@ export function InteractiveMonkeyAvatar({
             {/* Eyebrows */}
             <g ref={eyebrowRef} className="eyebrow">
               <path
-                fill="#1c212d"
+                fill="var(--monkey-fur)"
                 d="M138.142,55.064c-4.93,1.259-9.874,2.118-14.787,2.599c-0.336,3.341-0.776,6.689-1.322,10.037 c-4.569-1.465-8.909-3.222-12.996-5.226c-0.98,3.075-2.07,6.137-3.267,9.179c-5.514-3.067-10.559-6.545-15.097-10.329 c-1.806,2.889-3.745,5.73-5.816,8.515c-7.916-4.124-15.053-9.114-21.296-14.738l1.107-11.768h73.475V55.064z"
               />
               <path
@@ -885,7 +927,7 @@ export function InteractiveMonkeyAvatar({
               <g
                 ref={pupilLRef}
                 className="eyeballL"
-                style={{ transformBox: 'fill-box', transformOrigin: 'center center' }}
+                style={{ transformOrigin: 'center center' }}
               >
                 <circle cx="85.5" cy="78.5" r="3.6" fill="#07080a" />
                 <circle cx="84" cy="76" r="1.1" fill="#ffffff" />
@@ -924,7 +966,7 @@ export function InteractiveMonkeyAvatar({
               <g
                 ref={pupilRRef}
                 className="eyeballR"
-                style={{ transformBox: 'fill-box', transformOrigin: 'center center' }}
+                style={{ transformOrigin: 'center center' }}
               >
                 <circle cx="114.5" cy="78.5" r="3.6" fill="#07080a" />
                 <circle cx="113" cy="76" r="1.1" fill="#ffffff" />
@@ -998,7 +1040,7 @@ export function InteractiveMonkeyAvatar({
             {/* Arms Assembly (Inside Master Circular Clip Boundary) */}
             <g className="arms" clipPath={`url(#${armMaskId})`}>
               {/* Left Arm */}
-              <g ref={armLRef} className="armL" style={{ transformBox: 'fill-box' }}>
+              <g ref={armLRef} className="armL">
                 <polygon
                   fill={skinColor}
                   stroke="#fc6c00"
@@ -1028,7 +1070,7 @@ export function InteractiveMonkeyAvatar({
                 />
 
                 {/* Two Fingers (The Peek Aperture) */}
-                <g ref={twoFingersRef} className="twoFingers">
+                <g ref={twoFingersRef} className="twoFingers fingerB">
                   <path
                     fill={skinColor}
                     stroke="#fc6c00"
@@ -1069,7 +1111,7 @@ export function InteractiveMonkeyAvatar({
 
                 {/* Complete Forearm Fur Tufts (All 4 paths from original specification) */}
                 <path
-                  fill="#1c212d"
+                  fill="var(--monkey-fur)"
                   stroke="#fc6c00"
                   strokeWidth="2.5"
                   strokeLinecap="round"
@@ -1077,7 +1119,7 @@ export function InteractiveMonkeyAvatar({
                   d="M123.5,97.8 c-41.4,14.9-84.1,30.7-108.2,35.5L1.2,81c33.5-9.9,71.9-16.5,111.9-21.8"
                 />
                 <path
-                  fill="#1c212d"
+                  fill="var(--monkey-fur)"
                   stroke="#fc6c00"
                   strokeWidth="2.5"
                   strokeLinecap="round"
@@ -1085,7 +1127,7 @@ export function InteractiveMonkeyAvatar({
                   d="M108.5,60.4 c7.7-5.3,14.3-8.4,22.8-13.2c-2.4,5.3-4.7,10.3-6.7,15.1c4.3,0.3,8.4,0.7,12.3,1.3c-4.2,5-8.1,9.6-11.5,13.9 c3.1,1.1,6,2.4,8.7,3.8c-1.4,2.9-2.7,5.8-3.9,8.5c2.5,3.5,4.6,7.2,6.3,11c-4.9-0.8-9-0.7-16.2-2.7"
                 />
                 <path
-                  fill="#1c212d"
+                  fill="var(--monkey-fur)"
                   stroke="#fc6c00"
                   strokeWidth="2.5"
                   strokeLinecap="round"
@@ -1093,7 +1135,7 @@ export function InteractiveMonkeyAvatar({
                   d="M94.5,103.8 c-0.6,4-3.8,8.9-9.4,14.7c-2.6-1.8-5-3.7-7.2-5.7c-2.5,4.1-6.6,8.8-12.2,14c-1.9-2.2-3.4-4.5-4.5-6.9c-4.4,3.3-9.5,6.9-15.4,10.8 c-0.2-3.4,0.1-7.1,1.1-10.9"
                 />
                 <path
-                  fill="#1c212d"
+                  fill="var(--monkey-fur)"
                   stroke="#fc6c00"
                   strokeWidth="2.5"
                   strokeLinecap="round"
@@ -1103,7 +1145,7 @@ export function InteractiveMonkeyAvatar({
               </g>
 
               {/* Right Arm */}
-              <g ref={armRRef} className="armR" style={{ transformBox: 'fill-box' }}>
+              <g ref={armRRef} className="armR">
                 <path
                   fill={skinColor}
                   stroke="#fc6c00"
@@ -1127,7 +1169,7 @@ export function InteractiveMonkeyAvatar({
                   d="M207.9 74.7l-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8zM206.7 64l-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8zM211.2 54.8l-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8zM234.6 49.4l-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8z"
                 />
                 <path
-                  fill="#1c212d"
+                  fill="var(--monkey-fur)"
                   stroke="#fc6c00"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -1135,7 +1177,7 @@ export function InteractiveMonkeyAvatar({
                   d="M263.3 96.7c41.4 14.9 84.1 30.7 108.2 35.5l14-52.3C352 70 313.6 63.5 273.6 58.1"
                 />
                 <path
-                  fill="#1c212d"
+                  fill="var(--monkey-fur)"
                   stroke="#fc6c00"
                   strokeLinecap="round"
                   strokeLinejoin="round"

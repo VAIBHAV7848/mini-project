@@ -20,14 +20,12 @@ export default function LandingPage() {
   // Physical keyboard "↵ RETURN" key listener for authentic terminal experience
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && !e.metaKey && !e.ctrlKey) {
-        if (
-          document.activeElement?.tagName !== 'INPUT' &&
-          document.activeElement?.tagName !== 'TEXTAREA'
-        ) {
-          router.push('/login');
-        }
-      }
+      if (e.key !== 'Enter' || e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
+      // Only fire when nothing is focused: never hijack Enter from links,
+      // buttons, inputs, or an open dialog.
+      if (document.activeElement !== document.body) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
+      router.push('/login');
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);

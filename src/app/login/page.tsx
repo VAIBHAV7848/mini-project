@@ -37,6 +37,8 @@ import {
   setMuted,
 } from '@/lib/vault-audio';
 
+const SHOW_DEMO_CREDENTIALS = process.env.NODE_ENV !== 'production';
+
 interface PersonaProfile {
   id: string;
   name: string;
@@ -334,8 +336,8 @@ export default function LoginPage() {
         <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-elevated border border-line text-[11px] font-mono text-paper-muted">
             <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Supabase Live
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Session Secure
             </span>
             <span className="text-line-strong">•</span>
             <span className="flex items-center gap-1 text-brand-base font-medium">
@@ -427,13 +429,13 @@ export default function LoginPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand-base animate-pulse" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-base" />
                     <h1 className="font-display font-black text-2xl tracking-tight text-paper">
                       Escrow Security Gateway
                     </h1>
                   </div>
                   <p className="text-xs font-mono text-paper-muted mt-1">
-                    Dual Authentication • Supabase Auth &amp; Local SQLite Ledger
+                    Credential verification • Local SQLite ledger
                   </p>
                 </div>
 
@@ -605,13 +607,15 @@ export default function LoginPage() {
                     >
                       Cryptographic Secret / Password
                     </label>
-                    <button
-                      type="button"
-                      onClick={applyMasterPassword}
-                      className="text-[11px] font-mono text-brand-base hover:text-brand-light hover:underline cursor-pointer font-medium"
-                    >
-                      Fill Master Key (VAIBHAV2667)
-                    </button>
+                    {SHOW_DEMO_CREDENTIALS && (
+                      <button
+                        type="button"
+                        onClick={applyMasterPassword}
+                        className="text-[11px] font-mono text-brand-base hover:text-brand-light hover:underline cursor-pointer font-medium"
+                      >
+                        Fill Master Key (VAIBHAV2667)
+                      </button>
+                    )}
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-paper-muted" />
@@ -628,7 +632,7 @@ export default function LoginPage() {
                         setIsPasswordFocused(false);
                       }}
                       onChange={(e) => handleInputChange('password', e.target.value)}
-                      placeholder="Password123! or VAIBHAV2667"
+                      placeholder="Enter your password"
                       className="w-full pl-10 pr-10 py-2.5 bg-surface-elevated border border-line focus:border-brand-base focus:ring-1 focus:ring-brand-base rounded-xl text-sm font-mono text-paper placeholder:text-paper-faint outline-none transition-all"
                     />
                     <button
@@ -636,6 +640,10 @@ export default function LoginPage() {
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       onMouseDown={(e) => {
                         // Prevent loss of focus on password input so arms stay covering eyes during peek
+                        e.preventDefault();
+                      }}
+                      onTouchStart={(e) => {
+                        // Prevent loss of focus on touch/mobile devices
                         e.preventDefault();
                       }}
                       onClick={() => {
@@ -675,13 +683,15 @@ export default function LoginPage() {
               </form>
 
               {/* Master Credential Footnote */}
-              <div className="mt-5 pt-4 border-t border-line flex items-center justify-between text-[11px] font-mono text-paper-muted">
-                <span>
-                  Demo Passwords: <code className="text-brand-base font-bold">Password123!</code> or{' '}
-                  <code className="text-brand-base font-bold">VAIBHAV2667</code>
-                </span>
-                <span className="hidden sm:inline text-paper-faint">Universal Dual-Auth Ready</span>
-              </div>
+              {SHOW_DEMO_CREDENTIALS && (
+                <div className="mt-5 pt-4 border-t border-line flex items-center justify-between text-[11px] font-mono text-paper-muted">
+                  <span>
+                    Demo passwords: <code className="text-brand-base font-bold">Password123!</code> or{' '}
+                    <code className="text-brand-base font-bold">VAIBHAV2667</code>
+                  </span>
+                  <span className="hidden sm:inline text-paper-faint">Local demonstration build</span>
+                </div>
+              )}
             </div>
           </div>
 
