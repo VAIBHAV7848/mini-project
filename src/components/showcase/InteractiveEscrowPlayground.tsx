@@ -79,23 +79,23 @@ export function InteractiveEscrowPlayground() {
   };
 
   const handleDeposit = () => {
-    addLog(`Engine 01 (OS Mutex): Locked ₹${milestoneAmount.toLocaleString('en-IN')} in Escrow`, 'FUNDED');
+    addLog(`[Escrow Concurrency] Locked ₹${milestoneAmount.toLocaleString('en-IN')} in Escrow Vault`, 'FUNDED');
   };
 
   const handleStartWork = () => {
-    addLog('Engine 01 (FSM): Freelancer signaled START_WORK', 'IN_PROGRESS');
+    addLog('[Milestone Lifecycle] Freelancer initiated milestone (IN_PROGRESS)', 'IN_PROGRESS');
   };
 
   const handleSubmitDeliverable = () => {
-    addLog(`Engine 02 (DSA): Generated SHA-256 evidence [${computedHash.substring(0, 10)}...]`, 'UNDER_REVIEW');
+    addLog(`[Evidence Engine] Generated SHA-256 deliverable checksum [${computedHash.substring(0, 10)}...]`, 'UNDER_REVIEW');
   };
 
   const handleApprove = () => {
-    addLog(`Engine 03 (DBMS): Executed ACID settlement transfer of ₹${milestoneAmount.toLocaleString('en-IN')}`, 'RELEASED');
+    addLog(`[Ledger Settlement] Executed double-entry transfer of ₹${milestoneAmount.toLocaleString('en-IN')}`, 'RELEASED');
   };
 
   const handleDispute = () => {
-    addLog('Engine 01 (FSM): Arbitration triggered. Case escalated to Reviewer.', 'DISPUTED');
+    addLog('[Dispute Workflow] Arbitration triggered. Case escalated to Reviewer.', 'DISPUTED');
   };
 
   const handleReset = () => {
@@ -121,7 +121,7 @@ export function InteractiveEscrowPlayground() {
               </span>
             </div>
             <p className="text-xs text-paper-muted">
-              Interactive client-side simulation of State Transitions (Engine 01), Cryptographic Checksums (Engine 02), and ACID Balance Conservation (Engine 03).
+              Interactive client-side simulation of Deterministic FSM Lifecycles, Cryptographic SHA-256 Checksums, and Mathematical Balance Conservation.
             </p>
           </div>
         </div>
@@ -305,7 +305,7 @@ export function InteractiveEscrowPlayground() {
           <div className="bg-surface-elevated p-5 rounded-xl border border-line">
             <span className="text-xs font-semibold text-paper block mb-4 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-brand-base" />
-              Engine 01 (OS): Finite State Machine Graph
+              Milestone Lifecycle: Finite State Machine (FSM)
             </span>
 
             <div className="space-y-3">
@@ -376,7 +376,7 @@ export function InteractiveEscrowPlayground() {
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold text-paper flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                Engine 03 (DBMS): Double-Entry Balance Conservation
+                Double-Entry Accounting: Fund Conservation Invariant
               </span>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono2 font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                 ΔTotal = 0 (INVARIANT SATISFIED)
