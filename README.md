@@ -384,6 +384,7 @@ Stage S1 (Requirements Baseline): COMPLETE / FROZEN
 Stage S2 (Shared Architecture): COMPLETE / APPROVED
 Stage S3 (Implementation & Verification): COMPLETE
 Gate 2: READY FOR EVALUATION
+Phase 2 (WebRTC Scoping, RAG Drafting, Integer Guards): ROADMAP (YET TO BE IMPLEMENTED)
 ```
 
 ---
