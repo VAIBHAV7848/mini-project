@@ -59,11 +59,6 @@ The presentation layer enforces responsive role-based access control across **Cl
 | <img src="docs/ui-ux/screenshots/dashboard-1920x1080.png" alt="Enterprise Dashboard 1920x1080" width="480" /> | <img src="docs/ui-ux/screenshots/dashboard-1440x900.png" alt="Adaptive Dashboard 1440x900" width="480" /> |
 | **Real-Time Escrow & Milestone Allocation** | **Persona Switching & Audit Feed** |
 
-| Milestone Contracts & Escrow Locking | Evidence-Based Dispute Arbitration |
-| :---: | :---: |
-| <img src="docs/ui-ux/screenshots/projects-1920x1080.png" alt="Contracts and Milestones" width="480" /> | <img src="docs/ui-ux/screenshots/disputes-1920x1080.png" alt="Disputes and Merkle Evidence" width="480" /> |
-| **FSM Milestone Sequencing (`FUNDED` → `RELEASED`)** | **Merkle Evidence Tree & Tamper Inspection** |
-
 ---
 
 ## 3. Key Features
@@ -79,6 +74,7 @@ The presentation layer enforces responsive role-based access control across **Cl
 - **Human Reviewer Arbitration (FR-09)**: Independent dispute resolution workflow supporting binding split rulings with duplicate ruling prevention.
 - **Tamper-Resistant Chained Audit Logging (FR-06, NFR-09)**: Append-only audit trail where every state change and financial transfer is cryptographically linked: $\text{Hash}_n = \text{SHA256}(\text{Payload}_n + \text{Hash}_{n-1})$.
 - **Client State Synchronization (FR-10)**: 5-second lightweight polling snapshot returning active contract and milestone states without full-page reloads.
+- **Planned Phase 2 Features (Yet to be Implemented)**: Browser-Native WebRTC Video Scoping, RAG-Assisted Contract Drafting, and Integer Paise Safety Guards are documented in [Section 12.3: Planned Phase 2 Feature Roadmap](#123-planned-phase-2-feature-roadmap-future-scope--yet-to-be-implemented).
 
 ---
 
@@ -336,7 +332,7 @@ Detailed traceability specifications:
 
 ## 12. Project Scope & Boundaries
 
-### In-Scope Capabilities
+### 12.1 In-Scope Capabilities
 - Role-based user authentication and session authorization (FR-08, NFR-02)
 - Project posting, proposal bidding, and heuristic semantic proposal matching (FR-11)
 - Phased milestone management with sequential dependency ordering (FR-02, FR-12)
@@ -346,7 +342,7 @@ Detailed traceability specifications:
 - Independent human reviewer dispute arbitration (FR-09)
 - Append-only hash-chained audit logging (FR-06, NFR-09)
 
-### Explicit Scope Boundaries
+### 12.2 Explicit Scope Boundaries
 - **Real Payment Gateways**: Excluded. Currency is purely simulated within the SQLite ledger to eliminate external financial risk.
 - **Autonomous AI Arbitration**: Excluded. Algorithmic matching is restricted to proposal ranking; dispute arbitration requires independent human reviewer evaluation.
 - **Native Mobile Applications**: Excluded. Responsive web interface optimized across mobile and desktop viewports.
@@ -354,7 +350,7 @@ Detailed traceability specifications:
 - **Unlimited Video Hosting**: Excluded. Large media files are represented by cryptographic hash digests.
 - **Corporate Taxation / Accounting Systems**: Excluded from academic scope.
 
-### Planned Phase 2 Feature Roadmap (Future Scope — Yet to be Implemented)
+### 12.3 Planned Phase 2 Feature Roadmap (Future Scope — Yet to be Implemented)
 
 The core Gate 2 system (Functional Requirements FR-01 through FR-12) represents our frozen, verified production baseline. To extend the platform's collaborative reach without altering core transactional invariants, the following features are designed and scheduled for Phase 2 implementation:
 
