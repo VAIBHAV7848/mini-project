@@ -354,6 +354,23 @@ Detailed traceability specifications:
 - **Unlimited Video Hosting**: Excluded. Large media files are represented by cryptographic hash digests.
 - **Corporate Taxation / Accounting Systems**: Excluded from academic scope.
 
+### Planned Phase 2 Feature Roadmap (Future Scope — Yet to be Implemented)
+
+The core Gate 2 system (Functional Requirements FR-01 through FR-12) represents our frozen, verified production baseline. To extend the platform's collaborative reach without altering core transactional invariants, the following features are designed and scheduled for Phase 2 implementation:
+
+1. **Browser-Native WebRTC Peer-to-Peer Consultation (Engine 04 · Web Technologies)**:
+   - **On-Demand Scoping & Dispute Hearings**: Peer-to-peer real-time audio/video sessions directly between Client and Freelancer for pre-contract scoping, as well as live arbitration sessions with the assigned Dispute Reviewer.
+   - **Zero-Budget Open-Source Architecture**: Built strictly with browser-native WebRTC (`RTCPeerConnection` and `getUserMedia`) backed by lightweight WebSocket signaling. Commercial CPaaS SDKs (such as Agora or Zoom) are rejected to eliminate subscription costs, vendor lock-in, and privacy leakage through third-party media relays ([ADR-001](docs/decisions/ADR-001-technology-stack-baseline.md)).
+
+2. **Retrieval-Augmented Generation (RAG) Contract Scribe (Engine 02 · DSA & Software Engineering)**:
+   - **Ground Truth Anti-Hallucination**: Standard LLMs hallucinate unrealistic project timelines and ambiguous milestones (the #1 root cause of escrow disputes). Our RAG pipeline executes **Cosine Similarity Vector Search** over a local corpus of 100% dispute-free software contracts, standard Work Breakdown Structures (WBS), and ISO/IEC 29119 acceptance test templates.
+   - **Context Augmentation**: Real-time speech-to-text tokens from the WebRTC session are augmented with retrieved benchmark templates to synthesize a structured milestone draft adhering to the platform's `CreateContractInput` schema.
+
+3. **Deterministic Safety Containment & Dual-Signature Gate (Engines 01 & 03)**:
+   - **Integer Paise Mathematical Invariant (Engine 03 · DBMS)**: AI-drafted milestones must pass a strict database constraint ensuring $\sum \text{milestone.amount} = \text{proposal.bidAmount}$ down to the exact integer paise, eliminating IEEE-754 floating-point rounding errors.
+   - **Mutual Non-Repudiation (Engine 04 · Web Tech)**: The AI output is strictly an advisory draft. Both Client and Freelancer must review and cryptographically countersign (SHA-256 hash of contract terms + session token) on their dashboards before contract registration.
+   - **FSM Escrow Isolation (Engine 01 · OS)**: The AI has zero authority to touch funds or activate milestones. Once signed, the Finite State Machine initializes the contract strictly to `AWAITING_DEPOSIT`. Work cannot begin and funds cannot be released until mutual-exclusion escrow deposits are verified.
+
 ---
 
 ## 13. Current Project Status
