@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { useRole } from '@/components/layout/RoleContext';
 import { ShieldCheck, Loader2, FolderOpen, ExternalLink, Wallet, Clock } from 'lucide-react';
+import { calculateProjectProgress } from '@/core/engine-04-web/project-progress';
 
 interface Milestone {
   id: string;
@@ -170,10 +171,17 @@ export default function ContractsPage() {
                       const counterparty =
                         role === 'CLIENT' ? contract.freelancer : contract.client;
 
-                      const completedMilestones = contract.milestones?.filter(
-                        (m) => m.status === 'RELEASED' || m.status === 'COMPLETED'
-                      ).length || 0;
-                      const totalMilestones = contract.milestones?.length || 0;
+                      const summary = calculateProjectProgress(
+                        contract.milestones ?? [],
+                        contract.totalAmount,
+                        contract.escrowBalance
+                      );
+                      const {
+                        completedMilestones,
+                        totalMilestones,
+                        progressPercentage: progressPercent,
+                        currentMilestone: activeMilestone,
+                      } = summary;
 
                       return (
                         <tr key={contract.id} className="hover:bg-surface-elevated/50 transition-colors">
@@ -193,9 +201,34 @@ export default function ContractsPage() {
                             <p className="font-mono2 text-[12px] text-brand-base">₹{(contract.escrowBalance || 0).toFixed(2)}</p>
                           </td>
                           <td className="p-4 align-middle text-center">
-                            <span className="text-[13px] text-paper-muted font-mono2">
-                              {completedMilestones} / {totalMilestones}
-                            </span>
+                            <div className="flex flex-col items-center gap-1.5 min-w-[130px]">
+                              <div className="flex items-center justify-between w-full text-[12px] font-mono2">
+                                <span className="font-bold text-zinc-900 dark:text-white">
+                                  {completedMilestones}/{totalMilestones}
+                                </span>
+                                <span className="text-brand-base font-semibold">
+                                  {progressPercent}%
+                                </span>
+                              </div>
+                              <div
+                                role="progressbar"
+                                aria-valuenow={progressPercent}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-label={`Milestones progress: ${progressPercent}%`}
+                                className="w-full h-1.5 rounded-full bg-line overflow-hidden"
+                              >
+                                <div
+                                  className="h-full bg-brand-base rounded-full transition-all duration-300"
+                                  style={{ width: `${progressPercent}%` }}
+                                />
+                              </div>
+                              {activeMilestone && (
+                                <span className="text-[10px] font-mono2 text-paper-faint truncate max-w-[130px]" title={activeMilestone.title}>
+                                  Active: M-{String(activeMilestone.sequenceOrder).padStart(2, '0')}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="p-4 align-middle text-center">
                             {getStatusBadge(contract.status)}

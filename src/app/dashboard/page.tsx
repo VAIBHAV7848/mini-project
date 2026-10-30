@@ -28,6 +28,7 @@ import { UpiTopUpModal } from '@/components/payments/UpiTopUpModal';
 import { calculateFileSha256, formatBytes } from '@/lib/crypto-hash';
 import { MilestoneFsmGraph } from '@/components/milestones/MilestoneFsmGraph';
 import { DeliverableInspector } from '@/components/evidence/DeliverableInspector';
+import { ProjectProgressCard } from '@/components/milestones/ProjectProgressCard';
 
 interface MilestoneItem {
   id: string;
@@ -576,9 +577,20 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="p-5 sm:p-6">
+                          {/* Project Progress Summary & Current Milestone Spotlight */}
+                          <ProjectProgressCard
+                            contractId={contract.id}
+                            projectTitle={contract.project?.title || 'Contract Agreement'}
+                            totalAmount={contract.totalAmount}
+                            escrowBalance={contract.escrowBalance}
+                            milestones={contract.milestones ?? []}
+                            userRole={role}
+                            onAction={(action, milestoneId) => initiateTransaction(contract.id, action, milestoneId)}
+                          />
+
                           <h4 className="text-[11px] uppercase tracking-wider font-bold text-paper-faint mb-5 flex items-center gap-2">
                             <Layers className="w-3.5 h-3.5" aria-hidden="true" />
-                            Milestone Progression
+                            Milestone Progression & Ledger Audit
                           </h4>
                           <ol className="list-none p-0 m-0">
                             {(contract.milestones ?? []).map((m, idx, arr) => {
