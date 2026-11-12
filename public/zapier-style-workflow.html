@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Milestone-based escrow workflow diagram - Team 07 GigaFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-cream: #FAF7F2;
+      --card-bg: #111111;
+      --card-border: rgba(255, 255, 255, 0.1);
+      --card-text: #FFFFFF;
+      --card-subtext: #9CA3AF;
+      --zapier-orange: #FF4F00;
+      --decision-bg: #FDE68A;
+      --decision-border: #111111;
+      --decision-text: #1C1917;
+      --mint-bg: #DCFCE7;
+      --mint-border: #86EFAC;
+      --mint-text: #166534;
+      --line-color: #111111;
+      --line-width: 2.5px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-cream);
+      background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #111111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 24px 80px;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .diagram-container {
+      width: 100%;
+      max-width: 1120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .header { text-align: center; margin-bottom: 50px; }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFFFFF;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 9999px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    .header-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--zapier-orange);
+    }
+
+    h1.title {
+      font-size: clamp(34px, 5vw, 48px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #111111;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    p.subtitle {
+      font-size: 16px;
+      color: #4B5563;
+      max-width: 680px;
+      margin: 0 auto;
+      font-weight: 500;
+    }
+
+    .flow-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      position: relative;
+    }
+
+    .pill-orange {
+      background: var(--zapier-orange);
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 14px 38px;
+      border-radius: 9999px;
+      box-shadow: 0 6px 20px rgba(255, 79, 0, 0.28);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      z-index: 2;
+      transition: transform 0.15s ease;
+    }
+
+    .card-process {
+      background: var(--card-bg);
+      color: var(--card-text);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 18px 28px;
+      width: 440px;
+      max-width: 90vw;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+      z-index: 2;
+      text-align: center;
+      position: relative;
+    }
+
+    .card-process .card-tag {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #F59E0B;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+
+    .card-process .card-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: #FFFFFF;
+    }
+
+    .card-process .card-desc {
+      font-size: 12.5px;
+      color: var(--card-subtext);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    .diamond-wrapper {
+      position: relative;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .diamond-node {
+      width: 170px;
+      height: 170px;
+      background: var(--decision-bg);
+      border: 2.5px solid var(--decision-border);
+      border-radius: 14px;
+      transform: rotate(45deg);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 30px;
+    }
+
+    .diamond-content {
+      transform: rotate(-45deg);
+      width: 180px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1.3;
+      color: var(--decision-text);
+      padding: 6px;
+    }
+
+    .mini-diamond-node {
+      width: 120px;
+      height: 120px;
+      background: var(--decision-bg);
+      border: 2px solid var(--decision-border);
+      border-radius: 10px;
+      transform: rotate(45deg);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
+      z-index: 2;
+    }
+
+    .mini-diamond-content {
+      transform: rotate(-45deg);
+      width: 130px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 12px;
+      line-height: 1.25;
+      color: var(--decision-text);
+    }
+
+    .pill-condition {
+      background: var(--mint-bg);
+      border: 1px solid var(--mint-border);
+      color: var(--mint-text);
+      font-weight: 700;
+      font-size: 12.5px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      box-shadow: 0 2px 6px rgba(22, 101, 52, 0.12);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      z-index: 3;
+    }
+
+    .connector-down {
+      width: var(--line-width);
+      height: 48px;
+      background: var(--line-color);
+      position: relative;
+    }
+
+    .connector-down::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5.5px solid transparent;
+      border-right: 5.5px solid transparent;
+      border-top: 8px solid var(--line-color);
+    }
+
+    .branch-system {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      margin-top: 10px;
+    }
+
+    .branch-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 28px;
+      width: 100%;
+      max-width: 1100px;
+      align-items: start;
+      position: relative;
+      z-index: 2;
+    }
+
+    .branch-track {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .card-branch {
+      background: var(--card-bg);
+      color: var(--card-text);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.28);
+      z-index: 2;
+      text-align: center;
+    }
+
+    .card-branch .card-tag {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #38BDF8;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .card-branch .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .card-branch .card-desc {
+      font-size: 12px;
+      color: var(--card-subtext);
+      margin-top: 4px;
+    }
+
+    .footer {
+      margin-top: 64px;
+      text-align: center;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      padding-top: 32px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .footer-brand {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+      color: #111111;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-brand span { color: var(--zapier-orange); }
+    .footer-meta { font-size: 13px; color: #6B7280; margin-top: 8px; line-height: 1.6; }
+    .footer-engines { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
+
+    .engine-chip {
+      background: #FFFFFF;
+      border: 1px solid rgba(0,0,0,0.1);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #374151;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="diagram-container">
+
+    <header class="header">
+      <div class="header-badge">
+        <span class="dot"></span>
+        Zapier-Style Execution Flow
+      </div>
+      <h1 class="title">Milestone-based escrow workflow diagram</h1>
+      <p class="subtitle">Evidence-based escrow automation, milestone FSM progression, cryptographic SHA-256 verification, and decentralized dispute arbitration</p>
+    </header>
+
+    <div class="flow-col">
+
+      <div class="pill-orange">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        START: Client needs project completed
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="card-process">
+        <div class="card-tag">Project Initialization</div>
+        <div class="card-title">Client posts project with milestone budget</div>
+        <div class="card-desc">Defines clear milestones, deliverables, deadlines, and allocated budget</div>
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="card-process">
+        <div class="card-tag">Freelancer Bidding</div>
+        <div class="card-title">Freelancers submit proposals & technical bids</div>
+        <div class="card-desc">Includes cover letter, rate estimate, timeframe, and portfolio links</div>
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="card-process">
+        <div class="card-tag">AI Matching Engine</div>
+        <div class="card-title">AI Matcher ranks candidate bids</div>
+        <div class="card-desc">Evaluates skill overlap, rating history, and relevance scores</div>
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="card-process">
+        <div class="card-tag">Proposal Acceptance</div>
+        <div class="card-title">Client accepts top proposal & deposits escrow</div>
+        <div class="card-desc">Contract generated; initial milestone deposit transferred from client wallet</div>
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="card-process" id="node-escrow-locked" style="border: 2px solid #F59E0B;">
+        <div class="card-tag">Engine 01 (OS FSM Engine)</div>
+        <div class="card-title">Escrow funds locked atomically</div>
+        <div class="card-desc">State: FUNDED &rarr; IN_PROGRESS. Funds held safely in platform vault</div>
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="card-process">
+        <div class="card-tag">Milestone Execution</div>
+        <div class="card-title">Freelancer works & uploads deliverable</div>
+        <div class="card-desc">Code, design files, or report submitted before milestone deadline</div>
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="card-process">
+        <div class="card-tag">Engine 02 (DSA & SE Engine)</div>
+        <div class="card-title">SHA-256 cryptographic checksum computed</div>
+        <div class="card-desc">Deliverable hashed into tamper-evident Merkle Evidence Tree; State: UNDER_REVIEW</div>
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="diamond-wrapper">
+        <div class="diamond-node">
+          <div class="diamond-content">
+            Client reviews deliverable within 7 days
+          </div>
+        </div>
+      </div>
+
+      <div class="branch-system">
+
+        <svg width="100%" height="40" viewBox="0 0 1000 40" style="max-width: 900px; display: block; overflow: visible;">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#111111"/>
+            </marker>
+          </defs>
+          <line x1="170" y1="0" x2="830" y2="0" stroke="#111111" stroke-width="2.5" />
+          <line x1="170" y1="0" x2="170" y2="35" stroke="#111111" stroke-width="2.5" marker-end="url(#arrow)" />
+          <line x1="500" y1="0" x2="500" y2="35" stroke="#111111" stroke-width="2.5" marker-end="url(#arrow)" />
+          <line x1="830" y1="0" x2="830" y2="35" stroke="#111111" stroke-width="2.5" marker-end="url(#arrow)" />
+        </svg>
+
+        <div class="branch-columns">
+
+          <div class="branch-track">
+            <div class="pill-condition" style="background:#DCFCE7; color:#166534; border-color:#86EFAC;">
+              &#10003; Work approved
+            </div>
+
+            <div class="connector-down"></div>
+
+            <div class="card-branch">
+              <div class="card-tag">Client Action</div>
+              <div class="card-title">Client approves deliverable</div>
+              <div class="card-desc">Manual sign-off affirming all criteria met</div>
+            </div>
+
+            <div class="connector-down"></div>
+
+            <div class="card-branch" style="border-color: #22C55E;">
+              <div class="card-tag">State: RELEASED</div>
+              <div class="card-title">Escrow released to Freelancer</div>
+              <div class="card-desc">Funds transferred instantly to Freelancer wallet</div>
+            </div>
+          </div>
+
+          <div class="branch-track">
+            <div class="pill-condition" style="background:#FEF3C7; color:#92400E; border-color:#FCD34D;">
+              &#9200; Client inactive for 7 days
+            </div>
+
+            <div class="connector-down"></div>
+
+            <div class="card-branch">
+              <div class="card-tag">Scheduler Daemon</div>
+              <div class="card-title">Watchdog triggers auto-timeout</div>
+              <div class="card-desc">Engine 01 CRON verifies elapsed grace period without response</div>
+            </div>
+
+            <div class="connector-down"></div>
+
+            <div class="card-branch" style="border-color: #F59E0B;">
+              <div class="card-tag">State: AUTO_RELEASED</div>
+              <div class="card-title">Escrow auto-released to Freelancer</div>
+              <div class="card-desc">Protects freelancers against non-responsive clients</div>
+            </div>
+          </div>
+
+          <div class="branch-track">
+            <div class="pill-condition" style="background:#FEE2E2; color:#991B1B; border-color:#FCA5A5;">
+              &#9888; Defective work / dispute
+            </div>
+
+            <div class="connector-down"></div>
+
+            <div class="card-branch" style="border-color: #EF4444;">
+              <div class="card-tag">State: DISPUTED</div>
+              <div class="card-title">Dispute raised & escrow frozen</div>
+              <div class="card-desc">Funds locked; mutual evidence submission period opens</div>
+            </div>
+
+            <div class="connector-down"></div>
+
+            <div class="card-branch">
+              <div class="card-tag">Arbitration Panel</div>
+              <div class="card-title">Arbitrator inspects Merkle Evidence Tree</div>
+              <div class="card-desc">Validates SHA-256 hashes against original contract scope</div>
+            </div>
+
+            <div class="connector-down"></div>
+
+            <div class="mini-diamond-node">
+              <div class="mini-diamond-content">
+                Ruling in favor of?
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px; width:100%; justify-content:center; margin-top:4px;">
+              <div style="flex:1; text-align:center;">
+                <span class="pill-condition" style="font-size:11px; padding:3px 10px;">Client</span>
+                <div style="font-size:11.5px; font-weight:700; color:#EF4444; margin-top:6px;">Full Refund</div>
+              </div>
+              <div style="flex:1; text-align:center;">
+                <span class="pill-condition" style="font-size:11px; padding:3px 10px;">Freelancer</span>
+                <div style="font-size:11.5px; font-weight:700; color:#10B981; margin-top:6px;">Funds Released</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <svg width="100%" height="50" viewBox="0 0 1000 50" style="max-width: 900px; display: block; overflow: visible; margin-top: 24px;">
+          <line x1="170" y1="0" x2="170" y2="25" stroke="#111111" stroke-width="2.5" />
+          <line x1="500" y1="0" x2="500" y2="25" stroke="#111111" stroke-width="2.5" />
+          <line x1="830" y1="0" x2="830" y2="25" stroke="#111111" stroke-width="2.5" />
+          <line x1="170" y1="25" x2="830" y2="25" stroke="#111111" stroke-width="2.5" />
+          <line x1="500" y1="25" x2="500" y2="48" stroke="#111111" stroke-width="2.5" marker-end="url(#arrow)" />
+        </svg>
+
+      </div>
+
+      <div class="diamond-wrapper" style="margin-top: 10px;">
+        <div class="diamond-node">
+          <div class="diamond-content">
+            Are more milestones remaining?
+          </div>
+        </div>
+      </div>
+
+      <div style="width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; margin: -10px 0 20px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+          <span class="pill-condition">
+            &#8634; Yes: Next milestone starts
+          </span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B7280;">(Loops back to Escrow Funds Locked)</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+          <span class="pill-condition" style="background:#F3F4F6; color:#374151; border-color:#D1D5DB;">
+            &#8595; No: All milestones complete
+          </span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B7280;">(Proceeds to Final Settlement)</span>
+        </div>
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="card-process">
+        <div class="card-tag">Engine 03 (DBMS Engine)</div>
+        <div class="card-title">Audit trail chained into immutable ledger</div>
+        <div class="card-desc">Relational BCNF schema stores append-only transaction history & Merkle root signatures</div>
+      </div>
+
+      <div class="connector-down"></div>
+
+      <div class="pill-orange" style="box-shadow: 0 8px 26px rgba(255, 79, 0, 0.35);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        END: Contract completed & funds settled
+      </div>
+
+    </div>
+
+    <footer class="footer">
+      <div class="footer-brand">
+        <span>_GigaFlow</span> Team 07
+      </div>
+      <p class="footer-meta">
+        Milestone-Based Escrow & Evidence-Based Dispute Resolution Workflow<br>
+        Department of Computer Science & Engineering &bull; KLE Technological University
+      </p>
+      <div class="footer-engines">
+        <span class="engine-chip">Engine 01: OS FSM & Scheduler</span>
+        <span class="engine-chip">Engine 02: Cryptographic Evidence</span>
+        <span class="engine-chip">Engine 03: ACID Ledger</span>
+        <span class="engine-chip">Engine 04: Next.js 16 Web Dashboard</span>
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>

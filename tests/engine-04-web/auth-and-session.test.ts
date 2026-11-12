@@ -244,5 +244,60 @@ describe('Engine 04 (Web) — Dual Auth, Session Gate & Middleware Suite', () =>
       expect(res.status).toBe(200);
       expect(res.headers.get('location')).toBeNull();
     });
+
+    it('allows unauthenticated access to OAuth callback and initiation routes', async () => {
+      const callbackReq = new NextRequest(new URL('http://localhost:3000/auth/callback'));
+      const callbackRes = await middleware(callbackReq);
+      expect(callbackRes.status).toBe(200);
+
+      const googleReq = new NextRequest(new URL('http://localhost:3000/api/auth/google'));
+      const googleRes = await middleware(googleReq);
+      expect(googleRes.status).toBe(200);
+    });
+  });
+
+  describe('Google OAuth & Supabase User Synchronization Security', () => {
+    it('provisions new OAuth users with unmatchable disabled password hashes', async () => {
+      const oauthEmail = `oauth-tester-${Date.now()}@google.example.com`;
+      const syncedUser = await AuthService.syncSupabaseUser({
+        id: 'supabase-oauth-id-123',
+        email: oauthEmail,
+        user_metadata: {
+          full_name: 'Google Test Worker',
+          role: 'FREELANCER',
+        },
+      });
+
+      expect(syncedUser.email).toBe(oauthEmail);
+      expect(syncedUser.role).toBe('FREELANCER');
+
+      // Verify that the record in the database cannot be logged into using standard/static passwords
+      const dbRecord = await prisma.user.findUnique({ where: { email: oauthEmail } });
+      expect(dbRecord).not.toBeNull();
+      expect(dbRecord!.passwordHash.startsWith('!OAUTH_DISABLED_')).toBe(true);
+
+      // Attempting to authenticate via standard password must fail
+      await expect(
+        AuthService.authenticate({
+          email: oauthEmail,
+          password: 'SupabaseAuthManaged!',
+        })
+      ).rejects.toThrow();
+    });
+
+    it('prevents privilege escalation by restricting arbitrary metadata roles to CLIENT or FREELANCER', async () => {
+      const maliciousEmail = `attacker-${Date.now()}@test.local`;
+      const syncedUser = await AuthService.syncSupabaseUser({
+        id: 'supabase-oauth-attacker',
+        email: maliciousEmail,
+        user_metadata: {
+          full_name: 'Privilege Escalation Attacker',
+          role: 'ADMIN', // Untrusted metadata claiming ADMIN
+        },
+      });
+
+      // Role must fall back to CLIENT for safety
+      expect(syncedUser.role).toBe('CLIENT');
+    });
   });
 });

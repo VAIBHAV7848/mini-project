@@ -295,7 +295,7 @@ describe('Engine 04 (Web) — InteractiveMonkeyAvatar Motion Suite', () => {
       );
     });
 
-    it('slides arms up to occlude eyes at y: 18 with natural human delay and shoulder contraction', () => {
+    it('slides arms up to occlude eyes at canonical y: 10 with natural human delay and shoulder contraction', () => {
       const { container, rerender } = render(<InteractiveMonkeyAvatar isPasswordFocused={false} />);
       const { armL, armR, bodyNormal, bodyChanged } = getAvatarElements(container);
 
@@ -304,12 +304,12 @@ describe('Engine 04 (Web) — InteractiveMonkeyAvatar Motion Suite', () => {
 
       rerender(<InteractiveMonkeyAvatar isPasswordFocused={true} />);
 
-      // Left arm rises at t = 0.16s to occlude eyes at y: 18
+      // Left arm rises at t = 0.16s to occlude eyes at canonical y: 10
       expect(mockTimeline.to).toHaveBeenCalledWith(
         armL,
         expect.objectContaining({
           x: -93,
-          y: 18,
+          y: 10,
           rotation: 0,
           duration: 0.44,
           transformOrigin: 'top left',
@@ -318,12 +318,12 @@ describe('Engine 04 (Web) — InteractiveMonkeyAvatar Motion Suite', () => {
         0.16
       );
 
-      // Right arm rises at t = 0.22s with organic primate delay to y: 18
+      // Right arm rises at t = 0.22s with organic primate delay to canonical y: 10
       expect(mockTimeline.to).toHaveBeenCalledWith(
         armR,
         expect.objectContaining({
           x: -93,
-          y: 18,
+          y: 10,
           rotation: 0,
           duration: 0.46,
           transformOrigin: 'top right',
@@ -394,7 +394,7 @@ describe('Engine 04 (Web) — InteractiveMonkeyAvatar Motion Suite', () => {
   });
 
   describe('4. Peeking Mechanism via TwoFingers', () => {
-    it('rotates twoFingers to 30deg and opens left pupil aperture (scaleY: 0.85) when showPassword is true', () => {
+    it('rotates twoFingers to 30deg and opens left pupil aperture (scaleY: 1) when showPassword is true', () => {
       const { container, rerender } = render(
         <InteractiveMonkeyAvatar isPasswordFocused={true} isShowPassword={false} />
       );
@@ -419,8 +419,9 @@ describe('Engine 04 (Web) — InteractiveMonkeyAvatar Motion Suite', () => {
       expect(mockedGsap.to).toHaveBeenCalledWith(
         pupilL,
         expect.objectContaining({
-          scaleY: 0.85,
-          y: -2,
+          scaleY: 1,
+          opacity: 1,
+          y: 0,
           duration: 0.25,
           transformOrigin: 'center center',
           ease: 'power2.out',
@@ -589,7 +590,7 @@ describe('Engine 04 (Web) — InteractiveMonkeyAvatar Motion Suite', () => {
       window.matchMedia = originalMatchMedia;
     });
 
-    it('applies immediate instant-cut pose with y: 18 and scaleY: 0 without running timeline on password focus', () => {
+    it('applies immediate instant-cut pose with canonical y: 10 and scaleY: 0 without running timeline on password focus', () => {
       const { container, rerender } = render(<InteractiveMonkeyAvatar isPasswordFocused={false} />);
       const { armL, armR, pupilL, pupilR, bodyNormal, bodyChanged } = getAvatarElements(container);
 
@@ -601,10 +602,10 @@ describe('Engine 04 (Web) — InteractiveMonkeyAvatar Motion Suite', () => {
       // Timeline orchestration must be completely bypassed in reduced motion
       expect(mockedGsap.timeline).not.toHaveBeenCalled();
 
-      // Arms positioned instantly at occluding coordinates y: 18
+      // Arms positioned instantly at occluding coordinates y: 10
       expect(mockedGsap.set).toHaveBeenCalledWith(
         [armL, armR],
-        expect.objectContaining({ autoAlpha: 1, x: -93, y: 18, rotation: 0 })
+        expect.objectContaining({ autoAlpha: 1, x: -93, y: 10, rotation: 0 })
       );
       expect(mockedGsap.set).not.toHaveBeenCalledWith(
         [armL, armR],

@@ -59,11 +59,6 @@ The presentation layer enforces responsive role-based access control across **Cl
 | <img src="docs/ui-ux/screenshots/dashboard-1920x1080.png" alt="Enterprise Dashboard 1920x1080" width="480" /> | <img src="docs/ui-ux/screenshots/dashboard-1440x900.png" alt="Adaptive Dashboard 1440x900" width="480" /> |
 | **Real-Time Escrow & Milestone Allocation** | **Persona Switching & Audit Feed** |
 
-| Milestone Contracts & Escrow Locking | Evidence-Based Dispute Arbitration |
-| :---: | :---: |
-| <img src="docs/ui-ux/screenshots/projects-1920x1080.png" alt="Contracts and Milestones" width="480" /> | <img src="docs/ui-ux/screenshots/disputes-1920x1080.png" alt="Disputes and Merkle Evidence" width="480" /> |
-| **FSM Milestone Sequencing (`FUNDED` → `RELEASED`)** | **Merkle Evidence Tree & Tamper Inspection** |
-
 ---
 
 ## 3. Key Features
@@ -79,6 +74,7 @@ The presentation layer enforces responsive role-based access control across **Cl
 - **Human Reviewer Arbitration (FR-09)**: Independent dispute resolution workflow supporting binding split rulings with duplicate ruling prevention.
 - **Tamper-Resistant Chained Audit Logging (FR-06, NFR-09)**: Append-only audit trail where every state change and financial transfer is cryptographically linked: $\text{Hash}_n = \text{SHA256}(\text{Payload}_n + \text{Hash}_{n-1})$.
 - **Client State Synchronization (FR-10)**: 5-second lightweight polling snapshot returning active contract and milestone states without full-page reloads.
+- **Planned Phase 2 Features (Yet to be Implemented)**: Browser-Native WebRTC Video Scoping, RAG-Assisted Contract Drafting, and Integer Paise Safety Guards are documented in [Section 12.3: Planned Phase 2 Feature Roadmap](#123-planned-phase-2-feature-roadmap-future-scope--yet-to-be-implemented).
 
 ---
 
@@ -336,7 +332,7 @@ Detailed traceability specifications:
 
 ## 12. Project Scope & Boundaries
 
-### In-Scope Capabilities
+### 12.1 In-Scope Capabilities
 - Role-based user authentication and session authorization (FR-08, NFR-02)
 - Project posting, proposal bidding, and heuristic semantic proposal matching (FR-11)
 - Phased milestone management with sequential dependency ordering (FR-02, FR-12)
@@ -346,13 +342,30 @@ Detailed traceability specifications:
 - Independent human reviewer dispute arbitration (FR-09)
 - Append-only hash-chained audit logging (FR-06, NFR-09)
 
-### Explicit Scope Boundaries
+### 12.2 Explicit Scope Boundaries
 - **Real Payment Gateways**: Excluded. Currency is purely simulated within the SQLite ledger to eliminate external financial risk.
 - **Autonomous AI Arbitration**: Excluded. Algorithmic matching is restricted to proposal ranking; dispute arbitration requires independent human reviewer evaluation.
 - **Native Mobile Applications**: Excluded. Responsive web interface optimized across mobile and desktop viewports.
 - **Legal Court Contracts**: Excluded. The system enforces programmatic protocol invariants, not formal court contracts.
 - **Unlimited Video Hosting**: Excluded. Large media files are represented by cryptographic hash digests.
 - **Corporate Taxation / Accounting Systems**: Excluded from academic scope.
+
+### 12.3 Planned Phase 2 Feature Roadmap (Future Scope — Yet to be Implemented)
+
+The core Gate 2 system (Functional Requirements FR-01 through FR-12) represents our frozen, verified production baseline. To extend the platform's collaborative reach without altering core transactional invariants, the following features are designed and scheduled for Phase 2 implementation:
+
+1. **Browser-Native WebRTC Peer-to-Peer Consultation (Engine 04 · Web Technologies)**:
+   - **On-Demand Scoping & Dispute Hearings**: Peer-to-peer real-time audio/video sessions directly between Client and Freelancer for pre-contract scoping, as well as live arbitration sessions with the assigned Dispute Reviewer.
+   - **Zero-Budget Open-Source Architecture**: Built strictly with browser-native WebRTC (`RTCPeerConnection` and `getUserMedia`) backed by lightweight WebSocket signaling. Commercial CPaaS SDKs (such as Agora or Zoom) are rejected to eliminate subscription costs, vendor lock-in, and privacy leakage through third-party media relays ([ADR-001](docs/decisions/ADR-001-technology-stack-baseline.md)).
+
+2. **Retrieval-Augmented Generation (RAG) Contract Scribe (Engine 02 · DSA & Software Engineering)**:
+   - **Ground Truth Anti-Hallucination**: Standard LLMs hallucinate unrealistic project timelines and ambiguous milestones (the #1 root cause of escrow disputes). Our RAG pipeline executes **Cosine Similarity Vector Search** over a local corpus of 100% dispute-free software contracts, standard Work Breakdown Structures (WBS), and ISO/IEC 29119 acceptance test templates.
+   - **Context Augmentation**: Real-time speech-to-text tokens from the WebRTC session are augmented with retrieved benchmark templates to synthesize a structured milestone draft adhering to the platform's `CreateContractInput` schema.
+
+3. **Deterministic Safety Containment & Dual-Signature Gate (Engines 01 & 03)**:
+   - **Integer Paise Mathematical Invariant (Engine 03 · DBMS)**: AI-drafted milestones must pass a strict database constraint ensuring $\sum \text{milestone.amount} = \text{proposal.bidAmount}$ down to the exact integer paise, eliminating IEEE-754 floating-point rounding errors.
+   - **Mutual Non-Repudiation (Engine 04 · Web Tech)**: The AI output is strictly an advisory draft. Both Client and Freelancer must review and cryptographically countersign (SHA-256 hash of contract terms + session token) on their dashboards before contract registration.
+   - **FSM Escrow Isolation (Engine 01 · OS)**: The AI has zero authority to touch funds or activate milestones. Once signed, the Finite State Machine initializes the contract strictly to `AWAITING_DEPOSIT`. Work cannot begin and funds cannot be released until mutual-exclusion escrow deposits are verified.
 
 ---
 
@@ -367,6 +380,7 @@ Stage S1 (Requirements Baseline): COMPLETE / FROZEN
 Stage S2 (Shared Architecture): COMPLETE / APPROVED
 Stage S3 (Implementation & Verification): COMPLETE
 Gate 2: READY FOR EVALUATION
+Phase 2 (WebRTC Scoping, RAG Drafting, Integer Guards): ROADMAP (YET TO BE IMPLEMENTED)
 ```
 
 ---

@@ -20,6 +20,7 @@ import {
   User,
   Clock,
   Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 
 interface Project {
@@ -575,6 +576,26 @@ export default function ProjectsPage() {
                 ))}
               </div>
             </div>
+
+            {selectedProject.status === 'IN_PROGRESS' && (
+              <div className="p-4 rounded-xl bg-brand-tint/20 border border-brand-base/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-brand-light flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-brand-base" /> Active Escrow Contract in Progress
+                  </p>
+                  <p className="text-[12px] text-paper-muted mt-0.5">
+                    Milestones are currently in execution. Check the Dashboard for real-time progress and deliverables.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => router.push('/dashboard')}
+                  className="btn btn-sm btn-primary shrink-0 flex items-center gap-1.5"
+                >
+                  View Milestones <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Proposals Section (CLIENT / ADMIN) */}
             {(role === 'CLIENT' || role === 'ADMIN') && (

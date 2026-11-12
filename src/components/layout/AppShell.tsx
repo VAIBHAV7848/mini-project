@@ -558,7 +558,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           {navItems.slice(0, 4).map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = isRouteActive(item.href);
             return (
               <Link
                 key={item.href}

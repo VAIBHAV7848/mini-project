@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team 07 - Multimodal AI Scoping & RAG Contract Drafting Architecture (4K)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 3840px;
+      height: 2160px;
+      background: #0B0F19;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(192, 132, 252, 0.08) 0%, transparent 40%),
+        radial-gradient(#1E293B 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      color: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 80px 100px;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Banner */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 40px;
+    }
+
+    .brand-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 79, 0, 0.12);
+      border: 1.5px solid #FF4F00;
+      color: #FF6B2B;
+      padding: 8px 24px;
+      border-radius: 9999px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+
+    .main-title {
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 60%, #94A3B8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sub-title {
+      font-size: 26px;
+      color: #94A3B8;
+      font-weight: 500;
+      max-width: 1800px;
+    }
+
+    .academic-info {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .institution-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: #F8FAFC;
+    }
+
+    .dept-name {
+      font-size: 20px;
+      color: #38BDF8;
+      font-weight: 600;
+    }
+
+    .theme-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      background: #1E293B;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 16px;
+      border-radius: 8px;
+      color: #FBBF24;
+      display: inline-block;
+      margin-top: 6px;
+    }
+
+    /* 5-Column Grid */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 36px;
+      margin: 40px 0;
+      flex-grow: 1;
+      align-items: stretch;
+    }
+
+    .column-card {
+      background: rgba(15, 23, 42, 0.75);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 28px;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .column-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 4px;
+      border-radius: 9999px;
+    }
+
+    .col-1::before { background: #38BDF8; box-shadow: 0 0 20px #38BDF8; }
+    .col-2::before { background: #FBBF24; box-shadow: 0 0 20px #FBBF24; }
+    .col-3::before { background: #34D399; box-shadow: 0 0 20px #34D399; }
+    .col-4::before { background: #F87171; box-shadow: 0 0 20px #F87171; }
+    .col-5::before { background: #C084FC; box-shadow: 0 0 20px #C084FC; }
+
+    .step-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 800;
+      color: #64748B;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .step-engine-tag {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 6px 14px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .tag-blue { background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.4); }
+    .tag-yellow { background: rgba(251, 191, 36, 0.15); color: #FBBF24; border: 1px solid rgba(251, 191, 36, 0.4); }
+    .tag-green { background: rgba(52, 211, 153, 0.15); color: #34D399; border: 1px solid rgba(52, 211, 153, 0.4); }
+    .tag-red { background: rgba(248, 113, 113, 0.15); color: #F87171; border: 1px solid rgba(248, 113, 113, 0.4); }
+    .tag-purple { background: rgba(192, 132, 252, 0.15); color: #C084FC; border: 1px solid rgba(192, 132, 252, 0.4); }
+
+    .col-heading {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 16px;
+      color: #FFFFFF;
+    }
+
+    .col-desc {
+      font-size: 18px;
+      line-height: 1.55;
+      color: #94A3B8;
+      margin-bottom: 24px;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 17px;
+      color: #E2E8F0;
+      font-weight: 600;
+    }
+
+    .feature-item svg {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .code-preview {
+      margin-top: 20px;
+      background: #020617;
+      border: 1px solid #1E293B;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14.5px;
+      color: #38BDF8;
+      line-height: 1.45;
+    }
+
+    /* Bottom Bar */
+    .bottom-bar {
+      border-top: 2px solid rgba(255, 255, 255, 0.1);
+      padding-top: 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .team-roster {
+      display: flex;
+      gap: 40px;
+    }
+
+    .member-box {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .member-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: #1E293B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      border: 1.5px solid rgba(255,255,255,0.15);
+    }
+
+    .member-info h4 {
+      font-size: 19px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .member-info p {
+      font-size: 15px;
+      color: #94A3B8;
+      font-weight: 500;
+    }
+
+    .guarantee-badge {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1.5px solid #22C55E;
+      padding: 14px 28px;
+      border-radius: 16px;
+    }
+
+    .guarantee-text h5 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #4ADE80;
+    }
+
+    .guarantee-text p {
+      font-size: 14px;
+      color: #86EFAC;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="brand-group">
+      <div class="badge-pill">
+        Phase 2 Architectural Extension · Live Scoping
+      </div>
+      <h1 class="main-title">Multimodal AI Scoping &amp; RAG Contract Drafting</h1>
+      <p class="sub-title">
+        Real-time WebRTC audio negotiation, vector-grounded Work Breakdown Structures (WBS), and mathematical fund conservation mapped to Team 07's Four-Engine architecture.
+      </p>
+    </div>
+    <div class="academic-info">
+      <div class="institution-name">KLE Technological University</div>
+      <div class="dept-name">Dr. M. S. Sheshgiri College of Engineering &amp; Technology</div>
+      <div class="theme-badge">Team 07 · Theme 01 · Milestone Escrow</div>
+    </div>
+  </header>
+
+  <!-- 5-Column Pipeline -->
+  <main class="pipeline-grid">
+
+    <!-- Step 1: WebRTC -->
+    <div class="column-card col-1">
+      <div>
+        <div class="step-number">Stage 01</div>
+        <div class="step-engine-tag tag-blue">Engine 04 · Web · Vaibhav</div>
+        <h2 class="col-heading">WebRTC Live Audio Stream</h2>
+        <p class="col-desc">
+          Client &amp; Freelancer initiate a kickoff scoping session directly in the browser over secure WebRTC DataChannels and MediaStream.
+        </p>
+        <div class="feature-list">
+          <div class="feature-item">
+            <svg fill="none" stroke="#38BDF8" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            <span>Real-time Opus audio packets</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#38BDF8" stroke-width="2" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+            <span>Interactive split-screen studio</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#38BDF8" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Audio waveform visualizer</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-preview">
+        // Client-side media stream<br>
+        const stream = await navigator<br>
+        &nbsp;&nbsp;.mediaDevices.getUserMedia({ audio: true });
+      </div>
+    </div>
+
+    <!-- Step 2: Multimodal Perception -->
+    <div class="column-card col-2">
+      <div>
+        <div class="step-number">Stage 02</div>
+        <div class="step-engine-tag tag-yellow">Perception Layer</div>
+        <h2 class="col-heading">Speech-to-Text &amp; Entity Parser</h2>
+        <p class="col-desc">
+          Gemini Multimodal Live / Whisper transcribes the ongoing conversation, extracting tech stacks, feature deliverables, and timeline commitments.
+        </p>
+        <div class="feature-list">
+          <div class="feature-item">
+            <svg fill="none" stroke="#FBBF24" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>Dual speaker diarization</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#FBBF24" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Tech entity identification</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#FBBF24" stroke-width="2" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Sandbox: Zero DB access</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-preview" style="color: #FBBF24;">
+        // Intent extraction output<br>
+        { stack: ["Next.js", "Prisma"],<br>
+        &nbsp;&nbsp;sprints: 3, budget: 65000 }
+      </div>
+    </div>
+
+    <!-- Step 3: RAG Grounding -->
+    <div class="column-card col-3">
+      <div>
+        <div class="step-number">Stage 03</div>
+        <div class="step-engine-tag tag-green">Engine 02 · DSA &amp; SE · Darshan</div>
+        <h2 class="col-heading">RAG Vector Knowledge Base</h2>
+        <p class="col-desc">
+          Dense cosine similarity query matches extracted requirements against verified contracts, ISO/IEC 29119 test specs, and standard WBS distributions.
+        </p>
+        <div class="feature-list">
+          <div class="feature-item">
+            <svg fill="none" stroke="#34D399" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+            <span>Cosine similarity on WBS chunks</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#34D399" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Verified acceptance criteria</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#34D399" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span>RTM requirement linking</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-preview" style="color: #34D399;">
+        // Dense vector retrieval<br>
+        sim = dot(q_vec, chunk_vec) /<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(norm(q) * norm(chunk));
+      </div>
+    </div>
+
+    <!-- Step 4: Human-in-the-Loop -->
+    <div class="column-card col-4">
+      <div>
+        <div class="step-number">Stage 04</div>
+        <div class="step-engine-tag tag-red">Security Boundary · HITL</div>
+        <h2 class="col-heading">Dual Cryptographic Review</h2>
+        <p class="col-desc">
+          Strict Human-in-the-Loop guard. Both Client &amp; Freelancer review the draft in Next.js, verify paise conservation, and sign digitally.
+        </p>
+        <div class="feature-list">
+          <div class="feature-item">
+            <svg fill="none" stroke="#F87171" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>AI cannot commit escrow</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#F87171" stroke-width="2" viewBox="0 0 24 24"><line x1="12" x2="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>∑ Milestones = Bid Amount</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#F87171" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Dual SHA-256 signatures</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-preview" style="color: #F87171;">
+        // Dual sign-off invariant<br>
+        assert(clientSig && devSig);<br>
+        status = "AWAITING_DEPOSIT";
+      </div>
+    </div>
+
+    <!-- Step 5: FSM & Ledger -->
+    <div class="column-card col-5">
+      <div>
+        <div class="step-number">Stage 05</div>
+        <div class="step-engine-tag tag-purple">Engines 01 &amp; 03 · OS &amp; DBMS</div>
+        <h2 class="col-heading">FSM Guard &amp; ACID Ledger</h2>
+        <p class="col-desc">
+          Engine 01 locks mutex and validates initial FSM state. Engine 03 executes atomic BCNF database insert and appends chained audit log.
+        </p>
+        <div class="feature-list">
+          <div class="feature-item">
+            <svg fill="none" stroke="#C084FC" stroke-width="2" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>KeyedMutex on proposalId</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#C084FC" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Atomic prisma.$transaction</span>
+          </div>
+          <div class="feature-item">
+            <svg fill="none" stroke="#C084FC" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Chained SHA-256 audit record</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-preview" style="color: #C084FC;">
+        // DBMS atomic write<br>
+        await prisma.$transaction([<br>
+        &nbsp;&nbsp;createContract, createMilestones<br>
+        ]);
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Bar: Team Roster -->
+  <footer class="bottom-bar">
+    <div class="team-roster">
+      <div class="member-box">
+        <div class="member-avatar" style="color:#38BDF8;">VC</div>
+        <div class="member-info">
+          <h4>Vaibhav Chavanpatil</h4>
+          <p>Engine 04 · Web Technologies &amp; RBAC (SRN: 02FE24BCS013)</p>
+        </div>
+      </div>
+      <div class="member-box">
+        <div class="member-avatar" style="color:#34D399;">DK</div>
+        <div class="member-info">
+          <h4>Darshan Kittur</h4>
+          <p>Engine 02 · DSA, Vector RAG &amp; Evidence Tree (SRN: 02FE24BCS053)</p>
+        </div>
+      </div>
+      <div class="member-box">
+        <div class="member-avatar" style="color:#FB923C;">VM</div>
+        <div class="member-info">
+          <h4>Vaishnavi Modekar</h4>
+          <p>Engine 01 · OS State Machine &amp; Watchdog (SRN: 02FE24BCS060)</p>
+        </div>
+      </div>
+      <div class="member-box">
+        <div class="member-avatar" style="color:#C084FC;">PS</div>
+        <div class="member-info">
+          <h4>Purvi Sammatshetti</h4>
+          <p>Engine 03 · DBMS Ledger &amp; Audit Trail (SRN: 02FE24BCS022)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="guarantee-badge">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div class="guarantee-text">
+        <h5>Zero Counterparty Risk Guarantee</h5>
+        <p>Mathematical Balance Conservation: &Delta;Escrow + &Delta;User = 0</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

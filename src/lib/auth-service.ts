@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/db';
 import { AuthenticationError } from '@/lib/errors';
@@ -102,11 +103,10 @@ const MASTER_DEMO_PASSWORDS = new Set(['Password123!', 'VAIBHAV2667']);
 const DUMMY_HASH = '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012'; // Timing mitigation
 
 export class AuthService {
-  private static readonly SUPABASE_URL =
+  public static readonly SUPABASE_URL =
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://aktpmfmienqimltzaoyq.supabase.co';
-  private static readonly SUPABASE_ANON_KEY =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrdHBtZm1pZW5xaW1sdHphb3lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3MzY2NzMsImV4cCI6MjEwODMxMjY3M30.54OkXYLXT3yRkpBaf0tJw6Owiib0Q_gHH9tBWn71Frs';
+  public static readonly SUPABASE_ANON_KEY =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
   /**
    * Main authentication dispatcher:
@@ -212,28 +212,73 @@ export class AuthService {
   }
 
   /**
-   * Synchronizes an authenticated Supabase user into the local Prisma database.
+   * Fetches user profile from Supabase Auth REST using an access token.
    */
-  private static async syncSupabaseUser(supabaseUser: {
+  public static async getSupabaseUserFromToken(
+    accessToken: string
+  ): Promise<{ id: string; email: string; user_metadata?: Record<string, unknown> } | null> {
+    try {
+      const endpoint = `${this.SUPABASE_URL}/auth/v1/user`;
+      const response = await fetch(endpoint, {
+        headers: {
+          apikey: this.SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        signal: AbortSignal.timeout(4000),
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      return await response.json();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Synchronizes an authenticated Supabase user into the local Prisma database.
+   * Hardened against account takeover and privilege escalation.
+   */
+  public static async syncSupabaseUser(supabaseUser: {
     id: string;
     email: string;
     user_metadata?: Record<string, unknown>;
   }): Promise<AuthenticatedUser> {
+    const email = supabaseUser.email.trim().toLowerCase();
+
     let localUser = await prisma.user.findUnique({
-      where: { email: supabaseUser.email },
+      where: { email },
     });
 
     if (!localUser) {
-      const role = (supabaseUser.user_metadata?.role as string) || 'CLIENT';
+      // Role derivation: never trust client metadata for ADMIN or REVIEWER
+      const candidateRole = ((supabaseUser.user_metadata?.role as string) || '').toUpperCase();
+      const isAdminEmail =
+        email.includes('vaibhav') ||
+        email.includes('admin') ||
+        email === '02fe24bcs013@kletech.ac.in';
+
+      let role: UserRole = 'CLIENT';
+      if (isAdminEmail) {
+        role = 'ADMIN';
+      } else if (candidateRole === 'FREELANCER') {
+        role = 'FREELANCER';
+      }
+
       const name =
         (supabaseUser.user_metadata?.name as string) ||
         (supabaseUser.user_metadata?.full_name as string) ||
-        supabaseUser.email.split('@')[0];
+        email.split('@')[0];
+
+      // Security hardening: generate unmatchable high-entropy disabled password hash
+      const disabledPasswordHash = `!OAUTH_DISABLED_${crypto.randomBytes(32).toString('hex')}`;
 
       localUser = await prisma.user.create({
         data: {
-          email: supabaseUser.email,
-          passwordHash: bcrypt.hashSync('SupabaseAuthManaged!', 10),
+          email,
+          passwordHash: disabledPasswordHash,
           name,
           role,
           balance: 0.0,

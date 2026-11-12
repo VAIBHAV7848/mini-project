@@ -33,9 +33,13 @@ const PROTECTED_PREFIXES = [
 const PUBLIC_EXACT_ROUTES = new Set([
   '/',
   '/login',
+  '/auth/callback',
   '/api/auth/login',
   '/api/auth/session',
   '/api/auth/logout',
+  '/api/auth/google',
+  '/api/auth/callback',
+  '/api/auth/oauth-callback',
 ]);
 
 interface SessionPayload {

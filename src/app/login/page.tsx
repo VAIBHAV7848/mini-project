@@ -37,6 +37,8 @@ import {
   setMuted,
 } from '@/lib/vault-audio';
 
+const SHOW_DEMO_CREDENTIALS = process.env.NODE_ENV !== 'production';
+
 interface PersonaProfile {
   id: string;
   name: string;
@@ -129,6 +131,7 @@ export default function LoginPage() {
   // Interaction feedback states
   const [authenticatingPersonaId, setAuthenticatingPersonaId] = useState<string | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [authSuccess, setAuthSuccess] = useState(false);
   const [authTargetName, setAuthTargetName] = useState<string>('');
@@ -334,8 +337,8 @@ export default function LoginPage() {
         <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-elevated border border-line text-[11px] font-mono text-paper-muted">
             <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Supabase Live
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Session Secure
             </span>
             <span className="text-line-strong">•</span>
             <span className="flex items-center gap-1 text-brand-base font-medium">
@@ -427,13 +430,13 @@ export default function LoginPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand-base animate-pulse" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-base" />
                     <h1 className="font-display font-black text-2xl tracking-tight text-paper">
                       Escrow Security Gateway
                     </h1>
                   </div>
                   <p className="text-xs font-mono text-paper-muted mt-1">
-                    Dual Authentication • Supabase Auth &amp; Local SQLite Ledger
+                    Credential verification • Local SQLite ledger
                   </p>
                 </div>
 
@@ -605,13 +608,15 @@ export default function LoginPage() {
                     >
                       Cryptographic Secret / Password
                     </label>
-                    <button
-                      type="button"
-                      onClick={applyMasterPassword}
-                      className="text-[11px] font-mono text-brand-base hover:text-brand-light hover:underline cursor-pointer font-medium"
-                    >
-                      Fill Master Key (VAIBHAV2667)
-                    </button>
+                    {SHOW_DEMO_CREDENTIALS && (
+                      <button
+                        type="button"
+                        onClick={applyMasterPassword}
+                        className="text-[11px] font-mono text-brand-base hover:text-brand-light hover:underline cursor-pointer font-medium"
+                      >
+                        Fill Master Key (VAIBHAV2667)
+                      </button>
+                    )}
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-paper-muted" />
@@ -628,7 +633,7 @@ export default function LoginPage() {
                         setIsPasswordFocused(false);
                       }}
                       onChange={(e) => handleInputChange('password', e.target.value)}
-                      placeholder="Password123! or VAIBHAV2667"
+                      placeholder="Enter your password"
                       className="w-full pl-10 pr-10 py-2.5 bg-surface-elevated border border-line focus:border-brand-base focus:ring-1 focus:ring-brand-base rounded-xl text-sm font-mono text-paper placeholder:text-paper-faint outline-none transition-all"
                     />
                     <button
@@ -636,6 +641,10 @@ export default function LoginPage() {
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       onMouseDown={(e) => {
                         // Prevent loss of focus on password input so arms stay covering eyes during peek
+                        e.preventDefault();
+                      }}
+                      onTouchStart={(e) => {
+                        // Prevent loss of focus on touch/mobile devices
                         e.preventDefault();
                       }}
                       onClick={() => {
@@ -674,14 +683,57 @@ export default function LoginPage() {
                 </button>
               </form>
 
-              {/* Master Credential Footnote */}
-              <div className="mt-5 pt-4 border-t border-line flex items-center justify-between text-[11px] font-mono text-paper-muted">
-                <span>
-                  Demo Passwords: <code className="text-brand-base font-bold">Password123!</code> or{' '}
-                  <code className="text-brand-base font-bold">VAIBHAV2667</code>
-                </span>
-                <span className="hidden sm:inline text-paper-faint">Universal Dual-Auth Ready</span>
+              {/* Google OAuth Single Sign-On */}
+              <div className="mt-4">
+                <div className="relative flex items-center justify-center my-3">
+                  <div className="border-t border-line w-full" />
+                  <span className="bg-surface px-3 text-[10px] font-mono uppercase tracking-widest text-paper-muted shrink-0">
+                    or continue with
+                  </span>
+                  <div className="border-t border-line w-full" />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    playSwitchClick();
+                    setIsGoogleSubmitting(true);
+                    const rawRedirect = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('redirect') : null;
+                    const safeTarget = rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/dashboard';
+                    window.location.href = `/api/auth/google?redirect=${encodeURIComponent(safeTarget)}`;
+                  }}
+                  disabled={isGoogleSubmitting || isFormSubmitting || authSuccess}
+                  className="w-full py-2.5 px-4 rounded-xl font-mono text-xs font-semibold bg-surface-elevated hover:bg-surface-elevated/80 border border-line hover:border-brand-base/60 text-paper flex items-center justify-center gap-2.5 transition-all shadow-sm cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+                >
+                  {isGoogleSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-base" />
+                      <span>Connecting to Google OAuth...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                      </svg>
+                      <span>Sign in with Google</span>
+                    </>
+                  )}
+                </button>
               </div>
+
+              {/* Master Credential Footnote */}
+              {SHOW_DEMO_CREDENTIALS && (
+                <div className="mt-5 pt-4 border-t border-line flex items-center justify-between text-[11px] font-mono text-paper-muted">
+                  <span>
+                    Demo passwords: <code className="text-brand-base font-bold">Password123!</code> or{' '}
+                    <code className="text-brand-base font-bold">VAIBHAV2667</code>
+                  </span>
+                  <span className="hidden sm:inline text-paper-faint">Local demonstration build</span>
+                </div>
+              )}
             </div>
           </div>
 
