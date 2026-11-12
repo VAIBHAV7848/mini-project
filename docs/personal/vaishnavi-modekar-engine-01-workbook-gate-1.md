@@ -1,12 +1,12 @@
 # Personal Engineering Record Book: Stage S1 (Gate 1 Baseline)
 ## Engine 01: OS Engine (Escrow FSM & State Scheduler)
 
-**Student Lead**: Vaishnavi Modekar (Roll No: 21, SRN: `02FE24BCS060`)  
-**Department**: Department of Computer Science & Engineering  
-**Institution**: KLE Technological University (Dr. M. S. Sheshgiri College of Engineering & Technology, Belagavi)  
-**Team**: Team 07 (Theme 01)  
-**Project Title**: Milestone-Based Escrow & Evidence-Based Dispute Resolution Workflow  
-**Evaluation Stage**: Gate 1 Requirements Baseline & Individual Course Synthesis  
+**Student Lead**: Vaishnavi Modekar (Roll No: 21, SRN: `02FE24BCS060`)
+**Department**: Department of Computer Science & Engineering
+**Institution**: KLE Technological University (Dr. M. S. Sheshgiri College of Engineering & Technology, Belagavi)
+**Team**: Team 07 (Theme 01)
+**Project Title**: Milestone-Based Escrow & Evidence-Based Dispute Resolution Workflow
+**Evaluation Stage**: Gate 1 Requirements Baseline & Individual Course Synthesis
 
 ---
 

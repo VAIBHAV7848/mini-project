@@ -60,7 +60,7 @@ async function main() {
 
   // Step 1: Delete all transactional and demonstration records in strict reverse relational dependency order
   console.log('Step 1: Purging all demonstration records from Supabase PostgreSQL...');
-  
+
   const tables = [
     { name: 'audit_logs', fn: () => prisma.auditLog.deleteMany({}) },
     { name: 'payment_events', fn: () => prisma.paymentEvent.deleteMany({}) },

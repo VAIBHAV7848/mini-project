@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import {
   LayoutDashboard,
   Layers,
@@ -274,8 +275,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Logo & Workspace Selector */}
           <div className="p-6 border-b border-line">
             <Link href="/" className="flex items-center space-x-3 mb-6 outline-none focus-visible:ring-2 focus-visible:ring-brand-base rounded p-1">
-              <div className="w-8 h-8 rounded-md bg-brand-base flex items-center justify-center font-display font-bold text-charcoal shadow-xs">
-                GF
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center p-0.5 bg-surface-elevated border border-line shrink-0">
+                <Image
+                  src="/assets/gigaflow-mark.png"
+                  alt="GigaFlow Logo"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(252,108,0,0.35)]"
+                  priority
+                />
               </div>
               <div>
                 <span className="font-display font-bold text-lg tracking-tight text-paper block leading-none">
@@ -402,8 +410,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-7 h-7 rounded-md bg-brand-base flex items-center justify-center font-display font-bold text-charcoal text-xs">
-                GF
+              <div className="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center p-0.5 bg-surface-elevated border border-line shrink-0">
+                <Image
+                  src="/assets/gigaflow-mark.png"
+                  alt="GigaFlow Logo"
+                  width={28}
+                  height={28}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <span className="font-display font-bold text-paper text-sm">GigaFlow</span>
             </Link>
@@ -441,8 +455,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="space-y-6">
                 <div className="flex items-center justify-between border-b border-line pb-4">
                   <div className="flex items-center space-x-2.5">
-                    <div className="w-7 h-7 rounded-md bg-brand-base flex items-center justify-center font-display font-bold text-charcoal text-xs">
-                      GF
+                    <div className="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center p-0.5 bg-surface-elevated border border-line shrink-0">
+                      <Image
+                        src="/assets/gigaflow-mark.png"
+                        alt="GigaFlow Logo"
+                        width={28}
+                        height={28}
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     <div>
                       <span className="font-display font-bold text-paper text-sm block leading-none">GigaFlow</span>

@@ -14,6 +14,16 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://giga-flow.vercel.app'),
   title: 'GigaFlow | Milestone-Based Escrow',
   description: 'Milestone escrow with evidence-based dispute resolution',
+  icons: {
+    icon: [
+      { url: '/assets/gigaflow-mark.png', type: 'image/png' },
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -25,6 +35,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable}`}>
       <head>
         <ThemeScript />
+        <link rel="icon" href="/assets/gigaflow-mark.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <link
+          rel="preload"
+          as="image"
+          href="/assets/hero-poster.jpg"
+          type="image/jpeg"
+          fetchPriority="high"
+        />
       </head>
       <body className="bg-charcoal text-paper antialiased font-sans selection:bg-brand-base selection:text-charcoal min-h-screen">
         <ThemeProvider>

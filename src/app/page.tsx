@@ -1,200 +1,271 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
-  ShieldCheck,
-  Cpu,
-  Binary,
-  Database,
-  Globe,
-  BadgeCheck,
-  Lock,
-  Sparkles,
-  ChevronRight,
-  Play,
-  CheckCircle2,
-  GraduationCap,
+  Briefcase,
+  Code2,
+  Scale,
+  Activity
 } from 'lucide-react';
 import { TeamShowcaseHeader } from '@/components/showcase/TeamShowcaseHeader';
-import { InteractiveEscrowPlayground } from '@/components/showcase/InteractiveEscrowPlayground';
-import { EngineArchitectureGrid } from '@/components/showcase/EngineArchitectureGrid';
-import { PersonaQuickLaunchpad } from '@/components/showcase/PersonaQuickLaunchpad';
-import { AcademicFooter } from '@/components/showcase/AcademicFooter';
 
 export default function LandingPage() {
+  const router = useRouter();
+  const [latency, setLatency] = useState('0.8');
+  const [hashTick, setHashTick] = useState('0x9f7a..3c2e');
+
+  // Physical keyboard "↵ RETURN" key listener for authentic terminal experience
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.metaKey && !e.ctrlKey) {
+        if (
+          document.activeElement?.tagName !== 'INPUT' &&
+          document.activeElement?.tagName !== 'TEXTAREA'
+        ) {
+          router.push('/login');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [router]);
+
+  // Subtle live protocol telemetry pulse
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const jitter = (0.7 + Math.random() * 0.2).toFixed(1);
+      setLatency(jitter);
+
+      const hashes = [
+        '0x9f7a..3c2e',
+        '0x4d12..8b91',
+        '0xe28f..65a4',
+        '0x7c30..19f8'
+      ];
+      setHashTick(hashes[Math.floor(Math.random() * hashes.length)]);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-charcoal text-paper flex flex-col selection:bg-brand-base/30 selection:text-white transition-colors duration-200">
-      {/* 1. Header with KLE Tech Academic Banner & Navigation */}
-      <TeamShowcaseHeader />
+    <div className="h-dvh max-h-dvh w-full flex flex-col justify-between overflow-hidden bg-[#07080a] text-white relative select-none font-sans">
 
-      {/* 2. Hero Section */}
-      <main className="flex-1 w-full flex flex-col items-center">
-        <section className="w-full max-w-[1600px] px-4 sm:px-8 py-12 lg:py-20 grid lg:grid-cols-12 gap-12 items-center">
-          {/* Left Column: Mission, Invariants, CTAs */}
-          <div className="lg:col-span-7 flex flex-col items-start space-y-8 animate-in fade-in duration-500">
-            {/* Academic Track Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-elevated border border-line text-xs font-mono2">
-              <span className="w-2 h-2 rounded-full bg-brand-base" />
-              <span className="font-semibold text-paper">Theme 01</span>
-              <span className="text-paper-faint">·</span>
-              <span className="text-paper-muted">KLE Technological University Capstone</span>
+      {/* 1. Cinematic Background Layer: Filmic Neutral Density & Architectural Dot Grid */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <video
+          src="/assets/desktop-header.webm"
+          poster="/assets/hero-poster.jpg"
+          width={1920}
+          height={1080}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          className="w-full h-full object-cover scale-[1.02] filter brightness-[0.58] contrast-[1.16] saturate-[0.84]"
+          aria-hidden="true"
+        />
+        {/* Neutral-density optical scrim — deep carbon, zero mud */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07080a] via-[#07080a]/50 to-[#07080a]/75" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_95%_80%_at_50%_40%,transparent_30%,rgba(7,8,10,0.92)_100%)]" />
+        {/* CNC Milled Architectural Dot Grid */}
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:28px_28px] opacity-35" />
+      </div>
+
+      {/* 2. Top Header Navigation (Integrated with Real GigaFlow Mark) */}
+      <div className="relative z-30 flex-none">
+        <TeamShowcaseHeader />
+      </div>
+
+      {/* 3. Center Stage: Pure Editorial Typographic Tension + Industrial Command Dock */}
+      <main className="relative z-20 flex-1 min-h-0 w-full max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center justify-center text-center py-2 sm:py-3">
+
+        {/* Institutional Specification Coordinate Eyebrow */}
+        <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.09] text-[10px] sm:text-[11px] font-mono tracking-widest text-neutral-400 uppercase mb-3 sm:mb-5 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.4)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+          <span className="text-white font-semibold">0xESCROW</span>
+          <span className="text-neutral-600">/</span>
+          <span>SPEC_4.2.0</span>
+          <span className="text-neutral-600">/</span>
+          <span className="text-neutral-300 font-medium">HIGH_ASSURANCE</span>
+        </div>
+
+        {/* Exact Required Headline — Crisp, monumental, monochromatic editorial authority */}
+        <h1 className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-[68px] font-black text-white tracking-[-0.04em] leading-[0.98] drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)] max-w-4xl text-center">
+          <span className="inline-block sm:whitespace-nowrap">Milestone-Based Escrow &amp;</span>
+          <br className="hidden sm:inline" />
+          <span className="inline-block text-[#F4F4F5]">
+            Evidence-Based Dispute Resolution.
+          </span>
+        </h1>
+
+        {/* Exact Required Subtitle — Human cadence, balanced line length */}
+        <p className="mt-4 sm:mt-5 text-sm sm:text-base lg:text-[16.5px] text-neutral-300/85 max-w-2xl lg:max-w-3xl mx-auto leading-relaxed font-normal text-center drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+          A high-assurance engineering workspace for freelance talent. Protect milestone disbursements with atomic concurrency locks, cryptographic SHA-256 evidence trees, relational double-entry ledgers, and impartial dispute arbitration.
+        </p>
+
+        {/* 4. THE INDUSTRIAL MINIMAL DOCK (Museum-Grade Machined Hardware Centerpiece) */}
+        <div className="mt-7 sm:mt-9 w-full max-w-5xl px-2 sm:px-4">
+          <div
+            role="toolbar"
+            aria-label="Workspace Access & Protocol Telemetry Dock"
+            className="group relative rounded-2xl bg-[#0C0D11]/95 backdrop-blur-2xl border border-white/[0.13] shadow-[0_32px_80px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.18),inset_0_-1px_0_0_rgba(0,0,0,0.8)] p-2 sm:p-2.5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 lg:gap-0 divide-y lg:divide-y-0 lg:divide-x divide-white/[0.08]"
+          >
+            {/* Machined Fastener Rivets & Engraved Hardware Serial (Industrial detailing) */}
+            <div className="absolute top-1.5 left-2.5 hidden xl:block text-[8px] font-mono text-neutral-600 select-none tracking-tighter">
+              ✛ SPEC.42 // SER-2026-GF07
+            </div>
+            <div className="absolute top-1.5 right-2.5 hidden xl:block text-[8px] font-mono text-neutral-600 select-none tracking-tighter">
+              CHASSIS_CNC_MILL // BCNF-OK ✛
             </div>
 
-            {/* Headline */}
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-paper tracking-tight leading-[1.1]">
-              Milestone-Based Escrow & <br />
-              <span className="text-brand-base">Evidence-Based</span> Dispute Resolution.
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-base sm:text-lg text-paper-muted max-w-2xl leading-relaxed">
-              A high-assurance engineering workspace for freelance talent. Protect milestone disbursements with operating-system mutex locks, SHA-256 deliverable checksums, relational BCNF double-entry ledgers, and impartial dispute arbitration.
-            </p>
-
-            {/* Key Invariant Highlights */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-2xl">
-              <div className="p-3 rounded-xl bg-surface border border-line">
-                <span className="text-[10px] font-mono2 text-paper-faint uppercase block">OS Scheduler</span>
-                <span className="text-xs font-bold text-amber-400">KeyedMutex Locked</span>
-              </div>
-              <div className="p-3 rounded-xl bg-surface border border-line">
-                <span className="text-[10px] font-mono2 text-paper-faint uppercase block">DSA Evidence</span>
-                <span className="text-xs font-bold text-emerald-400">SHA-256 Trees</span>
-              </div>
-              <div className="p-3 rounded-xl bg-surface border border-line">
-                <span className="text-[10px] font-mono2 text-paper-faint uppercase block">DBMS Invariant</span>
-                <span className="text-xs font-bold text-blue-400">ΔBalance ≡ 0</span>
-              </div>
-              <div className="p-3 rounded-xl bg-surface border border-line">
-                <span className="text-[10px] font-mono2 text-paper-faint uppercase block">Web RBAC</span>
-                <span className="text-xs font-bold text-purple-400">4 Secure Roles</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <a
-                href="#playground"
-                className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-sm font-bold bg-brand-base text-charcoal hover:bg-brand-light transition-all shadow-lg hover:shadow-brand-base/20 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Launch Live Simulator
-              </a>
-              <a
-                href="#personas"
-                className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-sm font-bold bg-surface-elevated hover:bg-surface-highlight border border-line text-paper hover:text-brand-light transition-all"
-              >
-                1-Click Persona Launchpad
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </a>
+            {/* ZONE 1: Physical Tactile Keycap Button ("Enter Workspace") */}
+            <div className="flex items-center justify-between sm:justify-start gap-3.5 p-1 lg:pr-5">
               <Link
-                href="/rtm"
-                className="inline-flex items-center justify-center px-4 py-3.5 rounded-xl text-sm font-bold text-paper-muted hover:text-paper transition-colors"
+                href="/login"
+                className="group/key relative inline-flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-sans text-sm font-extrabold text-neutral-950 bg-gradient-to-b from-[#ff8732] via-[#fc6c00] to-[#e65c00] border-t border-white/50 border-b-2 border-[#9a3412] shadow-[0_4px_0_0_#9a3412,0_8px_20px_rgba(252,108,0,0.35),inset_0_1px_0_0_rgba(255,255,255,0.6)] hover:brightness-105 active:translate-y-[2px] active:shadow-[0_2px_0_0_#9a3412,0_4px_10px_rgba(252,108,0,0.3)] transition-all duration-100 cursor-pointer select-none"
               >
-                <BadgeCheck className="w-4 h-4 mr-1.5 text-brand-base" />
-                Traceability Matrix
+                {/* Subtle Orange Key Edge Illumination Underglow */}
+                <span className="absolute -inset-0.5 rounded-xl bg-orange-500/25 blur-sm -z-10 group-hover/key:bg-orange-500/40 transition-colors" />
+
+                <span className="tracking-tight text-[13.5px]">Enter Workspace</span>
+                <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover/key:translate-x-1 text-neutral-950" />
               </Link>
-            </div>
-          </div>
 
-          {/* Right Column: Video Panel with Architectural Overlay */}
-          <div className="lg:col-span-5 w-full relative">
-            <div className="relative rounded-2xl overflow-hidden border border-line shadow-2xl bg-surface aspect-[4/3] lg:aspect-[16/11]">
-              <video
-                src="/assets/desktop-header.webm"
-                poster="/assets/hero-poster.jpg"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                className="w-full h-full object-cover"
-                aria-hidden="true"
-              />
-
-              {/* Floating Status Card */}
-              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-charcoal/90 backdrop-blur border border-line text-xs font-mono2 flex items-center justify-between shadow-lg">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <div>
-                    <span className="font-bold text-paper block">Escrow Protocol Active</span>
-                    <span className="text-[10px] text-paper-muted">PostgreSQL ACID Transaction Isolation</span>
-                  </div>
+              {/* Physical Keycap Monospace Prompt */}
+              <div className="flex flex-col items-start text-left font-mono text-[10px] leading-tight text-neutral-400 pl-1">
+                <div className="flex items-center gap-1.5">
+                  <kbd className="px-1.5 py-0.5 rounded bg-black/60 border border-white/[0.14] text-[9.5px] font-bold text-neutral-200 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
+                    ↵ RETURN
+                  </kbd>
                 </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                  VERIFIED
+                <span className="text-neutral-500 text-[9px] mt-0.5 tracking-wider uppercase">
+                  DIRECT RBAC PASS
                 </span>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* Section: Interactive In-Browser Escrow Playground */}
-        <section id="playground" className="w-full max-w-[1600px] px-4 sm:px-8 py-16 border-t border-line">
-          <div className="mb-8">
-            <span className="font-mono2 text-xs uppercase tracking-widest text-brand-base font-bold">
-              Real-Time Verification Sandbox
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-paper tracking-tight mt-1">
-              Interactive Escrow & Evidence Simulator
-            </h2>
-            <p className="text-xs sm:text-sm text-paper-muted mt-1 max-w-2xl">
-              Test milestone creation, state transitions, client-side SHA-256 evidence hashing, and mathematical fund conservation right in your browser.
-            </p>
-          </div>
+            {/* ZONE 2: Segmented Machined Role Selectors */}
+            <div className="flex items-center justify-between sm:justify-center gap-1.5 sm:gap-2 py-2 lg:py-0 lg:px-5">
+              <div className="inline-flex items-center p-1 rounded-xl bg-black/40 border border-white/[0.07] gap-1 shadow-inner">
+                {/* Client Switch */}
+                <Link
+                  href="/login?role=client"
+                  className="group/role flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/[0.07] transition-all text-neutral-300 hover:text-white"
+                  title="Client Escrow Portal"
+                >
+                  <Briefcase className="w-3.5 h-3.5 text-amber-400 group-hover/role:scale-110 transition-transform" />
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-mono font-semibold leading-none">Client</span>
+                    <span className="text-[9px] font-mono text-neutral-500 group-hover/role:text-amber-300 uppercase tracking-tighter mt-0.5">
+                      LOCK ESCROW
+                    </span>
+                  </div>
+                </Link>
 
-          <InteractiveEscrowPlayground />
-        </section>
+                <div className="h-6 w-[1px] bg-white/[0.08]" />
 
-        {/* Section: The Four CS Engineering Engines */}
-        <section id="engines" className="w-full max-w-[1600px] px-4 sm:px-8 py-16 border-t border-line">
-          <EngineArchitectureGrid />
-        </section>
+                {/* Freelancer Switch */}
+                <Link
+                  href="/login?role=freelancer"
+                  className="group/role flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/[0.07] transition-all text-neutral-300 hover:text-white"
+                  title="Freelancer Evidence Portal"
+                >
+                  <Code2 className="w-3.5 h-3.5 text-cyan-400 group-hover/role:scale-110 transition-transform" />
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-mono font-semibold leading-none">Freelancer</span>
+                    <span className="text-[9px] font-mono text-neutral-500 group-hover/role:text-cyan-300 uppercase tracking-tighter mt-0.5">
+                      MERKLE PROOF
+                    </span>
+                  </div>
+                </Link>
 
-        {/* Section: 1-Click Persona Launchpad */}
-        <section id="personas" className="w-full max-w-[1600px] px-4 sm:px-8 py-16 border-t border-line">
-          <PersonaQuickLaunchpad />
-        </section>
+                <div className="h-6 w-[1px] bg-white/[0.08]" />
 
-        {/* Academic Defense & Capstone Thesis Card */}
-        <section className="w-full max-w-[1600px] px-4 sm:px-8 py-16 border-t border-line">
-          <div className="p-8 rounded-2xl bg-surface border border-line shadow-xl flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="space-y-3 max-w-3xl">
-              <div className="flex items-center gap-2 text-xs font-mono2 text-brand-light font-bold">
-                <GraduationCap className="w-4 h-4" />
-                <span>KLE Technological University · Team 07 Defense Thesis</span>
+                {/* Arbiter Switch */}
+                <Link
+                  href="/login?role=arbitrator"
+                  className="group/role flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/[0.07] transition-all text-neutral-300 hover:text-white"
+                  title="Arbiter Dispute Tribunal"
+                >
+                  <Scale className="w-3.5 h-3.5 text-emerald-400 group-hover/role:scale-110 transition-transform" />
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-mono font-semibold leading-none">Arbiter</span>
+                    <span className="text-[9px] font-mono text-neutral-500 group-hover/role:text-emerald-300 uppercase tracking-tighter mt-0.5">
+                      TRIBUNAL
+                    </span>
+                  </div>
+                </Link>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-paper">
-                Bridging Theoretical Computer Science into Verifiable Software
-              </h3>
-              <p className="text-xs sm:text-sm text-paper-muted leading-relaxed">
-                By partitioning the system into four autonomous engines—Operating Systems concurrency (Engine 01), Data Structures Merkle trees (Engine 02), Database ACID transactions (Engine 03), and Web Systems RBAC (Engine 04)—Team 07 eliminates both financial double-spending and deliverable tampering in modern freelance agreements.
-              </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
-              <Link
-                href="/rtm"
-                className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-xs font-bold bg-brand-base text-charcoal hover:bg-brand-light transition-all shadow-md text-center"
-              >
-                <BadgeCheck className="w-4 h-4 mr-2" />
-                Inspect Traceability Matrix
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-xs font-bold bg-surface-elevated hover:bg-surface-highlight border border-line text-paper hover:text-brand-light transition-all text-center"
-              >
-                Enter Mechanical Vault
-              </Link>
+            {/* ZONE 3: Live Protocol Telemetry Readout (VFD/OLED Display) */}
+            <div className="flex items-center justify-between lg:justify-end gap-3 pt-2 lg:pt-0 lg:pl-5 font-mono text-[11px]">
+              <div className="flex items-center gap-2.5 bg-black/60 px-3 py-1.5 rounded-xl border border-white/[0.07] shadow-inner">
+                {/* Protocol FSM Status */}
+                <div className="flex items-center gap-1.5 text-neutral-400">
+                  <span className="text-neutral-500 text-[10px]">FSM</span>
+                  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>LOCKED</span>
+                  </div>
+                </div>
+
+                <span className="text-neutral-700">|</span>
+
+                {/* SHA-256 Proof Telemetry */}
+                <div className="flex items-center gap-1.5 text-neutral-400">
+                  <span className="text-neutral-500 text-[10px]">SHA-256</span>
+                  <span className="text-neutral-200 text-[10px] font-semibold tracking-tight">
+                    {hashTick}
+                  </span>
+                </div>
+
+                <span className="text-neutral-700">|</span>
+
+                {/* Micro-Latency Jitter */}
+                <div className="hidden sm:flex items-center gap-1.5 text-neutral-400">
+                  <Activity className="w-3 h-3 text-orange-400" />
+                  <span className="text-neutral-300 text-[10px] font-bold tabular-nums">
+                    {latency}ms
+                  </span>
+                </div>
+              </div>
             </div>
+
           </div>
-        </section>
+        </div>
+
       </main>
 
-      {/* Academic Footer */}
-      <AcademicFooter />
+      {/* 5. Minimal Institutional Engineering Footer */}
+      <footer className="relative z-30 h-11 flex-none border-t border-white/[0.08] px-6 sm:px-8 text-[11px] font-mono text-neutral-400 flex items-center justify-between bg-[#07080a]/85 backdrop-blur-md">
+        <div className="w-full max-w-[1600px] mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="text-neutral-300 font-medium">GigaFlow Protocol v2.4</span>
+            </span>
+            <span className="hidden md:inline text-neutral-600">/</span>
+            <span className="hidden md:inline text-neutral-500">
+              Autonomous Milestone Assurance &amp; Double-Entry Ledgers
+            </span>
+          </div>
+
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 text-neutral-300 hover:text-brand-base transition-colors font-medium"
+          >
+            <span>Operator Terminal</span>
+            <span className="text-brand-base">→</span>
+          </Link>
+        </div>
+      </footer>
+
     </div>
   );
 }

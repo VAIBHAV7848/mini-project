@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useTransition, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Shield,
@@ -26,6 +27,7 @@ import { useRole, Role } from '@/components/layout/RoleContext';
 import { MechanicalEscrowVault, VaultState } from '@/components/auth/MechanicalEscrowVault';
 import { InteractiveMonkeyAvatar } from '@/components/auth/InteractiveMonkeyAvatar';
 import { AiAvatarSecurityAgent } from '@/components/auth/AiAvatarSecurityAgent';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import type { VideoAvatarState as AvatarState } from '@/components/auth/RealisticAiVideoAvatar';
 import {
   playTumblerClick,
@@ -46,13 +48,6 @@ interface PersonaProfile {
   balanceFormatted: string;
   devScore: number;
   description: string;
-  theme: {
-    accent: string;
-    border: string;
-    bg: string;
-    badgeBg: string;
-    badgeText: string;
-  };
   icon: React.ElementType;
 }
 
@@ -68,13 +63,6 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     balanceFormatted: '₹10,00,000.00',
     devScore: 50,
     description: 'Project initiator with verified escrow funding privileges & milestone release authority.',
-    theme: {
-      accent: 'text-[#fc6c00]',
-      border: 'border-[#fc6c00]/30 hover:border-[#fc6c00]',
-      bg: 'hover:bg-[#fc6c00]/5',
-      badgeBg: 'bg-[#fc6c00]/15 border-[#fc6c00]/40',
-      badgeText: 'text-[#ff9d47]',
-    },
     icon: Briefcase,
   },
   {
@@ -88,13 +76,6 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     balanceFormatted: '₹2,50,000.00',
     devScore: 92,
     description: 'Cryptographic engineer with SHA-256 deliverable submission & milestone execution.',
-    theme: {
-      accent: 'text-[#fc6c00]',
-      border: 'border-[#fc6c00]/30 hover:border-[#fc6c00]',
-      bg: 'hover:bg-[#fc6c00]/5',
-      badgeBg: 'bg-[#fc6c00]/15 border-[#fc6c00]/40',
-      badgeText: 'text-[#ff9d47]',
-    },
     icon: Code2,
   },
   {
@@ -108,33 +89,19 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     balanceFormatted: 'Zero Bias (Escrow)',
     devScore: 98,
     description: 'Impartial judicial reviewer handling cryptographic evidence audits & binding fund rulings.',
-    theme: {
-      accent: 'text-[#ff9d47]',
-      border: 'border-[#ff9d47]/30 hover:border-[#ff9d47]',
-      bg: 'hover:bg-[#ff9d47]/5',
-      badgeBg: 'bg-[#ff9d47]/15 border-[#ff9d47]/40',
-      badgeText: 'text-[#ff9d47]',
-    },
     icon: Scale,
   },
   {
     id: '233616fd-2260-4131-882a-bb9e50f295b1',
-    name: 'Vaibhav Chavanpatil (VAIBHAV)',
+    name: 'Platform Administrator',
     email: 'admin@escrow.local',
     password: 'Password123!',
     role: 'ADMIN',
     title: 'Platform Lead & Settlement Officer',
-    badgeLabel: 'Root Authority (Team 07 Lead)',
+    badgeLabel: 'Root Authority',
     balanceFormatted: 'Finance Vault',
     devScore: 100,
-    description: 'Independent inspection of incoming UPI credits, UTR correlation, deposit verification, and manual freelancer settlement disbursement.',
-    theme: {
-      accent: 'text-[#fc6c00]',
-      border: 'border-[#fc6c00]/30 hover:border-[#fc6c00]',
-      bg: 'hover:bg-[#fc6c00]/5',
-      badgeBg: 'bg-[#fc6c00]/15 border-[#fc6c00]/40',
-      badgeText: 'text-[#ff9d47]',
-    },
+    description: 'Independent inspection of incoming credits, UTR correlation, deposit verification, and freelancer settlement disbursement.',
     icon: ShieldCheck,
   },
 ];
@@ -150,7 +117,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
-  // Visualizer Mode: 'monkey' (Interactive Monkey Mascot from nitish-niraj/monkey-login), 'vault' (Mechanical Vault), or 'coder' (Interactive Coder)
+  // Visualizer Mode: 'monkey' (Interactive Monkey Mascot), 'vault' (Mechanical Vault), or 'coder' (Interactive Coder)
   const [visualizerMode, setVisualizerMode] = useState<'monkey' | 'vault' | 'coder'>('monkey');
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
@@ -321,55 +288,62 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#07080a] text-white selection:bg-[#fc6c00]/30 selection:text-white flex flex-col justify-between overflow-x-hidden font-sans">
-      {/* Background Subtle Industrial Grid & Dark Vignette */}
+    <div className="relative min-h-screen bg-charcoal text-paper selection:bg-brand-base selection:text-charcoal flex flex-col justify-between overflow-x-hidden font-sans transition-colors duration-200">
+      {/* Background Subtle Grid & Vignette */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.035]"
+        className="absolute inset-0 pointer-events-none opacity-[0.035] dark:opacity-[0.04]"
         style={{
           backgroundImage:
-            'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
+            'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
           backgroundSize: '40px 40px',
         }}
       />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(252,108,0,0.12),rgba(7,8,10,0.95)_70%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(252,108,0,0.12),transparent_70%)]" />
 
       {/* Top Header Navigation */}
-      <header className="relative z-30 border-b border-[#1c202a] bg-[#0a0c10]/80 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
+      <header className="relative z-30 border-b border-line bg-charcoal/85 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between transition-colors">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-lg bg-[#141822] border border-[#2b3345] flex items-center justify-center group-hover:border-[#fc6c00] transition-colors shadow-sm">
-              <Shield className="w-5 h-5 text-[#fc6c00]" />
+            <div className="w-9 h-9 rounded-xl bg-surface-elevated border border-line flex items-center justify-center p-1 group-hover:border-brand-base transition-colors shadow-sm overflow-hidden">
+              <Image
+                src="/assets/gigaflow-mark.png"
+                alt="GigaFlow Mark"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(252,108,0,0.3)]"
+                priority
+              />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-display font-black text-lg tracking-tight text-white">
-                  Giga<span className="text-[#fc6c00]">Flow</span>
+                <span className="font-display font-black text-lg tracking-tight text-paper">
+                  Giga<span className="text-brand-base">Flow</span>
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#fc6c00]/15 border border-[#fc6c00]/30 text-[#ff9d47] font-bold">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-brand-tint border border-brand-base/30 text-brand-base font-bold">
                   ESCROW
                 </span>
               </div>
-              <p className="text-[10px] font-mono text-[#8491a5] hidden sm:block">
-                KLE Technological University — Team 07
+              <p className="text-[10px] font-mono text-paper-muted hidden sm:block">
+                High-Assurance Milestone Protocol
               </p>
             </div>
           </Link>
         </div>
 
-        {/* Realtime Dual-Engine Telemetry & Sound Controls */}
-        <div className="flex items-center gap-2.5 sm:gap-4">
-          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-[#12151b] border border-[#222834] text-[11px] font-mono text-[#9ca3af]">
-            <span className="flex items-center gap-1 text-[#4ade80]">
-              <span className="w-2 h-2 rounded-full bg-[#4ade80] animate-pulse" />
-              Supabase AWS Sydney
+        {/* Realtime Telemetry, Audio Controls & ThemeToggle */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-elevated border border-line text-[11px] font-mono text-paper-muted">
+            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Supabase Live
             </span>
-            <span className="text-[#3f4756]">•</span>
-            <span className="flex items-center gap-1 text-[#ff9d47]">
-              <Server className="w-3 h-3 text-[#ff9d47]" />
+            <span className="text-line-strong">•</span>
+            <span className="flex items-center gap-1 text-brand-base font-medium">
+              <Server className="w-3 h-3 text-brand-base" />
               SQLite Ledger
             </span>
-            <span className="text-[#3f4756]">•</span>
-            <span className="text-[#8491a5]">{syncLatency}ms</span>
+            <span className="text-line-strong">•</span>
+            <span className="text-paper-muted">{syncLatency}ms</span>
           </div>
 
           {/* Procedural Audio Mute Toggle */}
@@ -377,18 +351,21 @@ export default function LoginPage() {
             type="button"
             onClick={toggleSound}
             aria-label={isAudioEnabled ? 'Mute mechanical vault audio' : 'Unmute mechanical vault audio'}
-            className="p-2 rounded-lg bg-[#12151b] border border-[#222834] text-[#8491a5] hover:text-[#fc6c00] hover:border-[#fc6c00]/40 transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-surface-elevated border border-line text-paper-muted hover:text-brand-base transition-colors cursor-pointer"
           >
             {isAudioEnabled ? (
-              <Volume2 className="w-4 h-4 text-[#fc6c00]" />
+              <Volume2 className="w-4 h-4 text-brand-base" />
             ) : (
-              <VolumeX className="w-4 h-4 text-[#6b7280]" />
+              <VolumeX className="w-4 h-4 text-paper-faint" />
             )}
           </button>
 
+          {/* Light / Dark Mode Theme Toggle */}
+          <ThemeToggle size="sm" />
+
           <Link
             href="/"
-            className="text-xs font-mono text-[#8491a5] hover:text-white px-3 py-1.5 rounded-lg border border-transparent hover:border-[#222834] transition-all"
+            className="text-xs font-mono text-paper-muted hover:text-paper px-3 py-1.5 rounded-xl border border-transparent hover:border-line transition-all"
           >
             Back to Home
           </Link>
@@ -401,7 +378,7 @@ export default function LoginPage() {
         <div className="lg:hidden flex items-center justify-center mb-6">
           <div
             role="tablist"
-            className="grid grid-cols-2 p-1 rounded-xl bg-[#12151b] border border-[#222834] max-w-xs w-full"
+            className="grid grid-cols-2 p-1 rounded-xl bg-surface-elevated border border-line max-w-xs w-full"
           >
             <button
               type="button"
@@ -413,8 +390,8 @@ export default function LoginPage() {
               }}
               className={`py-2 text-xs font-mono font-bold rounded-lg transition-all ${
                 activeTab === 'credentials'
-                  ? 'bg-[#fc6c00] text-black shadow-md'
-                  : 'text-[#8491a5] hover:text-white'
+                  ? 'bg-brand-base text-charcoal shadow-md'
+                  : 'text-paper-muted hover:text-paper'
               }`}
             >
               Security Terminal
@@ -429,8 +406,8 @@ export default function LoginPage() {
               }}
               className={`py-2 text-xs font-mono font-bold rounded-lg transition-all ${
                 activeTab === 'personas'
-                  ? 'bg-[#fc6c00] text-black shadow-md'
-                  : 'text-[#8491a5] hover:text-white'
+                  ? 'bg-brand-base text-charcoal shadow-md'
+                  : 'text-paper-muted hover:text-paper'
               }`}
             >
               1-Click Personas
@@ -445,30 +422,30 @@ export default function LoginPage() {
               activeTab === 'credentials' ? 'block' : 'hidden lg:flex'
             }`}
           >
-            <div className="relative rounded-2xl bg-[#0e1117] border border-[#202531] p-6 sm:p-8 shadow-[0_16px_50px_rgba(0,0,0,0.85)]">
+            <div className="relative rounded-2xl bg-surface border border-line p-6 sm:p-8 shadow-xl dark:shadow-[0_16px_50px_rgba(0,0,0,0.85)] transition-colors">
               {/* Header Title with Status LED */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1c212c]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#fc6c00] animate-pulse" />
-                    <h1 className="font-display font-black text-2xl tracking-tight text-white">
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-base animate-pulse" />
+                    <h1 className="font-display font-black text-2xl tracking-tight text-paper">
                       Escrow Security Gateway
                     </h1>
                   </div>
-                  <p className="text-xs font-mono text-[#8491a5] mt-1">
-                    Dual Authentication • Supabase Auth & Local SQLite Ledger
+                  <p className="text-xs font-mono text-paper-muted mt-1">
+                    Dual Authentication • Supabase Auth &amp; Local SQLite Ledger
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 self-start sm:self-auto px-3 py-1.5 rounded-lg bg-[#141822] border border-[#2b3345] text-[11px] font-mono text-[#ff9d47]">
-                  <KeyRound className="w-3.5 h-3.5 text-[#fc6c00]" />
+                <div className="flex items-center gap-2 self-start sm:self-auto px-3 py-1.5 rounded-lg bg-surface-elevated border border-line text-[11px] font-mono text-brand-base">
+                  <KeyRound className="w-3.5 h-3.5 text-brand-base" />
                   <span>SHA-256 HMAC-Ready</span>
                 </div>
               </div>
 
               {/* Mode Switcher: Interactive Monkey Mascot vs Mechanical Vault vs Interactive Coder */}
               <div className="pt-4 pb-2 flex items-center justify-center">
-                <div className="inline-flex items-center p-1 rounded-xl bg-[#12151b] border border-[#242934] gap-1">
+                <div className="inline-flex items-center p-1 rounded-xl bg-surface-elevated border border-line gap-1">
                   <button
                     type="button"
                     onClick={() => {
@@ -477,8 +454,8 @@ export default function LoginPage() {
                     }}
                     className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                       visualizerMode === 'monkey'
-                        ? 'bg-[#fc6c00] text-black shadow-sm'
-                        : 'text-[#8491a5] hover:text-white'
+                        ? 'bg-brand-base text-charcoal shadow-sm'
+                        : 'text-paper-muted hover:text-paper'
                     }`}
                   >
                     <span>🐵</span>
@@ -493,8 +470,8 @@ export default function LoginPage() {
                     }}
                     className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                       visualizerMode === 'vault'
-                        ? 'bg-[#fc6c00] text-black shadow-sm'
-                        : 'text-[#8491a5] hover:text-white'
+                        ? 'bg-brand-base text-charcoal shadow-sm'
+                        : 'text-paper-muted hover:text-paper'
                     }`}
                   >
                     <Shield className="w-3.5 h-3.5" />
@@ -509,8 +486,8 @@ export default function LoginPage() {
                     }}
                     className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                       visualizerMode === 'coder'
-                        ? 'bg-[#fc6c00] text-black shadow-sm'
-                        : 'text-[#8491a5] hover:text-white'
+                        ? 'bg-brand-base text-charcoal shadow-sm'
+                        : 'text-paper-muted hover:text-paper'
                     }`}
                   >
                     <Code2 className="w-3.5 h-3.5" />
@@ -564,9 +541,9 @@ export default function LoginPage() {
               {errorMessage && (
                 <div
                   role="alert"
-                  className="mb-5 p-3.5 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono flex items-start gap-2.5 animate-shake"
+                  className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-300 text-xs font-mono flex items-start gap-2.5 animate-shake"
                 >
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                   <div>
                     <span className="font-bold">AUTHENTICATION REJECTED: </span>
                     {errorMessage}
@@ -578,12 +555,12 @@ export default function LoginPage() {
               {authSuccess && (
                 <div
                   role="status"
-                  className="mb-5 p-3.5 rounded-xl bg-[#fc6c00]/15 border border-[#fc6c00]/40 text-[#ff9d47] text-xs font-mono flex items-center gap-2.5 animate-fadeIn"
+                  className="mb-5 p-3.5 rounded-xl bg-brand-tint border border-brand-base/40 text-brand-base text-xs font-mono flex items-center gap-2.5 animate-fadeIn"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-[#fc6c00] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-brand-base shrink-0" />
                   <div>
                     <span className="font-bold">ACCESS GRANTED: </span>
-                    Welcome, <span className="text-white font-bold">{authTargetName}</span>. Entering dashboard...
+                    Welcome, <span className="text-paper font-bold">{authTargetName}</span>. Entering dashboard...
                   </div>
                 </div>
               )}
@@ -593,12 +570,12 @@ export default function LoginPage() {
                 <div>
                   <label
                     htmlFor="login-email"
-                    className="block text-xs font-mono uppercase tracking-wider text-[#9ca3af] mb-1.5 font-semibold"
+                    className="block text-xs font-mono uppercase tracking-wider text-paper-muted mb-1.5 font-semibold"
                   >
                     Identity Identifier / Email
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-paper-muted" />
                     <input
                       id="login-email"
                       ref={emailInputRef}
@@ -615,7 +592,7 @@ export default function LoginPage() {
                       }}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       placeholder="client1@escrow.local or admin@escrow.local"
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#12151b] border border-[#242934] focus:border-[#fc6c00] focus:ring-1 focus:ring-[#fc6c00] rounded-xl text-sm font-mono text-white placeholder-[#4b5563] outline-none transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-surface-elevated border border-line focus:border-brand-base focus:ring-1 focus:ring-brand-base rounded-xl text-sm font-mono text-paper placeholder:text-paper-faint outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -624,20 +601,20 @@ export default function LoginPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <label
                       htmlFor="login-password"
-                      className="block text-xs font-mono uppercase tracking-wider text-[#9ca3af] font-semibold"
+                      className="block text-xs font-mono uppercase tracking-wider text-paper-muted font-semibold"
                     >
                       Cryptographic Secret / Password
                     </label>
                     <button
                       type="button"
                       onClick={applyMasterPassword}
-                      className="text-[11px] font-mono text-[#fc6c00] hover:text-[#ff9d47] hover:underline cursor-pointer"
+                      className="text-[11px] font-mono text-brand-base hover:text-brand-light hover:underline cursor-pointer font-medium"
                     >
                       Fill Master Key (VAIBHAV2667)
                     </button>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b7280]" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-paper-muted" />
                     <input
                       id="login-password"
                       type={showPassword ? 'text' : 'password'}
@@ -652,7 +629,7 @@ export default function LoginPage() {
                       }}
                       onChange={(e) => handleInputChange('password', e.target.value)}
                       placeholder="Password123! or VAIBHAV2667"
-                      className="w-full pl-10 pr-10 py-2.5 bg-[#12151b] border border-[#242934] focus:border-[#fc6c00] focus:ring-1 focus:ring-[#fc6c00] rounded-xl text-sm font-mono text-white placeholder-[#4b5563] outline-none transition-all"
+                      className="w-full pl-10 pr-10 py-2.5 bg-surface-elevated border border-line focus:border-brand-base focus:ring-1 focus:ring-brand-base rounded-xl text-sm font-mono text-paper placeholder:text-paper-faint outline-none transition-all"
                     />
                     <button
                       type="button"
@@ -665,7 +642,7 @@ export default function LoginPage() {
                         playSwitchClick();
                         setShowPassword(!showPassword);
                       }}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-white transition-colors cursor-pointer"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-paper-muted hover:text-paper transition-colors cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -676,21 +653,21 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isFormSubmitting || authSuccess}
-                  className="w-full mt-2 py-3 px-4 rounded-xl font-mono font-bold text-sm bg-gradient-to-r from-[#fc6c00] to-[#e55b00] hover:from-[#ff7a14] hover:to-[#fc6c00] text-black shadow-[0_4px_20px_rgba(252,108,0,0.35)] disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                  className="w-full mt-2 py-3 px-4 rounded-xl font-mono font-bold text-sm bg-brand-base hover:bg-brand-light text-charcoal shadow-md hover:shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                 >
                   {isFormSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-black" />
+                      <Loader2 className="w-4 h-4 animate-spin text-charcoal" />
                       <span>Authenticating Credentials...</span>
                     </>
                   ) : authSuccess ? (
                     <>
-                      <CheckCircle2 className="w-4 h-4 text-black" />
+                      <CheckCircle2 className="w-4 h-4 text-charcoal" />
                       <span>Authentication Verified</span>
                     </>
                   ) : (
                     <>
-                      <span>Engage Gateway & Authenticate</span>
+                      <span>Engage Gateway &amp; Authenticate</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -698,12 +675,12 @@ export default function LoginPage() {
               </form>
 
               {/* Master Credential Footnote */}
-              <div className="mt-5 pt-4 border-t border-[#1c212c] flex items-center justify-between text-[11px] font-mono text-[#8491a5]">
+              <div className="mt-5 pt-4 border-t border-line flex items-center justify-between text-[11px] font-mono text-paper-muted">
                 <span>
-                  Demo Passwords: <code className="text-[#ff9d47]">Password123!</code> or{' '}
-                  <code className="text-[#fc6c00]">VAIBHAV2667</code>
+                  Demo Passwords: <code className="text-brand-base font-bold">Password123!</code> or{' '}
+                  <code className="text-brand-base font-bold">VAIBHAV2667</code>
                 </span>
-                <span className="hidden sm:inline text-[#6b7280]">Universal Dual-Auth Ready</span>
+                <span className="hidden sm:inline text-paper-faint">Universal Dual-Auth Ready</span>
               </div>
             </div>
           </div>
@@ -716,14 +693,14 @@ export default function LoginPage() {
           >
             <div className="flex items-center justify-between mb-1">
               <div>
-                <h2 className="font-display font-bold text-lg text-white">
+                <h2 className="font-display font-bold text-lg text-paper">
                   1-Click Role Profiles
                 </h2>
-                <p className="text-xs font-mono text-[#8491a5]">
+                <p className="text-xs font-mono text-paper-muted">
                   Select an identity to immediately test RBAC workflows
                 </p>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#12151b] border border-[#242934] text-[#9ca3af]">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface-elevated border border-line text-paper-muted font-bold">
                 4 Roles
               </span>
             </div>
@@ -746,46 +723,44 @@ export default function LoginPage() {
                       }
                     }}
                     onClick={() => !authenticatingPersonaId && handlePersonaClick(persona)}
-                    className={`group relative rounded-xl bg-[#0e1117] border border-[#202531] p-4.5 transition-all duration-200 cursor-pointer hover:border-[#fc6c00]/60 hover:bg-[#12151d] hover:shadow-[0_4px_24px_rgba(0,0,0,0.6)] focus:outline-none focus:ring-1 focus:ring-[#fc6c00] ${
-                      isLoggingIn ? 'border-[#fc6c00] ring-1 ring-[#fc6c00]' : ''
+                    className={`group relative rounded-xl bg-surface border border-line p-4 transition-all duration-200 cursor-pointer hover:border-brand-base/60 hover:bg-surface-elevated shadow-sm hover:shadow-md focus:outline-none focus:ring-1 focus:ring-brand-base ${
+                      isLoggingIn ? 'border-brand-base ring-1 ring-brand-base' : ''
                     }`}
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-[#141822] border border-[#2b3345] flex items-center justify-center group-hover:border-[#fc6c00] transition-colors">
-                          <IconComponent className="w-4 h-4 text-[#fc6c00]" />
+                        <div className="w-9 h-9 rounded-lg bg-surface-elevated border border-line flex items-center justify-center group-hover:border-brand-base transition-colors">
+                          <IconComponent className="w-4 h-4 text-brand-base" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="font-display font-bold text-sm text-white group-hover:text-[#fc6c00] transition-colors">
+                            <h3 className="font-display font-bold text-sm text-paper group-hover:text-brand-base transition-colors">
                               {persona.name}
                             </h3>
-                            <span
-                              className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border ${persona.theme.badgeBg} ${persona.theme.badgeText}`}
-                            >
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-brand-tint border border-brand-base/30 text-brand-base">
                               {persona.role}
                             </span>
                           </div>
-                          <p className="text-[11px] font-mono text-[#8491a5]">{persona.title}</p>
+                          <p className="text-[11px] font-mono text-paper-muted">{persona.title}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Description */}
-                    <p className="text-xs text-[#9ca3af] leading-relaxed mb-3 line-clamp-2">
+                    <p className="text-xs text-paper-muted leading-relaxed mb-3 line-clamp-2">
                       {persona.description}
                     </p>
 
                     {/* Footer with Balance / Authority & Action */}
-                    <div className="pt-2.5 border-t border-[#1a1f29] flex items-center justify-between text-xs font-mono">
+                    <div className="pt-2.5 border-t border-line flex items-center justify-between text-xs font-mono">
                       <div>
-                        <span className="text-[10px] text-[#6b7280] block">
+                        <span className="text-[10px] text-paper-faint block">
                           {persona.role === 'CLIENT' || persona.role === 'FREELANCER'
                             ? 'Ledger Balance'
                             : 'Authority'}
                         </span>
-                        <span className="font-bold text-[#ff9d47]">
+                        <span className="font-bold text-brand-base">
                           {persona.balanceFormatted}
                         </span>
                       </div>
@@ -793,8 +768,8 @@ export default function LoginPage() {
                       <div
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1.5 transition-all ${
                           isLoggingIn
-                            ? 'bg-[#fc6c00] text-black border-[#fc6c00]'
-                            : 'bg-[#141822] text-white border-[#2b3345] group-hover:border-[#fc6c00] group-hover:text-[#fc6c00]'
+                            ? 'bg-brand-base text-charcoal border-brand-base'
+                            : 'bg-surface-elevated text-paper border-line group-hover:border-brand-base group-hover:text-brand-base'
                         }`}
                       >
                         {isLoggingIn ? (
@@ -816,12 +791,12 @@ export default function LoginPage() {
             </div>
 
             {/* Security Guarantee Box */}
-            <div className="mt-2 p-4 rounded-xl bg-[#0a0c10] border border-[#1c212c] text-xs font-mono text-[#8491a5] space-y-1.5">
-              <div className="flex items-center gap-1.5 text-white font-bold">
-                <ShieldCheck className="w-4 h-4 text-[#fc6c00]" />
+            <div className="mt-2 p-4 rounded-xl bg-surface-elevated border border-line text-xs font-mono text-paper-muted space-y-1.5">
+              <div className="flex items-center gap-1.5 text-paper font-bold">
+                <ShieldCheck className="w-4 h-4 text-brand-base" />
                 <span>Zero Bypass Architecture</span>
               </div>
-              <p className="text-[11px] leading-relaxed text-[#9ca3af]">
+              <p className="text-[11px] leading-relaxed text-paper-muted">
                 Every session is signed with HMAC-SHA256 and verified at Edge middleware. Direct deep links to protected routes (`/dashboard`, `/contracts`, `/disputes`) require cryptographic cookies.
               </p>
             </div>
@@ -830,14 +805,14 @@ export default function LoginPage() {
       </main>
 
       {/* Terminal Footer */}
-      <footer className="relative z-30 border-t border-[#1c202a] bg-[#0a0c10]/80 px-4 sm:px-8 py-3 text-center text-xs font-mono text-[#8491a5] flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer className="relative z-30 border-t border-line bg-charcoal/85 px-4 sm:px-8 py-3 text-center text-xs font-mono text-paper-muted flex flex-col sm:flex-row items-center justify-between gap-2 transition-colors">
         <div>
-          KLE Technological University — Dr. M. S. Sheshgiri College of Engineering & Technology
+          © 2026 GigaFlow Protocol • High-Assurance Escrow
         </div>
         <div className="flex items-center gap-3">
           <span>Engine 04 Web Terminal</span>
           <span>•</span>
-          <span className="text-[#fc6c00]">Team 07 (Theme 01)</span>
+          <span className="text-brand-base font-semibold">Multi-Engine RBAC</span>
         </div>
       </footer>
     </div>

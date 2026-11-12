@@ -8,21 +8,15 @@ import {
   Database,
   Globe,
   CheckCircle2,
-  ExternalLink,
   ChevronRight,
-  Shield,
-  Layers,
-  FileText,
   BadgeCheck,
 } from 'lucide-react';
 
 interface EngineDetail {
   id: string;
   name: string;
-  discipline: string;
-  owner: string;
-  rollNo: string;
-  srn: string;
+  pillar: string;
+  category: string;
   icon: React.ElementType;
   accentColor: string;
   badgeBg: string;
@@ -36,16 +30,14 @@ interface EngineDetail {
 const ENGINES: EngineDetail[] = [
   {
     id: 'engine-01',
-    name: 'Engine 01: Escrow & State Scheduler',
-    discipline: 'Operating Systems (OS)',
-    owner: 'Vaishnavi Modekar',
-    rollNo: '21',
-    srn: '02FE24BCS060',
+    name: 'Pillar 01: Escrow FSM & Concurrency Scheduler',
+    pillar: 'State Concurrency',
+    category: 'Concurrency & FSM',
     icon: Cpu,
     accentColor: 'text-amber-500',
     badgeBg: 'bg-amber-500/10 border-amber-500/30 text-amber-500',
     description:
-      'Implements a formal Finite State Machine (FSM) governing milestone lifecycles, combined with a KeyedMutex to prevent race conditions during concurrent financial operations, and an automated review timeout watchdog scheduler.',
+      'Implements a formal Finite State Machine (FSM) governing milestone lifecycles, combined with asynchronous KeyedMutex locks to prevent race conditions during concurrent financial operations, and an automated review timeout watchdog scheduler.',
     coreConcepts: [
       'Deterministic Finite State Machine (FSM)',
       'Asynchronous KeyedMutex Concurrency Control',
@@ -64,16 +56,14 @@ const ENGINES: EngineDetail[] = [
     metrics: [
       { label: 'States Defined', value: '11 States' },
       { label: 'Race Safety', value: '100% Locked' },
-      { label: 'Watchdog Interval', value: '48h Review Window' },
+      { label: 'Watchdog Window', value: '48h Review Limit' },
     ],
   },
   {
     id: 'engine-02',
-    name: 'Engine 02: Evidence & QA Engine',
-    discipline: 'Data Structures & Software Engineering (DSA & SE)',
-    owner: 'Darshan Kittur',
-    rollNo: '18',
-    srn: '02FE24BCS053',
+    name: 'Pillar 02: Cryptographic Evidence & Verification',
+    pillar: 'Data Integrity',
+    category: 'Merkle & Integrity',
     icon: Binary,
     accentColor: 'text-emerald-500',
     badgeBg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500',
@@ -102,11 +92,9 @@ const ENGINES: EngineDetail[] = [
   },
   {
     id: 'engine-03',
-    name: 'Engine 03: Transaction Ledger & Contracts',
-    discipline: 'Database Management Systems (DBMS)',
-    owner: 'Purvi Sammatshetti',
-    rollNo: '11',
-    srn: '02FE24BCS022',
+    name: 'Pillar 03: Relational Ledger & Treasury Settlement',
+    pillar: 'Balance Invariant',
+    category: 'ACID & Ledgers',
     icon: Database,
     accentColor: 'text-blue-500',
     badgeBg: 'bg-blue-500/10 border-blue-500/30 text-blue-500',
@@ -135,11 +123,9 @@ const ENGINES: EngineDetail[] = [
   },
   {
     id: 'engine-04',
-    name: 'Engine 04: Role-Based Workflow Dashboard',
-    discipline: 'Web Technologies (WT)',
-    owner: 'Vaibhav Chavanpatil',
-    rollNo: '4',
-    srn: '02FE24BCS013',
+    name: 'Pillar 04: Role-Based Workflow & Dispute Portal',
+    pillar: 'Access Control',
+    category: 'RBAC & Console',
     icon: Globe,
     accentColor: 'text-purple-500',
     badgeBg: 'bg-purple-500/10 border-purple-500/30 text-purple-500',
@@ -161,7 +147,7 @@ const ENGINES: EngineDetail[] = [
       'tests/engine-04-web/marketplace-gigs.test.ts',
     ],
     metrics: [
-      { label: 'RBAC Roles', value: '4 Personas' },
+      { label: 'RBAC Roles', value: '4 Workspaces' },
       { label: 'Theme Speed', value: '0ms FOUC-Free' },
       { label: 'A11y Standard', value: 'WCAG 2.2 AA' },
     ],
@@ -180,13 +166,13 @@ export function EngineArchitectureGrid() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <span className="font-mono2 text-xs uppercase tracking-widest text-brand-base font-bold">
-            Academic Architecture
+            Platform Architecture
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-paper tracking-tight mt-1">
-            The Four Engineering Engines
+            Four High-Assurance Engineering Pillars
           </h2>
           <p className="text-xs sm:text-sm text-paper-muted mt-1 max-w-2xl">
-            Each engine represents an independent, rigorous computer science discipline developed, owned, and defended by Team 07 members at KLE Technological University.
+            GigaFlow protects freelance contracts with four specialized subsystems handling concurrency, cryptographic proofs, double-entry accounting, and role-based governance.
           </p>
         </div>
 
@@ -195,14 +181,14 @@ export function EngineArchitectureGrid() {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-surface-elevated hover:bg-surface-highlight border border-line text-paper hover:text-brand-light transition-all"
         >
           <BadgeCheck className="w-4 h-4 text-brand-base" />
-          View Traceability Matrix
+          Technical Specifications
           <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
       {/* Engine Selection Tabs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {ENGINES.map((engine) => {
+        {ENGINES.map((engine, idx) => {
           const isSelected = engine.id === selectedEngineId;
           const TabIcon = engine.icon;
           return (
@@ -226,15 +212,15 @@ export function EngineArchitectureGrid() {
                     <TabIcon className="w-4 h-4" />
                   </div>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-mono2 font-bold border ${engine.badgeBg}`}>
-                    {engine.discipline.split(' ')[0]}
+                    {engine.pillar}
                   </span>
                 </div>
                 <div className="text-xs font-bold text-paper truncate">{engine.name.split(':')[0]}</div>
-                <div className="text-[11px] text-paper-muted truncate mt-0.5">{engine.owner}</div>
+                <div className="text-[11px] text-paper-muted truncate mt-0.5">{engine.category}</div>
               </div>
 
               <div className="mt-3 pt-2 border-t border-line/60 flex items-center justify-between text-[10px] font-mono2 text-paper-faint">
-                <span>Roll: {engine.rollNo}</span>
+                <span>LAYER 0{idx + 1}</span>
                 <span className={isSelected ? 'text-brand-base font-bold' : ''}>
                   {isSelected ? 'ACTIVE' : 'EXPLORE'}
                 </span>
@@ -255,11 +241,11 @@ export function EngineArchitectureGrid() {
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <span className="text-xl font-bold text-paper">{selectedEngine.name}</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono2 font-bold border ${selectedEngine.badgeBg}`}>
-                  {selectedEngine.discipline}
+                  {selectedEngine.category}
                 </span>
               </div>
               <p className="text-xs text-paper-muted font-mono2">
-                Engine Owner: <strong className="text-paper">{selectedEngine.owner}</strong> (Roll No: {selectedEngine.rollNo}, SRN: {selectedEngine.srn})
+                Subsystem Domain: <strong className="text-paper">{selectedEngine.pillar}</strong> · High-Assurance Protocol Layer
               </p>
             </div>
           </div>
@@ -279,14 +265,14 @@ export function EngineArchitectureGrid() {
           {/* Description & Concepts */}
           <div className="space-y-4">
             <div>
-              <span className="eyebrow block mb-2 text-[11px]">Academic Abstract & Scope</span>
+              <span className="eyebrow block mb-2 text-[11px]">Subsystem Overview & Scope</span>
               <p className="text-xs sm:text-sm text-paper-muted leading-relaxed">
                 {selectedEngine.description}
               </p>
             </div>
 
             <div>
-              <span className="eyebrow block mb-2 text-[11px]">Core Computer Science Concepts</span>
+              <span className="eyebrow block mb-2 text-[11px]">Core Architectural Guarantees</span>
               <div className="space-y-2">
                 {selectedEngine.coreConcepts.map((concept, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-xs text-paper">
@@ -301,7 +287,7 @@ export function EngineArchitectureGrid() {
           {/* Key Files & Test Suites */}
           <div className="space-y-4">
             <div>
-              <span className="eyebrow block mb-2 text-[11px]">Source Implementation Files</span>
+              <span className="eyebrow block mb-2 text-[11px]">Core Implementation Modules</span>
               <div className="space-y-1.5 font-mono2 text-xs">
                 {selectedEngine.keyFiles.map((file, idx) => (
                   <div key={idx} className="p-2 rounded-lg bg-charcoal border border-line flex items-center justify-between text-paper-muted">
@@ -313,7 +299,7 @@ export function EngineArchitectureGrid() {
             </div>
 
             <div>
-              <span className="eyebrow block mb-2 text-[11px]">Automated Verification & Validation</span>
+              <span className="eyebrow block mb-2 text-[11px]">Automated Verification & Integrity</span>
               <div className="space-y-1.5 font-mono2 text-xs">
                 {selectedEngine.testSuites.map((suite, idx) => (
                   <div key={idx} className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-emerald-400">
