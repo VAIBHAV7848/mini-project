@@ -31,7 +31,7 @@ export class WatchdogScheduler {
     const results: WatchdogTimeoutResult[] = [];
 
     for (const milestone of overdueMilestones) {
-      const releaseLock = await globalKeyedMutex.acquire(milestone.id);
+      const releaseLock = await globalKeyedMutex.acquire(`contract:${milestone.contractId}`);
 
       try {
         // Re-check milestone status inside mutex critical section (prevent TOCTOU)

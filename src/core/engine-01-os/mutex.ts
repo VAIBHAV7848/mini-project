@@ -2,7 +2,8 @@ export class KeyedMutex {
   private locks: Map<string, Promise<void>> = new Map();
 
   async acquire(key: string, timeoutMs = 5000): Promise<() => void> {
-    const existingLock = this.locks.get(key) || Promise.resolve();
+    const existingLock = this.locks.get(key);
+    const priorPromise = existingLock || Promise.resolve();
 
     let releaseLock: () => void = () => {};
     const currentLock = new Promise<void>((resolve) => {
@@ -10,7 +11,7 @@ export class KeyedMutex {
     });
 
     // Chain the lock
-    const acquired = existingLock.then(() => currentLock);
+    const acquired = priorPromise.then(() => currentLock);
     this.locks.set(key, acquired);
 
     // Timeout guard to prevent permanent starvation or deadlocks
@@ -22,11 +23,15 @@ export class KeyedMutex {
     });
 
     try {
-      await Promise.race([existingLock, timeoutPromise]);
+      await Promise.race([priorPromise, timeoutPromise]);
     } catch (err) {
       releaseLock();
       if (this.locks.get(key) === acquired) {
-        this.locks.delete(key);
+        if (existingLock) {
+          this.locks.set(key, existingLock);
+        } else {
+          this.locks.delete(key);
+        }
       }
       throw err;
     } finally {
