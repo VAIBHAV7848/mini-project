@@ -88,7 +88,7 @@ export class EscrowFsmValidator {
     {
       from: 'REVIEW_TIMEOUT',
       action: 'RELEASE_ESCROW',
-      allowedRoles: ['CLIENT', 'FREELANCER', 'SYSTEM'],
+      allowedRoles: ['CLIENT', 'FREELANCER', 'SYSTEM', 'ADMIN'],
       to: 'RELEASED',
     },
     {
@@ -106,37 +106,37 @@ export class EscrowFsmValidator {
     {
       from: 'APPROVED',
       action: 'RELEASE_ESCROW',
-      allowedRoles: ['CLIENT', 'SYSTEM'],
+      allowedRoles: ['CLIENT', 'SYSTEM', 'ADMIN'],
       to: 'RELEASED',
     },
     {
       from: 'APPROVED',
       action: 'INITIATE_SETTLEMENT',
-      allowedRoles: ['CLIENT', 'SYSTEM'],
+      allowedRoles: ['CLIENT', 'SYSTEM', 'ADMIN'],
       to: 'SETTLING',
     },
     {
       from: 'REVIEW_TIMEOUT',
       action: 'INITIATE_SETTLEMENT',
-      allowedRoles: ['CLIENT', 'SYSTEM'],
+      allowedRoles: ['CLIENT', 'SYSTEM', 'ADMIN'],
       to: 'SETTLING',
     },
     {
       from: 'SUBMITTED',
       action: 'INITIATE_SETTLEMENT',
-      allowedRoles: ['CLIENT', 'SYSTEM'],
+      allowedRoles: ['CLIENT', 'SYSTEM', 'ADMIN'],
       to: 'SETTLING',
     },
     {
       from: 'UNDER_REVIEW',
       action: 'INITIATE_SETTLEMENT',
-      allowedRoles: ['CLIENT', 'SYSTEM'],
+      allowedRoles: ['CLIENT', 'SYSTEM', 'ADMIN'],
       to: 'SETTLING',
     },
     {
       from: 'SETTLING',
       action: 'RELEASE_ESCROW',
-      allowedRoles: ['CLIENT', 'SYSTEM'],
+      allowedRoles: ['CLIENT', 'SYSTEM', 'ADMIN'],
       to: 'RELEASED',
     },
     {
@@ -148,25 +148,25 @@ export class EscrowFsmValidator {
     {
       from: 'DISPUTED',
       action: 'RESOLVE_RELEASE',
-      allowedRoles: ['REVIEWER', 'SYSTEM'],
+      allowedRoles: ['REVIEWER', 'SYSTEM', 'ADMIN'],
       to: 'RELEASED',
     },
     {
       from: 'DISPUTED',
       action: 'RESOLVE_REFUND',
-      allowedRoles: ['REVIEWER', 'SYSTEM'],
+      allowedRoles: ['REVIEWER', 'SYSTEM', 'ADMIN'],
       to: 'REFUNDED',
     },
     {
       from: 'DISPUTED',
       action: 'INITIATE_REFUND',
-      allowedRoles: ['REVIEWER', 'SYSTEM'],
+      allowedRoles: ['REVIEWER', 'SYSTEM', 'ADMIN'],
       to: 'REFUND_PENDING',
     },
     {
       from: 'REFUND_PENDING',
       action: 'RESOLVE_REFUND',
-      allowedRoles: ['REVIEWER', 'SYSTEM'],
+      allowedRoles: ['REVIEWER', 'SYSTEM', 'ADMIN'],
       to: 'REFUNDED',
     },
   ];
