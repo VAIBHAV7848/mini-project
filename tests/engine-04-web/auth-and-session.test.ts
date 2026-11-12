@@ -299,5 +299,32 @@ describe('Engine 04 (Web) — Dual Auth, Session Gate & Middleware Suite', () =>
       // Role must fall back to CLIENT for safety
       expect(syncedUser.role).toBe('CLIENT');
     });
+
+    it('identifies fixed admin email chavanpatilvaibhav395@gmail.com and locks role to ADMIN', async () => {
+      expect(AuthService.isAdminEmail('chavanpatilvaibhav395@gmail.com')).toBe(true);
+      expect(AuthService.isAdminEmail('student@kletech.ac.in')).toBe(false);
+
+      const adminUser = await AuthService.syncSupabaseUser({
+        id: crypto.randomUUID(),
+        email: 'chavanpatilvaibhav395@gmail.com',
+        user_metadata: { full_name: 'Vaibhav Chavanpatil' },
+      });
+
+      expect(adminUser.role).toBe('ADMIN');
+    });
+
+    it('allows non-admin OAuth users to designate CLIENT, FREELANCER, or REVIEWER role', async () => {
+      const email = `arbitrator-${Date.now()}@example.com`;
+      const reviewerUser = await AuthService.syncSupabaseUser(
+        {
+          id: crypto.randomUUID(),
+          email,
+          user_metadata: { full_name: 'Independent Arbitrator' },
+        },
+        'REVIEWER'
+      );
+
+      expect(reviewerUser.role).toBe('REVIEWER');
+    });
   });
 });
