@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>End-to-End Product Workflow - Team 07</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1f293d;
+      --client: #0284c7;
+      --client-bg: rgba(2, 132, 199, 0.12);
+      --freelancer: #10b981;
+      --freelancer-bg: rgba(16, 185, 129, 0.12);
+      --escrow: #f59e0b;
+      --escrow-bg: rgba(245, 158, 11, 0.12);
+      --dispute: #ef4444;
+      --dispute-bg: rgba(239, 68, 68, 0.12);
+      --tribunal: #8b5cf6;
+      --tribunal-bg: rgba(139, 92, 246, 0.12);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      width: 3840px;
+      height: 2160px;
+      padding: 60px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 30px;
+      border-bottom: 2px solid var(--border);
+    }
+    .header-left h1 {
+      font-size: 56px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header-left p {
+      font-size: 26px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+    .header-right {
+      display: flex;
+      gap: 20px;
+    }
+    .pill {
+      font-size: 22px;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 9999px;
+      border: 2px solid;
+    }
+    .pill-client { color: #38bdf8; border-color: #0284c7; background: var(--client-bg); }
+    .pill-freelancer { color: #34d399; border-color: #10b981; background: var(--freelancer-bg); }
+    .pill-escrow { color: #fbbf24; border-color: #f59e0b; background: var(--escrow-bg); }
+    .pill-dispute { color: #c084fc; border-color: #8b5cf6; background: var(--tribunal-bg); }
+
+    /* Main Flow Grid */
+    .flow-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: auto auto;
+      gap: 40px;
+      margin: 40px 0;
+      flex: 1;
+    }
+
+    .step-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .step-card.client-tier { border-color: rgba(2, 132, 199, 0.4); }
+    .step-card.freelancer-tier { border-color: rgba(16, 185, 129, 0.4); }
+    .step-card.escrow-tier { border-color: rgba(245, 158, 11, 0.5); background: linear-gradient(180deg, #181f2f 0%, #111827 100%); }
+    .step-card.dispute-tier { border-color: rgba(139, 92, 246, 0.4); }
+
+    .step-num {
+      position: absolute;
+      top: -24px;
+      left: 36px;
+      font-size: 20px;
+      font-weight: 800;
+      padding: 8px 24px;
+      border-radius: 12px;
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: #fff;
+    }
+    .client-tier .step-num { background: #0284c7; border-color: #38bdf8; }
+    .freelancer-tier .step-num { background: #059669; border-color: #34d399; }
+    .escrow-tier .step-num { background: #d97706; border-color: #fbbf24; }
+    .dispute-tier .step-num { background: #7c3aed; border-color: #a78bfa; }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    .step-icon {
+      font-size: 44px;
+    }
+    .step-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .step-body {
+      font-size: 22px;
+      line-height: 1.6;
+      color: var(--muted);
+      flex: 1;
+    }
+    .step-body strong { color: #f1f5f9; }
+    .step-body ul {
+      margin-top: 14px;
+      margin-left: 24px;
+    }
+    .step-body li {
+      margin-bottom: 8px;
+    }
+
+    .step-badge {
+      display: inline-block;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 8px;
+      margin-top: 20px;
+      width: fit-content;
+    }
+    .badge-blue { background: rgba(2, 132, 199, 0.2); color: #38bdf8; }
+    .badge-green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .badge-gold { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .badge-purple { background: rgba(139, 92, 246, 0.2); color: #c084fc; }
+
+    /* Branches section across row 2 */
+    .branches-container {
+      grid-column: span 4;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 36px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 2px dashed #334155;
+      border-radius: 24px;
+      padding: 30px;
+    }
+
+    .branch-card {
+      background: #131b2e;
+      border-radius: 18px;
+      padding: 30px 34px;
+      border: 2px solid;
+    }
+    .branch-a { border-color: #10b981; }
+    .branch-b { border-color: #f59e0b; }
+    .branch-c { border-color: #ef4444; }
+
+    .branch-title {
+      font-size: 28px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .branch-a .branch-title { color: #34d399; }
+    .branch-b .branch-title { color: #fbbf24; }
+    .branch-c .branch-title { color: #f87171; }
+
+    .branch-desc {
+      font-size: 21px;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    /* Footer summary */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 24px;
+      border-top: 2px solid var(--border);
+      font-size: 22px;
+      color: var(--muted);
+    }
+    .footer-highlight {
+      color: #f8fafc;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <h1>Milestone-Based Escrow & Dispute Resolution: Complete Product Workflow</h1>
+      <p>KLE Technological University · Team 07 · End-to-End Operational Journey & Protocol Lifecycle</p>
+    </div>
+    <div class="header-right">
+      <div class="pill pill-client">👤 Client Role</div>
+      <div class="pill pill-freelancer">💼 Freelancer Role</div>
+      <div class="pill pill-escrow">🔒 Escrow Vault</div>
+      <div class="pill pill-dispute">⚖️ Dispute Arbitrator</div>
+    </div>
+  </header>
+
+  <div class="flow-container">
+
+    <!-- Step 1 -->
+    <div class="step-card client-tier">
+      <div class="step-num">STEP 1</div>
+      <div>
+        <div class="step-header">
+          <span class="step-icon">📋</span>
+          <div class="step-title">Project & Milestones</div>
+        </div>
+        <div class="step-body">
+          Client creates a structured project listing:
+          <ul>
+            <li>Defines <strong>Scope & Acceptance Criteria</strong></li>
+            <li>Configures <strong>Sequential Milestones</strong></li>
+            <li>Sets <strong>Milestone Budgets & Due Dates</strong></li>
+            <li>Specifies required skill tags</li>
+          </ul>
+        </div>
+      </div>
+      <div class="step-badge badge-blue">Initiated by Client</div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-card freelancer-tier">
+      <div class="step-num">STEP 2</div>
+      <div>
+        <div class="step-header">
+          <span class="step-icon">🎯</span>
+          <div class="step-title">Bidding & AI Match</div>
+        </div>
+        <div class="step-body">
+          Freelancers bid and get scored deterministically:
+          <ul>
+            <li>Freelancers submit milestone bids & cover notes</li>
+            <li><strong>AI Matcher ranks proposals (0-100%)</strong>:</li>
+            <li>50% Skill Jaccard + 30% Budget + 20% DevScore</li>
+            <li>Client reviews top-ranked bids</li>
+          </ul>
+        </div>
+      </div>
+      <div class="step-badge badge-green">Algorithmic Ranking</div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-card escrow-tier">
+      <div class="step-num">STEP 3</div>
+      <div>
+        <div class="step-header">
+          <span class="step-icon">🔒</span>
+          <div class="step-title">Atomic Escrow Deposit</div>
+        </div>
+        <div class="step-body">
+          Client accepts bid and locks milestone capital:
+          <ul>
+            <li>Client funds escrow via <strong>UPI QR or Wallet</strong></li>
+            <li><strong>KeyedMutex acquires concurrency lock</strong></li>
+            <li>ACID ledger debits client & credits escrow</li>
+            <li>Status changes: <strong>AWAITING_DEPOSIT ➔ FUNDED</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="step-badge badge-gold">Guaranteed Funds (Zero Counterparty Risk)</div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step-card freelancer-tier">
+      <div class="step-num">STEP 4</div>
+      <div>
+        <div class="step-header">
+          <span class="step-icon">💻</span>
+          <div class="step-title">Execution & SHA-256</div>
+        </div>
+        <div class="step-body">
+          Freelancer completes work and delivers proof:
+          <ul>
+            <li>Transitions to <strong>IN_PROGRESS</strong></li>
+            <li>Freelancer uploads deliverable archive (ZIP/Code)</li>
+            <li><strong>Streaming SHA-256 Checksum computed</strong></li>
+            <li>Enters <strong>UNDER_REVIEW</strong> (starts 7-day clock)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="step-badge badge-green">Cryptographic Fingerprint Generated</div>
+    </div>
+
+    <!-- Branches Section (Step 5) -->
+    <div class="branches-container">
+
+      <!-- Branch A -->
+      <div class="branch-card branch-a">
+        <div class="branch-title">
+          <span>✅</span> Path A: Client Approval (Happy Path)
+        </div>
+        <div class="branch-desc">
+          Client inspects work in <strong>Deliverable Inspector</strong>, verifies SHA-256 checksum, and approves:
+          <br><br>
+          • Escrow ledger executes instant double-entry transfer to Freelancer's wallet.<br>
+          • Milestone transitions to terminal state: <strong>RELEASED</strong>.<br>
+          • Next sequential milestone automatically unlocks and is ready for funding!
+        </div>
+      </div>
+
+      <!-- Branch B -->
+      <div class="branch-card branch-b">
+        <div class="branch-title">
+          <span>⏱️</span> Path B: 7-Day Watchdog Timeout
+        </div>
+        <div class="branch-desc">
+          If the Client becomes unresponsive / ghosts for 7 full calendar days after delivery:
+          <br><br>
+          • Automated <strong>Review Watchdog Scheduler</strong> triggers.<br>
+          • Transitions milestone: <strong>UNDER_REVIEW ➔ REVIEW_TIMEOUT</strong>.<br>
+          • Auto-disburses escrow to the Freelancer, preventing developer starvation!
+        </div>
+      </div>
+
+      <!-- Branch C -->
+      <div class="branch-card branch-c">
+        <div class="branch-title">
+          <span>⚖️</span> Path C: Evidence Dispute Tribunal
+        </div>
+        <div class="branch-desc">
+          If work is defective or disputed by either party:
+          <br><br>
+          • Escrow is immediately frozen in <strong>DISPUTED</strong> state.<br>
+          • Counter-evidence & test logs form an N-ary <strong>Merkle Evidence Tree</strong>.<br>
+          • Impartial Dispute Reviewer renders binding ruling (Release / Refund / Split).
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>
+    <div>
+      <span class="footer-highlight">Core Invariant:</span> Conservation of Funds (Δ Client + Δ Escrow + Δ Freelancer = 0) · Every transition linked in an append-only SHA-256 Audit Log.
+    </div>
+    <div>
+      <span class="footer-highlight">KLE Tech Team 07:</span> Vaishnavi Modekar · Darshan Kittur · Purvi Sammatshetti · Vaibhav Chavanpatil
+    </div>
+  </footer>
+
+</body>
+</html>

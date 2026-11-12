@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team 07 | Milestone-Based Escrow & Evidence-Based Dispute Resolution Workflow</title>
+  <!-- Mermaid.js from jsDelivr CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-card: rgba(17, 24, 39, 0.85);
+      --border-color: rgba(255, 255, 255, 0.12);
+      --text-primary: #f9fafb;
+      --text-secondary: #9ca3af;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --e1-color: #a855f7;
+      --e1-bg: rgba(168, 85, 247, 0.15);
+      --e2-color: #10b981;
+      --e2-bg: rgba(16, 185, 129, 0.15);
+      --e3-color: #f59e0b;
+      --e3-bg: rgba(245, 158, 11, 0.15);
+      --e4-color: #3b82f6;
+      --e4-bg: rgba(59, 130, 246, 0.15);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.92);
+      --border-color: rgba(0, 0, 0, 0.1);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --accent-color: #2563eb;
+      --accent-hover: #1d4ed8;
+      --e1-color: #7c3aed;
+      --e1-bg: rgba(124, 58, 237, 0.1);
+      --e2-color: #059669;
+      --e2-bg: rgba(5, 150, 105, 0.1);
+      --e3-color: #d97706;
+      --e3-bg: rgba(217, 119, 6, 0.1);
+      --e4-color: #2563eb;
+      --e4-bg: rgba(37, 99, 235, 0.1);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      height: 100vh;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    header {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 50;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-section { display: flex; flex-direction: column; gap: 4px; }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .team-badge {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .brand-subtitle { font-size: 0.8rem; color: var(--text-secondary); }
+    .top-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .btn {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .btn:hover { background: var(--border-color); transform: translateY(-1px); }
+    .btn-primary { background: var(--accent-color); color: #fff; border-color: transparent; }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .filter-bar {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow-x: auto;
+      z-index: 40;
+    }
+
+    .filter-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .engine-chip {
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip-all { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-color); }
+    .chip-all.active { background: var(--text-primary); color: var(--bg-primary); }
+    .chip-e1 { background: var(--e1-bg); color: var(--e1-color); border-color: rgba(168, 85, 247, 0.3); }
+    .chip-e1.active { background: var(--e1-color); color: #fff; }
+    .chip-e2 { background: var(--e2-bg); color: var(--e2-color); border-color: rgba(16, 185, 129, 0.3); }
+    .chip-e2.active { background: var(--e2-color); color: #fff; }
+    .chip-e3 { background: var(--e3-bg); color: var(--e3-color); border-color: rgba(245, 158, 11, 0.3); }
+    .chip-e3.active { background: var(--e3-color); color: #fff; }
+    .chip-e4 { background: var(--e4-bg); color: var(--e4-color); border-color: rgba(59, 130, 246, 0.3); }
+    .chip-e4.active { background: var(--e4-color); color: #fff; }
+
+    .main-container { flex: 1; height: calc(100vh - 110px); position: relative; overflow: hidden; display: flex; }
+
+    #diagram-viewport {
+      flex: 1;
+      height: 100%;
+      width: 100%;
+      cursor: grab;
+      user-select: none;
+      background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+      background-size: 24px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #diagram-viewport:active { cursor: grabbing; }
+
+    #diagram-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 100%;
+      min-height: 100%;
+      padding: 40px;
+    }
+
+    .floating-hud {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-lg);
+      z-index: 30;
+    }
+
+    .hud-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 700;
+      transition: all 0.15s ease;
+    }
+
+    .hud-btn:hover { background: var(--border-color); }
+    .zoom-level { font-size: 0.72rem; font-weight: 700; text-align: center; color: var(--text-secondary); padding: 2px 0; }
+
+    .legend-panel {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      width: 320px;
+      max-height: calc(100% - 32px);
+      overflow-y: auto;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: var(--shadow-lg);
+      z-index: 30;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .legend-panel.collapsed { transform: translateX(-340px); }
+    .legend-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .legend-title { font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .legend-toggle-btn {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 29;
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .engine-card {
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border: 1px solid transparent;
+      background: var(--bg-secondary);
+      font-size: 0.8rem;
+    }
+
+    .engine-card.e1 { border-left: 4px solid var(--e1-color); }
+    .engine-card.e2 { border-left: 4px solid var(--e2-color); }
+    .engine-card.e3 { border-left: 4px solid var(--e3-color); }
+    .engine-card.e4 { border-left: 4px solid var(--e4-color); }
+
+    .engine-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .engine-card-title { font-weight: 700; font-size: 0.82rem; }
+    .engine-card-lead { color: var(--text-secondary); font-size: 0.72rem; margin-bottom: 6px; }
+    .engine-card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag { font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; background: var(--border-color); color: var(--text-primary); }
+
+    .inspector-modal {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(150%);
+      width: min(650px, 92vw);
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      z-index: 60;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .inspector-modal.open { transform: translateX(-50%) translateY(0); }
+    .inspector-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .inspector-title { font-size: 1.05rem; font-weight: 700; }
+    .inspector-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; margin-top: 4px; }
+    .inspector-body { font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary); margin-bottom: 16px; }
+    .inspector-spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .spec-item { background: var(--bg-secondary); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+    .spec-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary); }
+    .spec-value { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); margin-top: 2px; }
+
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--accent-color);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .dimmed { opacity: 0.15 !important; transition: opacity 0.3s ease; }
+    .highlighted { filter: drop-shadow(0 0 10px var(--accent-color)); transition: filter 0.3s ease, opacity 0.3s ease; }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <header>
+    <div class="brand-section">
+      <div class="brand-title">
+        <span>Team 07 | Milestone Escrow & Dispute Resolution</span>
+        <span class="team-badge">Theme 01</span>
+      </div>
+      <div class="brand-subtitle">
+        KLE Technological University · Computer Science & Engineering · Interactive System Workflow Architecture
+      </div>
+    </div>
+
+    <div class="top-controls">
+      <button class="btn" id="btn-theme" title="Toggle Light/Dark Theme">
+        <span id="theme-icon">☀️</span> <span id="theme-text">Light Mode</span>
+      </button>
+      <button class="btn" id="btn-fit" title="Fit Diagram to Viewport">📐 Fit to Screen</button>
+      <button class="btn" id="btn-export-svg" title="Download High-Resolution SVG">📥 Export SVG</button>
+      <button class="btn" id="btn-export-png" title="Download PNG Screenshot">🖼️ Export PNG</button>
+      <button class="btn btn-primary" id="btn-code" title="Copy Mermaid Diagram Source">📋 Copy Code</button>
+    </div>
+  </header>
+
+  <div class="filter-bar">
+    <span class="filter-label">Filter Engine:</span>
+    <button class="engine-chip chip-all active" data-engine="all">Show All Engines</button>
+    <button class="engine-chip chip-e1" data-engine="e1">🟣 Engine 01: OS (Vaishnavi)</button>
+    <button class="engine-chip chip-e2" data-engine="e2">🟢 Engine 02: DSA & SE (Darshan)</button>
+    <button class="engine-chip chip-e3" data-engine="e3">🟠 Engine 03: DBMS (Purvi)</button>
+    <button class="engine-chip chip-e4" data-engine="e4">🔵 Engine 04: Web Tech (Vaibhav)</button>
+  </div>
+
+  <div class="main-container">
+    <button class="legend-toggle-btn" id="btn-toggle-legend" style="display: none;">
+      📑 Show Legend & Team
+    </button>
+
+    <aside class="legend-panel" id="legend-panel">
+      <div class="legend-header">
+        <span class="legend-title">Four-Engine Architecture</span>
+        <button class="btn" id="btn-close-legend" style="padding: 2px 6px; font-size: 0.75rem;">✕</button>
+      </div>
+
+      <div class="engine-card e1">
+        <div class="engine-card-header">
+          <span class="engine-card-title" style="color: var(--e1-color);">Engine 01 (OS Engine)</span>
+          <span class="tag">Vaishnavi Modekar</span>
+        </div>
+        <div class="engine-card-lead">Roll No: 21 · SRN: 02FE24BCS060</div>
+        <div class="engine-card-tags">
+          <span class="tag">Escrow FSM</span>
+          <span class="tag">KeyedMutex Lock</span>
+          <span class="tag">7-Day Watchdog</span>
+          <span class="tag">Concurrency Safety</span>
+        </div>
+      </div>
+
+      <div class="engine-card e2">
+        <div class="engine-card-header">
+          <span class="engine-card-title" style="color: var(--e2-color);">Engine 02 (DSA & SE)</span>
+          <span class="tag">Darshan Kittur</span>
+        </div>
+        <div class="engine-card-lead">Roll No: 18 · SRN: 02FE24BCS053</div>
+        <div class="engine-card-tags">
+          <span class="tag">SHA-256 Hashes</span>
+          <span class="tag">N-ary EvidenceTree</span>
+          <span class="tag">Jaccard Matcher</span>
+          <span class="tag">RTM Verification</span>
+        </div>
+      </div>
+
+      <div class="engine-card e3">
+        <div class="engine-card-header">
+          <span class="engine-card-title" style="color: var(--e3-color);">Engine 03 (DBMS Engine)</span>
+          <span class="tag">Purvi Sammatshetti</span>
+        </div>
+        <div class="engine-card-lead">Roll No: 11 · SRN: 02FE24BCS022</div>
+        <div class="engine-card-tags">
+          <span class="tag">BCNF Relational DB</span>
+          <span class="tag">ACID Ledger</span>
+          <span class="tag">Chained Audit Log</span>
+          <span class="tag">SQLite WAL</span>
+        </div>
+      </div>
+
+      <div class="engine-card e4">
+        <div class="engine-card-header">
+          <span class="engine-card-title" style="color: var(--e4-color);">Engine 04 (Web Engine)</span>
+          <span class="tag">Vaibhav Chavanpatil</span>
+        </div>
+        <div class="engine-card-lead">Roll No: 04 · SRN: 02FE24BCS013</div>
+        <div class="engine-card-tags">
+          <span class="tag">Next.js 16 / React 19</span>
+          <span class="tag">Server RBAC</span>
+          <span class="tag">5s State Poller</span>
+          <span class="tag">Role Dashboards</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 14px; line-height: 1.4;">
+        💡 <strong>Tip:</strong> Click on any diagram node to open detailed technical specifications. Use mouse wheel to zoom, or drag to pan around.
+      </div>
+    </aside>
+
+    <div class="floating-hud">
+      <button class="hud-btn" id="btn-zoom-in" title="Zoom In">+</button>
+      <div class="zoom-level" id="zoom-text">100%</div>
+      <button class="hud-btn" id="btn-zoom-out" title="Zoom Out">−</button>
+      <button class="hud-btn" id="btn-zoom-reset" title="Reset Zoom">↺</button>
+      <button class="hud-btn" id="btn-fullscreen" title="Toggle Fullscreen">⛶</button>
+    </div>
+
+    <div id="diagram-viewport">
+      <div id="diagram-content">
+        <div class="loader" id="loader">
+          <div class="spinner"></div>
+          <span>Rendering Architecture Workflow...</span>
+        </div>
+        <div id="mermaid-target" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="inspector-modal" id="inspector-modal">
+    <div class="inspector-header">
+      <div>
+        <h3 class="inspector-title" id="node-title">Node Title</h3>
+        <span class="inspector-badge" id="node-engine-badge">Engine Owner</span>
+      </div>
+      <button class="btn" id="btn-close-inspector" style="padding: 4px 8px;">✕</button>
+    </div>
+    <p class="inspector-body" id="node-desc">Technical description of this workflow step.</p>
+    <div class="inspector-spec-grid">
+      <div class="spec-item">
+        <div class="spec-label">Academic Engine & Owner</div>
+        <div class="spec-value" id="node-owner">—</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-label">Enforced Invariant / Standard</div>
+        <div class="spec-value" id="node-invariant">—</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-label">Algorithm / Primitive</div>
+        <div class="spec-value" id="node-algo">—</div>
+      </div>
+      <div class="spec-item">
+        <div class="spec-label">Source Component Path</div>
+        <div class="spec-value" id="node-path">—</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/plain" id="raw-mermaid-code">
+flowchart TD
+    subgraph S_WEB ["Engine 04: Web Technologies Engine (Vaibhav Chavanpatil · Roll 04)"]
+        UI_Actors["👥 Platform Personas<br><b>Client | Freelancer | Reviewer | Admin</b>"]
+        UI_RBAC["🛡️ Server-Side RBAC & Session Enforcer<br><i>HMAC Timing-Safe Guard (FR-08)</i>"]
+        UI_Dash["📊 Role-Based Dashboards & Forms<br><i>Next.js 16 · React 19 · Zod 4 (FR-07)</i>"]
+        UI_Poll["🔄 5-Second Real-Time State Poller<br><i>Live Milestone Synchronizer (FR-10)</i>"]
+    end
+
+    subgraph S_DSA ["Engine 02: DSA & SE Engine (Darshan Kittur · Roll 18)"]
+        DSA_Match["🎯 Heuristic Proposal Matcher<br><i>50% Jaccard + 30% DevScore + 20% Budget (FR-11)</i>"]
+        DSA_Hash["🔐 SHA-256 Deliverable Checksum Pipeline<br><i>Streaming Crypto Hasher (FR-03)</i>"]
+        DSA_Tree["🌳 N-ary Merkle EvidenceTree Indexer<br><i>O(V+E) Causal Traversal & Tamper Scan (FR-04)</i>"]
+        DSA_RTM["📋 Requirements Traceability Matrix (RTM)<br><i>100% Automated V&V Gate</i>"]
+    end
+
+    subgraph S_OS ["Engine 01: OS Engine (Vaishnavi Modekar · Roll 21)"]
+        OS_Mutex["🔒 KeyedMutex Concurrency Guard<br><i>Critical Section Serializer (NFR-08)</i>"]
+        OS_FSM["⚙️ Escrow Finite State Machine (FSM)<br><i>AWAITING_DEPOSIT → FUNDED → IN_PROGRESS → UNDER_REVIEW</i>"]
+        OS_Watchdog["⏱️ 7-Day Review Watchdog Scheduler<br><i>Anti-Starvation Escalation Timer (D-02)</i>"]
+    end
+
+    subgraph S_DBMS ["Engine 03: DBMS Engine (Purvi Sammatshetti · Roll 11)"]
+        DB_Ledger["💰 ACID Double-Entry Ledger<br><i>Conservation: ΔEscrow + ΔUser = 0 (FR-05)</i>"]
+        DB_BCNF["🗄️ Relational BCNF Schema<br><i>SQLite 3 (WAL Journal Mode)</i>"]
+        DB_Audit["📜 Chained Cryptographic Audit Trail<br><i>Hash_n = SHA256(Payload + Hash_n-1) (FR-06)</i>"]
+    end
+
+    UI_Actors -->|1. Authenticate via Credentials| UI_RBAC
+    UI_RBAC -->|2. Enforce Role & Issue Session| UI_Dash
+
+    UI_Dash -->|3. Client Posts Project / Freelancer Bids| DSA_Match
+    DSA_Match -->|4. Ranked Proposals 0.00-100.00%| UI_Dash
+
+    UI_Dash -->|5. Accept Proposal & Form Contract| OS_Mutex
+    OS_Mutex -->|6. Acquire Milestone Lock| OS_FSM
+
+    OS_FSM -->|7. Transition to AWAITING_DEPOSIT| DB_BCNF
+    UI_Dash -->|8. Client Funds Escrow Deposit| DB_Ledger
+    DB_Ledger -->|9. Atomic Balance Lock & Record TX| OS_FSM
+    OS_FSM -->|10. Milestone Status: FUNDED| UI_Dash
+
+    UI_Dash -->|11. Freelancer Uploads Deliverable| DSA_Hash
+    DSA_Hash -->|12. Compute 64-char Hex Digest| DB_BCNF
+    DSA_Hash -->|13. Submit Deliverable Event| OS_FSM
+    OS_FSM -->|14. State: UNDER_REVIEW & Arm Watchdog| OS_Watchdog
+
+    OS_Watchdog -->|15a. Client Approves Work| OS_FSM
+    OS_Watchdog -->|15b. 7-Day Watchdog Auto-Approval| OS_FSM
+    OS_Watchdog -->|15c. Defect or Disagreement Raised| OS_FSM
+
+    OS_FSM -->|16a. State: APPROVED -> Trigger Release| DB_Ledger
+    DB_Ledger -->|17a. Release Escrow to Freelancer Balance| DB_BCNF
+    OS_FSM -->|18a. Next Phased Milestone Activated| UI_Dash
+
+    OS_FSM -->|"16b. State: DISPUTED (Escrow Frozen)"| UI_Dash
+    UI_Dash -->|17b. Counter-Evidence Uploaded| DSA_Tree
+    DSA_Tree -->|18b. Verify Merkle Leaf Hashes| UI_Dash
+    UI_Dash -->|19b. Arbiter Inspects EvidenceTree| OS_FSM
+    OS_FSM -->|20b. Binding Ruling: Release / Refund / Split| DB_Ledger
+    DB_Ledger -->|21b. Atomic Settlement & Close Dispute| DB_BCNF
+
+    OS_FSM -.->|Emit State Event| DB_Audit
+    DB_Ledger -.->|Emit Transaction Event| DB_Audit
+    DSA_Hash -.->|Emit Checksum Verified Event| DB_Audit
+    DB_BCNF -.->|5s Status Snapshot| UI_Poll
+    UI_Poll -.->|Reactive Stepper Refresh| UI_Dash
+
+    classDef e1Node fill:#2e1065,stroke:#a855f7,stroke-width:2px,color:#f5f3ff;
+    classDef e2Node fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#ecfdf5;
+    classDef e3Node fill:#451a03,stroke:#f59e0b,stroke-width:2px,color:#fffbeb;
+    classDef e4Node fill:#172554,stroke:#3b82f6,stroke-width:2px,color:#eff6ff;
+
+    class OS_Mutex,OS_FSM,OS_Watchdog e1Node;
+    class DSA_Match,DSA_Hash,DSA_Tree,DSA_RTM e2Node;
+    class DB_Ledger,DB_BCNF,DB_Audit e3Node;
+    class UI_Actors,UI_RBAC,UI_Dash,UI_Poll e4Node;
+  </script>
+
+  <script>
+    const NODE_METADATA = {
+      UI_Actors: {
+        title: "Platform Personas & Workspaces",
+        engine: "Engine 04 (Web Technologies)",
+        owner: "Vaibhav Chavanpatil (Roll 04 · 02FE24BCS013)",
+        invariant: "Strict persona separation: Client, Freelancer, Reviewer, Admin",
+        algo: "Role-Based Access Control (RBAC)",
+        path: "src/app/(dashboard)/[role]/*",
+        desc: "Interactive dashboards offering tailored workspaces. Clients post gigs and inspect milestones; freelancers submit bids and code deliverables; dispute reviewers inspect EvidenceTrees; admins audit transactions."
+      },
+      UI_RBAC: {
+        title: "Server-Side RBAC & Session Guard",
+        engine: "Engine 04 (Web Technologies)",
+        owner: "Vaibhav Chavanpatil (Roll 04 · 02FE24BCS013)",
+        invariant: "Non-bypassable server authorization; returns HTTP 401/403",
+        algo: "HMAC-SHA256 Token Signature Verification",
+        path: "src/core/engine-04-web/rbac.ts",
+        desc: "Guarantees that frontend tab navigation cannot bypass server security. Every REST API endpoint validates caller claims, user role, and session integrity before passing control to the domain engines."
+      },
+      UI_Dash: {
+        title: "Role-Based Dashboards & Forms",
+        engine: "Engine 04 (Web Technologies)",
+        owner: "Vaibhav Chavanpatil (Roll 04 · 02FE24BCS013)",
+        invariant: "Zero unvalidated input reaching DB; responsive desktop/mobile",
+        algo: "Zod 4 Schema Parsing & React 19 Concurrent Primitives",
+        path: "src/app/(dashboard)/*",
+        desc: "Provides reactive UI views, interactive milestone progress steppers, and multi-step forms with client and server Zod boundary validation."
+      },
+      UI_Poll: {
+        title: "5-Second Real-Time State Poller",
+        engine: "Engine 04 (Web Technologies)",
+        owner: "Vaibhav Chavanpatil (Roll 04 · 02FE24BCS013)",
+        invariant: "Dashboard stays synchronized within <= 5s + latency",
+        algo: "Optimistic Polling Snapshot Loop with Backoff",
+        path: "src/core/engine-04-web/poller.ts",
+        desc: "Eliminates full manual page reloads by periodically checking active milestone states, updating action buttons and escrow badges automatically as state changes occur."
+      },
+      DSA_Match: {
+        title: "Heuristic Proposal Matcher (FR-11)",
+        engine: "Engine 02 (DSA & SE Engine)",
+        owner: "Darshan Kittur (Roll 18 · 02FE24BCS053)",
+        invariant: "Deterministic multi-attribute score between 0.00% and 100.00%",
+        algo: "Score = 0.50*Jaccard(Skills) + 0.30*DevScore + 0.20*BudgetFit",
+        path: "src/core/engine-02-dsa-se/matcher.ts",
+        desc: "Matches incoming developer bids to client project criteria using objective Jaccard set overlap on skill tags, weighted against developer track record ratings and budget alignment."
+      },
+      DSA_Hash: {
+        title: "SHA-256 Deliverable Checksum Pipeline",
+        engine: "Engine 02 (DSA & SE Engine)",
+        owner: "Darshan Kittur (Roll 18 · 02FE24BCS053)",
+        invariant: "Non-repudiation; byte modification invalidates checksum",
+        algo: "Streaming Node.js Crypto SHA-256 Digest",
+        path: "src/core/engine-02-dsa-se/hasher.ts",
+        desc: "Computes a tamper-evident 64-character hexadecimal SHA-256 hash across all uploaded zip archives and deliverables to guarantee deliverable integrity throughout the contract lifecycle."
+      },
+      DSA_Tree: {
+        title: "N-ary Merkle EvidenceTree Indexer",
+        engine: "Engine 02 (DSA & SE Engine)",
+        owner: "Darshan Kittur (Roll 18 · 02FE24BCS053)",
+        invariant: "Tamper-evident causal DAG; single bit flip alters node hash",
+        algo: "O(V + E) Bottom-Up Merkle Tree Traversal",
+        path: "src/core/engine-02-dsa-se/evidence-tree.ts",
+        desc: "Structures dispute arguments, initial contracts, and multiple deliverable versions into a hierarchical N-ary causal tree, allowing arbiters to quickly detect tampering and verify evidence."
+      },
+      DSA_RTM: {
+        title: "Requirements Traceability Matrix (RTM)",
+        engine: "Engine 02 (DSA & SE Engine)",
+        owner: "Darshan Kittur (Roll 18 · 02FE24BCS053)",
+        invariant: "100% test coverage across FR-01 through FR-12",
+        algo: "Automated Verification & Validation Pipeline",
+        path: "src/core/engine-02-dsa-se/rtm.ts",
+        desc: "Connects every academic requirement to its corresponding test suite and engine implementation, confirming zero unverified specifications."
+      },
+      OS_Mutex: {
+        title: "KeyedMutex Concurrency Lock",
+        engine: "Engine 01 (OS Engine)",
+        owner: "Vaishnavi Modekar (Roll 21 · 02FE24BCS060)",
+        invariant: "Strict mutual exclusion; no concurrent release/dispute races",
+        algo: "Async Mutex keyed by milestoneId with Timeout Safety",
+        path: "src/core/engine-01-os/mutex.ts",
+        desc: "Serializes concurrent actions on the same milestone (such as simultaneous client release vs dispute submission) to eliminate Time-Of-Check to Time-Of-Use (TOCTOU) race conditions."
+      },
+      OS_FSM: {
+        title: "Escrow Finite State Machine (FSM)",
+        engine: "Engine 01 (OS Engine)",
+        owner: "Vaishnavi Modekar (Roll 21 · 02FE24BCS060)",
+        invariant: "Deterministic transitions; terminal states are immutable",
+        algo: "Formal State Transition Matrix Validator",
+        path: "src/core/engine-01-os/escrow-fsm.ts",
+        desc: "Defines and validates the 9 formal states: AWAITING_DEPOSIT, FUNDED, IN_PROGRESS, SUBMITTED, UNDER_REVIEW, APPROVED, RELEASED, REFUNDED, DISPUTED. Rejects illegal skips."
+      },
+      OS_Watchdog: {
+        title: "7-Day Review Watchdog Scheduler",
+        engine: "Engine 01 (OS Engine)",
+        owner: "Vaishnavi Modekar (Roll 21 · 02FE24BCS060)",
+        invariant: "Prevents developer payment starvation if client is unresponsive",
+        algo: "Interval Timer Tick: Now() >= submittedAt + 7 days",
+        path: "src/core/engine-01-os/watchdog.ts",
+        desc: "Evaluates active milestones under review. If 7 calendar days elapse without client objection or dispute, the watchdog automatically transitions the milestone to APPROVED and releases escrow."
+      },
+      DB_Ledger: {
+        title: "ACID Double-Entry Ledger",
+        engine: "Engine 03 (DBMS Engine)",
+        owner: "Purvi Sammatshetti (Roll 11 · 02FE24BCS022)",
+        invariant: "Mathematical Conservation of Funds: Sum(Delta B) = 0",
+        algo: "Prisma Serialized Transactions ($transaction)",
+        path: "src/core/engine-03-dbms/ledger.ts",
+        desc: "Executes financial movements (deposit, lock, release, refund, split) inside strict ACID transactions, ensuring that wallet debits and escrow credits always balance exactly to zero."
+      },
+      DB_BCNF: {
+        title: "Relational BCNF Schema Storage",
+        engine: "Engine 03 (DBMS Engine)",
+        owner: "Purvi Sammatshetti (Roll 11 · 02FE24BCS022)",
+        invariant: "Boyce-Codd Normal Form; Foreign Key Cascades & Indices",
+        algo: "SQLite 3 Engine in Write-Ahead Logging (WAL) Mode",
+        path: "prisma/schema.prisma",
+        desc: "Normalizes users, projects, proposals, contracts, milestones, deliverables, disputes, and transactions. Configured in WAL mode for high concurrent read/write throughput."
+      },
+      DB_Audit: {
+        title: "Chained Cryptographic Audit Trail",
+        engine: "Engine 03 (DBMS Engine)",
+        owner: "Purvi Sammatshetti (Roll 11 · 02FE24BCS022)",
+        invariant: "Append-only immutability; UPDATE and DELETE disallowed",
+        algo: "Hash Chaining: Hash_n = SHA256(Payload_n + Hash_n-1)",
+        path: "src/core/engine-03-dbms/audit-logger.ts",
+        desc: "Every critical state change and financial transfer writes an append-only row cryptographically linked to the previous record hash, giving auditors an immutable verification log."
+      }
+    };
+
+    let currentTheme = 'dark';
+    let zoomScale = 1.0;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let activeFilter = 'all';
+
+    const viewport = document.getElementById('diagram-viewport');
+    const content = document.getElementById('diagram-content');
+    const zoomText = document.getElementById('zoom-text');
+    const rawCode = document.getElementById('raw-mermaid-code').textContent.trim();
+
+    function initMermaid(theme) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: theme === 'dark' ? 'dark' : 'default',
+        securityLevel: 'loose',
+        flowchart: {
+          useMaxWidth: false,
+          htmlLabels: true,
+          curve: 'basis'
+        }
+      });
+    }
+
+    async function renderDiagram() {
+      const loader = document.getElementById('loader');
+      const target = document.getElementById('mermaid-target');
+      loader.style.display = 'flex';
+      target.style.display = 'none';
+
+      initMermaid(currentTheme);
+
+      try {
+        const id = 'mermaid-svg-' + Date.now();
+        const { svg } = await mermaid.render(id, rawCode);
+        target.innerHTML = svg;
+        target.style.display = 'block';
+        loader.style.display = 'none';
+
+        setupSvgInteractivity();
+        fitToScreen();
+      } catch (err) {
+        console.error('Mermaid render error:', err);
+        loader.innerHTML = '<span style="color:#ef4444;">Failed to render Mermaid diagram. Check console logs.</span>';
+      }
+    }
+
+    function updateTransform() {
+      content.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+      zoomText.textContent = `${Math.round(zoomScale * 100)}%`;
+    }
+
+    function fitToScreen() {
+      const svg = document.querySelector('#mermaid-target svg');
+      if (!svg) return;
+
+      const vRect = viewport.getBoundingClientRect();
+      const bBox = svg.getBBox ? svg.getBBox() : { width: svg.clientWidth || 1000, height: svg.clientHeight || 800 };
+
+      const scaleX = (vRect.width - 80) / bBox.width;
+      const scaleY = (vRect.height - 80) / bBox.height;
+      zoomScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.35), 1.6);
+
+      panX = (vRect.width - bBox.width * zoomScale) / 2;
+      panY = Math.max((vRect.height - bBox.height * zoomScale) / 2, 20);
+
+      updateTransform();
+    }
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.inspector-modal') || e.target.closest('.floating-hud') || e.target.closest('.legend-panel')) return;
+      isDragging = true;
+      dragStartX = e.clientX - panX;
+      dragStartY = e.clientY - panY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      panX = e.clientX - dragStartX;
+      panY = e.clientY - dragStartY;
+      updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = 1.12;
+      const vRect = viewport.getBoundingClientRect();
+      const mouseX = e.clientX - vRect.left;
+      const mouseY = e.clientY - vRect.top;
+
+      const prevScale = zoomScale;
+      if (e.deltaY < 0) {
+        zoomScale = Math.min(zoomScale * zoomFactor, 3.5);
+      } else {
+        zoomScale = Math.max(zoomScale / zoomFactor, 0.25);
+      }
+
+      panX = mouseX - (mouseX - panX) * (zoomScale / prevScale);
+      panY = mouseY - (mouseY - panY) * (zoomScale / prevScale);
+
+      updateTransform();
+    }, { passive: false });
+
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+      zoomScale = Math.min(zoomScale * 1.25, 3.5);
+      updateTransform();
+    });
+
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+      zoomScale = Math.max(zoomScale / 1.25, 0.25);
+      updateTransform();
+    });
+
+    document.getElementById('btn-zoom-reset').addEventListener('click', () => {
+      zoomScale = 1.0;
+      panX = 0;
+      panY = 0;
+      updateTransform();
+    });
+
+    document.getElementById('btn-fit').addEventListener('click', fitToScreen);
+
+    document.getElementById('btn-fullscreen').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => alert(err.message));
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    const themeBtn = document.getElementById('btn-theme');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+
+    themeBtn.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', currentTheme);
+      themeIcon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+      themeText.textContent = currentTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+      renderDiagram();
+    });
+
+    const legendPanel = document.getElementById('legend-panel');
+    const showLegendBtn = document.getElementById('btn-toggle-legend');
+    document.getElementById('btn-close-legend').addEventListener('click', () => {
+      legendPanel.classList.add('collapsed');
+      showLegendBtn.style.display = 'block';
+    });
+    showLegendBtn.addEventListener('click', () => {
+      legendPanel.classList.remove('collapsed');
+      showLegendBtn.style.display = 'none';
+    });
+
+    const inspectorModal = document.getElementById('inspector-modal');
+    document.getElementById('btn-close-inspector').addEventListener('click', () => {
+      inspectorModal.classList.remove('open');
+    });
+
+    function setupSvgInteractivity() {
+      const svg = document.querySelector('#mermaid-target svg');
+      if (!svg) return;
+
+      const nodeElements = svg.querySelectorAll('.node');
+      nodeElements.forEach(node => {
+        node.style.cursor = 'pointer';
+        node.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const nodeId = node.id.replace(/^flowchart-/, '').split('-')[0];
+          showNodeInspector(nodeId);
+        });
+      });
+    }
+
+    function showNodeInspector(nodeId) {
+      const meta = NODE_METADATA[nodeId];
+      if (!meta) return;
+
+      document.getElementById('node-title').textContent = meta.title;
+      document.getElementById('node-engine-badge').textContent = meta.engine;
+      document.getElementById('node-engine-badge').style.background = getEngineColor(meta.engine);
+      document.getElementById('node-engine-badge').style.color = '#fff';
+      document.getElementById('node-desc').textContent = meta.desc;
+      document.getElementById('node-owner').textContent = meta.owner;
+      document.getElementById('node-invariant').textContent = meta.invariant;
+      document.getElementById('node-algo').textContent = meta.algo;
+      document.getElementById('node-path').textContent = meta.path;
+
+      inspectorModal.classList.add('open');
+    }
+
+    function getEngineColor(engineStr) {
+      if (engineStr.includes('01')) return 'var(--e1-color)';
+      if (engineStr.includes('02')) return 'var(--e2-color)';
+      if (engineStr.includes('03')) return 'var(--e3-color)';
+      return 'var(--e4-color)';
+    }
+
+    const filterChips = document.querySelectorAll('.engine-chip');
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        filterChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        const engine = chip.getAttribute('data-engine');
+        applyEngineFilter(engine);
+      });
+    });
+
+    function applyEngineFilter(engine) {
+      activeFilter = engine;
+      const svg = document.querySelector('#mermaid-target svg');
+      if (!svg) return;
+
+      const nodes = svg.querySelectorAll('.node');
+
+      if (engine === 'all') {
+        nodes.forEach(n => n.classList.remove('dimmed', 'highlighted'));
+        return;
+      }
+
+      const targetMap = {
+        e1: { nodes: ['OS_Mutex', 'OS_FSM', 'OS_Watchdog'] },
+        e2: { nodes: ['DSA_Match', 'DSA_Hash', 'DSA_Tree', 'DSA_RTM'] },
+        e3: { nodes: ['DB_Ledger', 'DB_BCNF', 'DB_Audit'] },
+        e4: { nodes: ['UI_Actors', 'UI_RBAC', 'UI_Dash', 'UI_Poll'] }
+      };
+
+      const selected = targetMap[engine];
+      if (!selected) return;
+
+      nodes.forEach(node => {
+        const nodeId = node.id.replace(/^flowchart-/, '').split('-')[0];
+        if (selected.nodes.includes(nodeId)) {
+          node.classList.remove('dimmed');
+          node.classList.add('highlighted');
+        } else {
+          node.classList.remove('highlighted');
+          node.classList.add('dimmed');
+        }
+      });
+    }
+
+    document.getElementById('btn-code').addEventListener('click', () => {
+      navigator.clipboard.writeText(rawCode).then(() => {
+        const btn = document.getElementById('btn-code');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✅ Copied!';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+      }).catch(err => alert('Failed to copy: ' + err));
+    });
+
+    document.getElementById('btn-export-svg').addEventListener('click', () => {
+      const svg = document.querySelector('#mermaid-target svg');
+      if (!svg) return;
+
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = svgUrl;
+      downloadLink.download = 'team07-escrow-workflow-architecture.svg';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(svgUrl);
+    });
+
+    document.getElementById('btn-export-png').addEventListener('click', () => {
+      const svg = document.querySelector('#mermaid-target svg');
+      if (!svg) return;
+
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const bBox = svg.getBBox ? svg.getBBox() : { width: 1400, height: 900 };
+      const scale = 2;
+      canvas.width = bBox.width * scale;
+      canvas.height = bBox.height * scale;
+      const ctx = canvas.getContext('2d');
+
+      const img = new Image();
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = () => {
+        ctx.fillStyle = currentTheme === 'dark' ? '#0b0f19' : '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+
+        const pngUrl = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.href = pngUrl;
+        downloadLink.download = 'team07-escrow-workflow-architecture.png';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      };
+      img.src = url;
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderDiagram();
+    });
+
+    window.addEventListener('resize', () => {
+      if (zoomScale <= 1.2) {
+        fitToScreen();
+      }
+    });
+  </script>
+</body>
+</html>

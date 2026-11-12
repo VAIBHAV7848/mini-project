@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multimodal AI Scoping & RAG Contract Drafting Workflow - Team 07</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-cream: #FAF6F0;
+      --card-bg: #141416;
+      --card-border: rgba(255, 255, 255, 0.12);
+      --card-text: #FFFFFF;
+      --card-subtext: #A1A1AA;
+      --zapier-orange: #FF4F00;
+      --decision-bg: #FEF08A;
+      --decision-border: #141416;
+      --decision-text: #1C1917;
+      --mint-bg: #DCFCE7;
+      --mint-border: #86EFAC;
+      --mint-text: #166534;
+      --line-color: #18181B;
+      --engine-web: #38BDF8;
+      --engine-dsa: #34D399;
+      --engine-os: #FB923C;
+      --engine-db: #C084FC;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-cream);
+      background-image: radial-gradient(rgba(0, 0, 0, 0.045) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #141416;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 24px 80px;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .diagram-container {
+      width: 100%;
+      max-width: 1020px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      border: 1.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 9999px;
+      padding: 7px 20px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #27272A;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    .header-badge .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--zapier-orange);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    h1.title {
+      font-size: 46px;
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      color: #141416;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    p.subtitle {
+      font-size: 16.5px;
+      color: #52525B;
+      max-width: 780px;
+      margin: 0 auto;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    /* Flow Column */
+    .flow-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      position: relative;
+    }
+
+    /* Connector lines */
+    .connector-v {
+      width: 2.5px;
+      height: 38px;
+      background: var(--line-color);
+      position: relative;
+    }
+
+    .connector-v::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5.5px solid transparent;
+      border-right: 5.5px solid transparent;
+      border-top: 8px solid var(--line-color);
+    }
+
+    /* Orange Start/End Pills */
+    .pill-orange {
+      background: var(--zapier-orange);
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 15px 40px;
+      border-radius: 9999px;
+      box-shadow: 0 8px 24px rgba(255, 79, 0, 0.3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      z-index: 2;
+    }
+
+    /* Process Cards */
+    .card-process {
+      background: var(--card-bg);
+      color: var(--card-text);
+      border: 1.5px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px 32px;
+      width: 520px;
+      max-width: 92vw;
+      box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.4);
+      z-index: 2;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Stacked card aesthetic */
+    .card-stacked {
+      position: relative;
+    }
+    .card-stacked::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 10px;
+      right: -10px;
+      height: 100%;
+      background: #27272A;
+      border-radius: 14px;
+      z-index: -1;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .card-stacked::after {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      right: -20px;
+      height: 100%;
+      background: #3F3F46;
+      border-radius: 14px;
+      z-index: -2;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .card-engine-tag {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .tag-web { background: rgba(56, 189, 248, 0.15); color: var(--engine-web); border: 1px solid rgba(56, 189, 248, 0.3); }
+    .tag-ai { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .tag-dsa { background: rgba(52, 211, 153, 0.15); color: var(--engine-dsa); border: 1px solid rgba(52, 211, 153, 0.3); }
+    .tag-os { background: rgba(251, 146, 60, 0.15); color: var(--engine-os); border: 1px solid rgba(251, 146, 60, 0.3); }
+    .tag-db { background: rgba(192, 132, 252, 0.15); color: var(--engine-db); border: 1px solid rgba(192, 132, 252, 0.3); }
+    .tag-hitl { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .card-title {
+      font-size: 16.5px;
+      font-weight: 800;
+      line-height: 1.35;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--card-subtext);
+      line-height: 1.45;
+    }
+
+    .card-highlights {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .highlight-pill {
+      background: rgba(255, 255, 255, 0.08);
+      color: #E4E4E7;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 9999px;
+    }
+
+    /* Decision Diamond */
+    .diamond-wrapper {
+      position: relative;
+      margin: 26px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .diamond-node {
+      width: 190px;
+      height: 190px;
+      background: var(--decision-bg);
+      border: 2.5px solid var(--decision-border);
+      border-radius: 16px;
+      transform: rotate(45deg);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .diamond-content {
+      transform: rotate(-45deg);
+      text-align: center;
+      padding: 16px;
+      font-weight: 800;
+      font-size: 13.5px;
+      color: var(--decision-text);
+      line-height: 1.35;
+      max-width: 170px;
+    }
+
+    /* Mint Condition Pills */
+    .pill-mint {
+      background: var(--mint-bg);
+      border: 1.5px solid var(--mint-border);
+      color: var(--mint-text);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      z-index: 3;
+      white-space: nowrap;
+    }
+
+    /* Branch Container */
+    .branch-split {
+      width: 720px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      position: relative;
+      margin: 10px 0;
+    }
+
+    .branch-box {
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* SVG Overlay Canvas for Perfect Lines */
+    .svg-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 60px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-logo {
+      font-weight: 900;
+      font-size: 20px;
+      letter-spacing: -0.03em;
+      color: #141416;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .footer-logo span { color: var(--zapier-orange); }
+
+    .footer-team {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #52525B;
+    }
+
+    .footer-meta {
+      font-size: 12px;
+      color: #71717A;
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="diagram-container">
+
+    <!-- Header Section -->
+    <header class="header">
+      <div class="header-badge">
+        <span class="dot"></span>
+        Phase 2 Architectural Innovation · Scoping Agent
+      </div>
+      <h1 class="title">Multimodal AI Scoping &amp; RAG Contract Drafting</h1>
+      <p class="subtitle">
+        Interactive real-time audio scoping, vector-grounded Work Breakdown Structures (WBS), and mathematical fund conservation mapped to Team 07's Four-Engine architecture.
+      </p>
+    </header>
+
+    <!-- Main Flow -->
+    <div class="flow-col">
+
+      <!-- START PILL -->
+      <div class="pill-orange">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Client &amp; Freelancer Join Kickoff Call
+      </div>
+
+      <div class="connector-v"></div>
+
+      <!-- STEP 1: WebRTC Streaming (Engine 04) -->
+      <div class="card-process">
+        <span class="card-engine-tag tag-web">Engine 04 · Web Technologies · Vaibhav</span>
+        <div class="card-title">1. WebRTC Audio/Video Kickoff Session</div>
+        <div class="card-desc">
+          Peer-to-peer MediaStream pipeline captures live Opus audio packets and video frames with low latency alongside the client dashboard.
+        </div>
+        <div class="card-highlights">
+          <span class="highlight-pill">WebRTC DataChannel</span>
+          <span class="highlight-pill">Audio Worklet</span>
+          <span class="highlight-pill">Next.js 16 App Router</span>
+        </div>
+      </div>
+
+      <div class="connector-v"></div>
+
+      <!-- STEP 2: Multimodal Perception -->
+      <div class="card-process">
+        <span class="card-engine-tag tag-ai">Multimodal Perception Gateway</span>
+        <div class="card-title">2. Speech-to-Text &amp; Semantic Intent Extraction</div>
+        <div class="card-desc">
+          Gemini Multimodal Live / Whisper transcribes negotiation stream, extracting tech stacks, feature deliverables, and timeline commitments.
+        </div>
+        <div class="card-highlights">
+          <span class="highlight-pill">Real-time Diarization</span>
+          <span class="highlight-pill">Tech Entity Recognition</span>
+          <span class="highlight-pill">Zero Direct DB Access</span>
+        </div>
+      </div>
+
+      <div class="connector-v"></div>
+
+      <!-- STEP 3: RAG Grounding (Engine 02) -->
+      <div class="card-process card-stacked">
+        <span class="card-engine-tag tag-dsa">Engine 02 · DSA &amp; SE Engine · Darshan</span>
+        <div class="card-title">3. RAG Vector Knowledge Base Retrieval</div>
+        <div class="card-desc">
+          Dense cosine similarity query matches extracted requirements against verified contracts, ISO/IEC 29119 test baselines, and industry WBS distributions.
+        </div>
+        <div class="card-highlights">
+          <span class="highlight-pill">Cosine Similarity Index</span>
+          <span class="highlight-pill">Verified Contract Chunks</span>
+          <span class="highlight-pill">RTM Requirement Trace</span>
+        </div>
+      </div>
+
+      <div class="connector-v"></div>
+
+      <!-- STEP 4: Constrained JSON Synthesis -->
+      <div class="card-process">
+        <span class="card-engine-tag tag-ai">Zod 4 Schema Normalizer</span>
+        <div class="card-title">4. Constrained LLM JSON Synthesis</div>
+        <div class="card-desc">
+          Generates structured contract draft adhering strictly to Team 07's <code style="font-family:'JetBrains Mono'; color:#38BDF8;">CreateContractInput</code> schema (title, description, amount, dueDate).
+        </div>
+      </div>
+
+      <div class="connector-v"></div>
+
+      <!-- DECISION 1: Mathematical Conservation -->
+      <div class="diamond-wrapper">
+        <div class="diamond-node">
+          <div class="diamond-content">
+            Does milestone total equal proposal bid amount?<br>
+            <span style="font-family:'JetBrains Mono'; font-size:12px; color:#B45309;">∑ Amount == Bid</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Condition Pills below Decision 1 -->
+      <div style="display: flex; gap: 140px; margin-top: -8px; margin-bottom: 24px; z-index: 3;">
+        <span class="pill-mint" style="background:#FEE2E2; border-color:#FCA5A5; color:#991B1B;">
+          ✕ Cents/Paise Mismatch
+        </span>
+        <span class="pill-mint">
+          ✓ Strict Conservation Verified
+        </span>
+      </div>
+
+      <!-- SUB-FLOW / NORMALIZER -->
+      <div class="card-process" style="width: 480px; border-color: rgba(52, 211, 153, 0.4);">
+        <span class="card-engine-tag tag-dsa">Deterministic Invariant</span>
+        <div class="card-title">Paise Rounding Normalizer</div>
+        <div class="card-desc">
+          Automatically re-allocates rounding fractions to the final milestone so that: <br>
+          <code style="font-family:'JetBrains Mono'; color:#34D399;">|∑ Milestone.amount - Proposal.bidAmount| = 0.00</code>
+        </div>
+      </div>
+
+      <div class="connector-v"></div>
+
+      <!-- STEP 5: Human-in-the-Loop Studio -->
+      <div class="card-process" style="border: 1.5px solid #F87171;">
+        <span class="card-engine-tag tag-hitl">Safety Guard · Human-in-the-Loop (HITL)</span>
+        <div class="card-title">5. Interactive Dual-Signature Review Studio</div>
+        <div class="card-desc">
+          Client &amp; Freelancer inspect draft cards side-by-side. Interactive sliders allow editing milestone amounts and acceptance test definitions.
+        </div>
+        <div class="card-highlights">
+          <span class="highlight-pill">AI Cannot Auto-Commit</span>
+          <span class="highlight-pill">Live Collaborative Editing</span>
+          <span class="highlight-pill">Consensus ad Idem</span>
+        </div>
+      </div>
+
+      <div class="connector-v"></div>
+
+      <!-- DECISION 2: Dual Signature Assent -->
+      <div class="diamond-wrapper">
+        <div class="diamond-node">
+          <div class="diamond-content">
+            Do both Client and Freelancer cryptographically sign?
+          </div>
+        </div>
+      </div>
+
+      <!-- Condition Pills below Decision 2 -->
+      <div style="display: flex; gap: 160px; margin-top: -8px; margin-bottom: 24px; z-index: 3;">
+        <span class="pill-mint" style="background:#FEF3C7; border-color:#FCD34D; color:#92400E;">
+          ↺ Revisions Requested (Edit on Call)
+        </span>
+        <span class="pill-mint">
+          ✓ Dual SHA-256 Signatures Recorded
+        </span>
+      </div>
+
+      <!-- STEP 6: Engine 01 OS FSM -->
+      <div class="card-process">
+        <span class="card-engine-tag tag-os">Engine 01 · OS Engine · Vaishnavi</span>
+        <div class="card-title">6. KeyedMutex Concurrency Lock &amp; FSM Initializer</div>
+        <div class="card-desc">
+          Acquires mutex on <code style="font-family:'JetBrains Mono'; color:#FB923C;">proposalId</code> to eliminate race conditions. Enforces contract initial state strictly as <code style="font-family:'JetBrains Mono'; color:#FB923C;">AWAITING_DEPOSIT</code>.
+        </div>
+        <div class="card-highlights">
+          <span class="highlight-pill">Race Prevention</span>
+          <span class="highlight-pill">Zero Unfunded Starts</span>
+          <span class="highlight-pill">7-Day Watchdog Seeded</span>
+        </div>
+      </div>
+
+      <div class="connector-v"></div>
+
+      <!-- STEP 7: Engine 03 DBMS Ledger -->
+      <div class="card-process">
+        <span class="card-engine-tag tag-db">Engine 03 · DBMS Engine · Purvi</span>
+        <div class="card-title">7. Atomic BCNF Persistence &amp; Chained Audit Hash</div>
+        <div class="card-desc">
+          Executes <code style="font-family:'JetBrains Mono'; color:#C084FC;">prisma.$transaction</code>: inserts contract and sequential milestones, marks winning proposal ACCEPTED, and records tamper-evident SHA-256 audit block.
+        </div>
+        <div class="card-highlights">
+          <span class="highlight-pill">ACID Guarantee</span>
+          <span class="highlight-pill">BCNF Relational Integrity</span>
+          <span class="highlight-pill">SHA-256 Chained Hash</span>
+        </div>
+      </div>
+
+      <div class="connector-v"></div>
+
+      <!-- END PILL -->
+      <div class="pill-orange">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Contract Provisioned Ready for Escrow Deposit
+      </div>
+
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+      <div class="footer-logo">
+        <span>_GigaFlow</span> Milestone Escrow &amp; Dispute Platform
+      </div>
+      <div class="footer-team">
+        <span>Team 07 (Theme 01)</span>
+        <span>&bull;</span>
+        <span>Vaibhav Chavanpatil (Web)</span>
+        <span>&bull;</span>
+        <span>Purvi Sammatshetti (DBMS)</span>
+        <span>&bull;</span>
+        <span>Darshan Kittur (DSA &amp; SE)</span>
+        <span>&bull;</span>
+        <span>Vaishnavi Modekar (OS)</span>
+      </div>
+      <div class="footer-meta">
+        KLE Technological University &bull; Dr. M. S. Sheshgiri College of Engineering and Technology, Belagavi
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>
