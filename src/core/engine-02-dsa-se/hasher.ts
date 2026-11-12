@@ -15,6 +15,14 @@ export class Sha256Hasher {
     }
     return crypto.timingSafeEqual(bufComputed, bufExpected);
   }
+
+  verifyHashesEqual(hashA: string, hashB: string): boolean {
+    if (!hashA || !hashB || typeof hashA !== 'string' || typeof hashB !== 'string') return false;
+    const bufA = Buffer.from(hashA, 'utf-8');
+    const bufB = Buffer.from(hashB, 'utf-8');
+    if (bufA.byteLength !== bufB.byteLength) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+  }
 }
 
 export const globalSha256Hasher = new Sha256Hasher();
