@@ -5,10 +5,10 @@
   "homepage": "https://giga-flow.vercel.app",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
-    "postinstall": "prisma generate",
+    "build": "node scripts/generate-prisma.mjs && next build",
+    "postinstall": "node scripts/generate-prisma.mjs",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "./scripts/lint",
     "typecheck": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "verify": "./scripts/verify",

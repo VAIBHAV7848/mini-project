@@ -103,10 +103,9 @@ const DUMMY_HASH = '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012';
 
 export class AuthService {
   private static readonly SUPABASE_URL =
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://aktpmfmienqimltzaoyq.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   private static readonly SUPABASE_ANON_KEY =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrdHBtZm1pZW5xaW1sdHphb3lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3MzY2NzMsImV4cCI6MjEwODMxMjY3M30.54OkXYLXT3yRkpBaf0tJw6Owiib0Q_gHH9tBWn71Frs';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
   /**
    * Main authentication dispatcher:
