@@ -1,3 +1,12 @@
+/**
+ * Engine 03 (DBMS Engine) — Double-Entry Transaction Ledger & Contract Manager
+ * Owner: Purvi Sammatshetti (Roll No: 11, SRN: 02FE24BCS022)
+ * Verified GitHub Account: purvisammatshetti <sammatshettipurvi@gmail.com>
+ *
+ * Implements ACID relational transaction boundaries, double-entry escrow balances,
+ * and tamper-resistant audit logging in accordance with BCNF relational specifications.
+ */
+
 import prisma from '@/lib/db';
 import { AuditLogger, globalAuditLogger } from '@/core/engine-03-dbms/audit-logger';
 import { KeyedMutex, globalKeyedMutex } from '@/core/engine-01-os/mutex';
@@ -57,7 +66,7 @@ export class LedgerCoordinator {
    * Mathematical invariant: Delta Client (-amount) + Delta Escrow (+amount) = 0.
    */
   async depositEscrow(input: DepositEscrowInput): Promise<TransactionReceipt> {
-    return await this.mutex.runExclusive(input.contractId, async () => {
+    return await this.mutex.runExclusive(`contract:${input.contractId}`, async () => {
       return await prisma.$transaction(async (tx) => {
       // 1. Read & validate client balance
       const client = await tx.user.findUnique({
@@ -168,7 +177,7 @@ export class LedgerCoordinator {
    * Mathematical invariant: Delta Escrow (-amount) + Delta Freelancer (+amount) = 0.
    */
   async releaseMilestoneEscrow(input: ReleaseEscrowInput): Promise<TransactionReceipt> {
-    return await this.mutex.runExclusive(input.contractId, async () => {
+    return await this.mutex.runExclusive(`contract:${input.contractId}`, async () => {
       return await prisma.$transaction(async (tx) => {
       // 1. Read & validate contract escrow funds
       const contract = await tx.contract.findUnique({
@@ -316,7 +325,7 @@ export class LedgerCoordinator {
    * Mathematical invariant: Delta Escrow (-amount) + Delta Client (+amount) = 0.
    */
   async refundMilestoneEscrow(input: RefundEscrowInput): Promise<TransactionReceipt> {
-    return await this.mutex.runExclusive(input.contractId, async () => {
+    return await this.mutex.runExclusive(`contract:${input.contractId}`, async () => {
       return await prisma.$transaction(async (tx) => {
       // 1. Read & validate contract escrow funds
       const contract = await tx.contract.findUnique({
