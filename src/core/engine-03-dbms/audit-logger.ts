@@ -34,11 +34,16 @@ export class AuditLogger {
     const client = tx || prisma;
     // Get the latest audit log to chain hashes
     const lastRecord = await client.auditLog.findFirst({
-      orderBy: { timestamp: 'desc' },
+      orderBy: [{ timestamp: 'desc' }, { id: 'desc' }],
     });
 
     const prevHash = lastRecord ? lastRecord.verificationHash : 'GENESIS';
-    const timestamp = new Date();
+    const now = new Date();
+    const timestamp =
+      lastRecord && lastRecord.timestamp.getTime() >= now.getTime()
+        ? new Date(lastRecord.timestamp.getTime() + 1)
+        : now;
+
     const verificationHash = this.computeChainedHash(
       entry.actorId,
       entry.entityName,
@@ -65,15 +70,42 @@ export class AuditLogger {
   }
 
   async verifyAuditChain(): Promise<AuditVerificationResult> {
-    const allRecords = await prisma.auditLog.findMany({
-      orderBy: { timestamp: 'asc' },
-    });
+    const allRecords = await prisma.auditLog.findMany();
+    if (allRecords.length === 0) {
+      return {
+        isValid: true,
+        totalVerified: 0,
+        tamperedRecordIds: [],
+      };
+    }
+
+    // Topologically traverse records by following prevHash -> verificationHash chain
+    const byPrevHash = new Map<string, (typeof allRecords)[0]>();
+    for (const record of allRecords) {
+      byPrevHash.set(record.prevHash, record);
+    }
+
+    const orderedRecords: typeof allRecords = [];
+    let currentPrev = 'GENESIS';
+    while (byPrevHash.has(currentPrev)) {
+      const rec = byPrevHash.get(currentPrev)!;
+      orderedRecords.push(rec);
+      currentPrev = rec.verificationHash;
+    }
+
+    // If topological traversal resolved all records, use that order; otherwise fallback to timestamp sort
+    const recordsToVerify =
+      orderedRecords.length === allRecords.length
+        ? orderedRecords
+        : await prisma.auditLog.findMany({
+            orderBy: [{ timestamp: 'asc' }, { id: 'asc' }],
+          });
 
     const tamperedRecordIds: string[] = [];
     let expectedPrevHash = 'GENESIS';
 
-    for (let i = 0; i < allRecords.length; i++) {
-      const record = allRecords[i];
+    for (let i = 0; i < recordsToVerify.length; i++) {
+      const record = recordsToVerify[i];
 
       // Check chaining link
       if (i > 0 && record.prevHash !== expectedPrevHash) {
@@ -102,7 +134,7 @@ export class AuditLogger {
 
     return {
       isValid: tamperedRecordIds.length === 0,
-      totalVerified: allRecords.length,
+      totalVerified: recordsToVerify.length,
       tamperedRecordIds,
     };
   }

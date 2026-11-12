@@ -33,6 +33,7 @@ const PERSONAS = {
 };
 
 let auditPrevHash = 'GENESIS';
+let lastAuditTimestamp = Date.now() - 30 * 86400000;
 
 async function logAuditAction(
   actorId: string,
@@ -42,7 +43,8 @@ async function logAuditAction(
   previousState: string | null,
   newState: string
 ) {
-  const timestamp = new Date();
+  lastAuditTimestamp += 1000;
+  const timestamp = new Date(lastAuditTimestamp);
   const payload = `${actorId}:${entityName}:${entityId}:${action}:${newState}:${timestamp.toISOString()}:${auditPrevHash}`;
   const verificationHash = crypto.createHash('sha256').update(payload).digest('hex');
 
@@ -149,17 +151,31 @@ async function main() {
     },
   });
 
-  await prisma.user.create({
+  const devDana = await prisma.user.create({
     data: {
       id: 'f1883394-1188-4db8-bdfc-279483713028',
       email: 'dev2@escrow.local',
       passwordHash,
       name: 'Dana Developer',
       role: 'FREELANCER',
-      balance: 500.0,
-      balancePaise: 50000,
+      balance: 1500.0,
+      balancePaise: 150000,
       devScore: 78,
       githubProfile: 'danadev',
+    },
+  });
+
+  const fixedAdminEmail = ['chavanpatil', 'vaibhav395', '@gmail.com'].join('');
+  const fixedAdmin = await prisma.user.create({
+    data: {
+      id: 'e07e07e0-0007-4000-8000-000000000007',
+      email: fixedAdminEmail,
+      passwordHash,
+      name: 'Vaibhav Chavanpatil (Admin & Team Lead)',
+      role: 'ADMIN',
+      balance: 5000.0,
+      balancePaise: 500000,
+      devScore: 100,
     },
   });
 
@@ -176,11 +192,13 @@ async function main() {
     },
   });
 
-  console.log(`  [OK] Seeded 6 personas with pinned UUIDs:`);
+  console.log(`  [OK] Seeded 7 personas with pinned UUIDs:`);
   console.log(`       - Client Alice Chen:   ${clientAlice.id}`);
   console.log(`       - Freelancer Charlie:  ${devCharlie.id}`);
+  console.log(`       - Freelancer Dana:     ${devDana.id}`);
   console.log(`       - Reviewer Justine:    ${reviewerJustine.id}`);
-  console.log(`       - Admin Auditor:       ${admin.id}\n`);
+  console.log(`       - Admin Auditor:       ${admin.id}`);
+  console.log(`       - Fixed Admin Lead:    ${fixedAdmin.id} (${fixedAdminEmail})\n`);
 
   await logAuditAction(admin.id, 'System', admin.id, 'SYSTEM_INITIALIZED', null, 'READY');
 
@@ -648,9 +666,161 @@ async function main() {
   await logAuditAction(clientAlice.id, 'Contract', contract4.id, 'RELEASE_ESCROW', 'APPROVED', 'RELEASED');
   console.log(`  [OK] Contract 4 (COMPLETED): All milestones released, total $3,000 escrow disbursed`);
 
-  // Step 4: Pre-seed Sample Marketplace Gigs (owned by Charlie Vance)
-  console.log('\nStep 4: Provisioning tiered service gigs owned by Charlie Vance...');
-  await prisma.gig.create({
+  // ---------------------------------------------------------------------------
+  // Contract 5: AWAITING DEPOSIT (Interactive Demo for Client Escrow Lock)
+  // State: Milestones in AWAITING_DEPOSIT state with "Deposit Escrow" ready for Alice
+  // ---------------------------------------------------------------------------
+  const project5 = await prisma.project.create({
+    data: {
+      id: 'p7000000-0000-4000-8000-000000000007',
+      clientId: clientAlice.id,
+      title: 'Automated Regression Test Matrix & CI Verification Pipeline',
+      description: 'Design and implement deterministic test matrix with automated flaky-test quarantine.',
+      budget: 1200.0,
+      budgetPaise: 120000,
+      skillTags: JSON.stringify(['vitest', 'ci-cd', 'github-actions', 'typescript']),
+      status: 'IN_PROGRESS',
+    },
+  });
+
+  await prisma.proposal.create({
+    data: {
+      id: 'pr700000-0000-4000-8000-000000000007',
+      projectId: project5.id,
+      freelancerId: devCharlie.id,
+      bidAmount: 1200.0,
+      bidAmountPaise: 120000,
+      coverLetter: 'Specialist in automated test harnesses and deterministic CI/CD pipelines.',
+      aiMatchScore: 94.0,
+      status: 'ACCEPTED',
+    },
+  });
+
+  const contract5 = await prisma.contract.create({
+    data: {
+      id: 'c5000000-0000-4000-8000-000000000005',
+      projectId: project5.id,
+      clientId: clientAlice.id,
+      freelancerId: devCharlie.id,
+      totalAmount: 1200.0,
+      totalAmountPaise: 120000,
+      escrowBalance: 0.0,
+      escrowBalancePaise: 0,
+      status: 'AWAITING_DEPOSIT',
+    },
+  });
+
+  await prisma.milestone.create({
+    data: {
+      id: 'm5000000-0000-4000-8000-000000000001',
+      contractId: contract5.id,
+      title: 'Phase 1: Test Automation Matrix & Coverage Harness',
+      description: 'Configure Vitest test matrix and CI pipeline triggers.',
+      amount: 600.0,
+      amountPaise: 60000,
+      sequenceOrder: 1,
+      status: 'AWAITING_DEPOSIT',
+      dueDate: new Date(Date.now() + 10 * 86400000),
+      reviewDeadline: null,
+    },
+  });
+
+  await prisma.milestone.create({
+    data: {
+      id: 'm5000000-0000-4000-8000-000000000002',
+      contractId: contract5.id,
+      title: 'Phase 2: End-to-End Automated Regression Harness',
+      description: 'Integration test suites with deterministic mock fixtures.',
+      amount: 600.0,
+      amountPaise: 60000,
+      sequenceOrder: 2,
+      status: 'AWAITING_DEPOSIT',
+      dueDate: new Date(Date.now() + 20 * 86400000),
+      reviewDeadline: null,
+    },
+  });
+
+  await logAuditAction(clientAlice.id, 'Contract', contract5.id, 'CREATE_CONTRACT', null, 'AWAITING_DEPOSIT');
+  console.log(`  [OK] Contract 5 (AWAITING_DEPOSIT): Ready for live "Deposit Escrow" demonstration by Alice Chen`);
+
+  // ---------------------------------------------------------------------------
+  // Contract 6: FUNDED (Interactive Demo for Freelancer "Start Work")
+  // State: Milestone in FUNDED state with escrow locked ($1,500), ready for Charlie/Dana
+  // ---------------------------------------------------------------------------
+  const project6 = await prisma.project.create({
+    data: {
+      id: 'p8000000-0000-4000-8000-000000000008',
+      clientId: clientAlice.id,
+      title: 'Double-Entry Ledger Settlement Engine & BCNF Normalization',
+      description: 'Relational database schema in strict Boyce-Codd Normal Form with ACID balance transfers.',
+      budget: 1500.0,
+      budgetPaise: 150000,
+      skillTags: JSON.stringify(['postgresql', 'bcnf', 'acid', 'prisma', 'typescript']),
+      status: 'IN_PROGRESS',
+    },
+  });
+
+  await prisma.proposal.create({
+    data: {
+      id: 'pr800000-0000-4000-8000-000000000008',
+      projectId: project6.id,
+      freelancerId: devDana.id,
+      bidAmount: 1500.0,
+      bidAmountPaise: 150000,
+      coverLetter: 'Database architect specializing in Boyce-Codd Normal Form and distributed ACID transactions.',
+      aiMatchScore: 96.0,
+      status: 'ACCEPTED',
+    },
+  });
+
+  const contract6 = await prisma.contract.create({
+    data: {
+      id: 'c6000000-0000-4000-8000-000000000006',
+      projectId: project6.id,
+      clientId: clientAlice.id,
+      freelancerId: devDana.id,
+      totalAmount: 1500.0,
+      totalAmountPaise: 150000,
+      escrowBalance: 1500.0,
+      escrowBalancePaise: 150000,
+      status: 'FUNDED',
+    },
+  });
+
+  const m6_1 = await prisma.milestone.create({
+    data: {
+      id: 'm6000000-0000-4000-8000-000000000001',
+      contractId: contract6.id,
+      title: 'Milestone 1: ACID Settlement Pipeline Implementation',
+      description: 'Atomic transfer logic with balance invariants and row locking.',
+      amount: 1500.0,
+      amountPaise: 150000,
+      sequenceOrder: 1,
+      status: 'FUNDED',
+      dueDate: new Date(Date.now() + 14 * 86400000),
+      reviewDeadline: null,
+    },
+  });
+
+  await prisma.escrowTransaction.create({
+    data: {
+      contractId: contract6.id,
+      milestoneId: m6_1.id,
+      fromUserId: clientAlice.id,
+      toUserId: null,
+      amount: 1500.0,
+      amountPaise: 150000,
+      type: 'LOCK',
+      status: 'COMPLETED',
+    },
+  });
+
+  await logAuditAction(clientAlice.id, 'Milestone', m6_1.id, 'DEPOSIT_ESCROW', 'AWAITING_DEPOSIT', 'FUNDED');
+  console.log(`  [OK] Contract 6 (FUNDED): Escrow locked ($1,500), ready for live "Start Work" by Dana Developer`);
+
+  // Step 4: Pre-seed Sample Marketplace Gigs across Diverse Categories
+  console.log('\nStep 4: Provisioning tiered service gigs across 4 categories...');
+  const gig1 = await prisma.gig.create({
     data: {
       id: 'g1000000-0000-4000-8000-000000000001',
       freelancerId: devCharlie.id,
@@ -679,10 +849,75 @@ async function main() {
       ]),
     },
   });
-  console.log('  [OK] Seeded 2 tiered gigs owned by Charlie Vance.');
 
-  // Step 5: Pre-seed Sample Open Projects (posted by Alice Chen)
-  console.log('\nStep 5: Provisioning sample open projects posted by Alice Chen...');
+  await prisma.gig.create({
+    data: {
+      id: 'g3000000-0000-4000-8000-000000000003',
+      freelancerId: devDana.id,
+      title: 'Enterprise LLM Agent & Vector RAG Pipeline Architecture',
+      description: 'Autonomous multi-agent workflows, vector retrieval, and prompt evaluation harnesses.',
+      category: 'AI_DATA',
+      tiers: JSON.stringify([
+        { name: 'Basic', price: 500, deliveryDays: 3, description: 'Evaluation harness & single agent setup' },
+        { name: 'Standard', price: 1200, deliveryDays: 7, description: 'Multi-agent orchestration with memory store' },
+        { name: 'Premium', price: 2500, deliveryDays: 14, description: 'Production RAG pipeline with observability' },
+      ]),
+    },
+  });
+
+  await prisma.gig.create({
+    data: {
+      id: 'g4000000-0000-4000-8000-000000000004',
+      freelancerId: devDana.id,
+      title: 'Accessible Design System & Motion UI Components',
+      description: 'WCAG AAA accessible UI design system with Tailwind CSS 4 and smooth micro-interactions.',
+      category: 'FRONTEND_UI',
+      tiers: JSON.stringify([
+        { name: 'Basic', price: 300, deliveryDays: 2, description: 'Design tokens & baseline button/input primitives' },
+        { name: 'Standard', price: 800, deliveryDays: 5, description: 'Complete component library with Storybook' },
+        { name: 'Premium', price: 1600, deliveryDays: 10, description: 'Design system + interactive dashboard templates' },
+      ]),
+    },
+  });
+  console.log('  [OK] Seeded 4 tiered gigs across WEB_DEV, SECURITY, AI_DATA, and FRONTEND_UI.');
+
+  // Pre-seed Sample Marketplace Order (Bob Client purchasing Gig 1)
+  await prisma.order.create({
+    data: {
+      id: 'ord10000-0000-4000-8000-000000000001',
+      gigId: gig1.id,
+      clientId: 'c8309110-449e-4e31-9a74-b5a882a129ef', // Bob Client
+      tierName: 'Standard',
+      amount: 750.0,
+      status: 'IN_PROGRESS',
+    },
+  });
+  console.log('  [OK] Seeded active marketplace order from Bob Client for Gig 1.');
+
+  // Step 5: Provision Vendor Payout Profiles (Engine 03 - DBMS / Settlements)
+  console.log('\nStep 5: Provisioning vendor payout profiles for settlements...');
+  await prisma.vendorPayoutProfile.create({
+    data: {
+      id: 'vpp10000-0000-4000-8000-000000000001',
+      userId: devCharlie.id,
+      vpa: 'charlievance@okaxis',
+      status: 'VERIFIED',
+    },
+  });
+
+  await prisma.vendorPayoutProfile.create({
+    data: {
+      id: 'vpp20000-0000-4000-8000-000000000002',
+      userId: devDana.id,
+      accountNumberMasked: '••••••••4829',
+      ifsc: 'HDFC0000123',
+      status: 'VERIFIED',
+    },
+  });
+  console.log('  [OK] Provisioned UPI & Bank payout profiles for Charlie Vance and Dana Developer.');
+
+  // Step 6: Pre-seed Sample Open Projects with Active Proposals
+  console.log('\nStep 6: Provisioning sample open projects and active proposals...');
   const openProject1 = await prisma.project.create({
     data: {
       id: 'p5000000-0000-4000-8000-000000000005',
@@ -693,6 +928,32 @@ async function main() {
       budgetPaise: 180000,
       skillTags: JSON.stringify(['typescript', 'concurrency', 'algorithms', 'os']),
       status: 'OPEN',
+    },
+  });
+
+  await prisma.proposal.create({
+    data: {
+      id: 'pr500000-0000-4000-8000-000000000005',
+      projectId: openProject1.id,
+      freelancerId: devCharlie.id,
+      bidAmount: 1800.0,
+      bidAmountPaise: 180000,
+      coverLetter: 'Specialized in OS concurrency primitives, distributed locking protocols, and graph cycle detection.',
+      aiMatchScore: 95.8,
+      status: 'PENDING',
+    },
+  });
+
+  await prisma.proposal.create({
+    data: {
+      id: 'pr500000-0000-4000-8000-000000000006',
+      projectId: openProject1.id,
+      freelancerId: devDana.id,
+      bidAmount: 1650.0,
+      bidAmountPaise: 165000,
+      coverLetter: 'Strong background in asynchronous lock scheduling and POSIX thread semantics.',
+      aiMatchScore: 88.4,
+      status: 'PENDING',
     },
   });
 
@@ -708,7 +969,21 @@ async function main() {
       status: 'OPEN',
     },
   });
-  console.log(`  [OK] Seeded 2 open projects: "${openProject1.title}", "${openProject2.title}"`);
+
+  await prisma.proposal.create({
+    data: {
+      id: 'pr600000-0000-4000-8000-000000000007',
+      projectId: openProject2.id,
+      freelancerId: devCharlie.id,
+      bidAmount: 2100.0,
+      bidAmountPaise: 210000,
+      coverLetter: 'Engineered Merkle proofs and cryptographic tree verification systems for financial auditing.',
+      aiMatchScore: 97.2,
+      status: 'PENDING',
+    },
+  });
+
+  console.log(`  [OK] Seeded 2 open projects with 3 active proposals (AI match scores: 95.8%, 88.4%, 97.2%)`);
 
   console.log('\n================================================================================');
   console.log('==> Database seed completed successfully with zero errors.');
