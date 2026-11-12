@@ -70,6 +70,13 @@ describe('Engine 02 (DSA & SE) — Enhanced Cryptographic Proofs & RTM Verificat
       // Verify Inclusion Proof independently
       const isValidProof = treeManager.verifyInclusionProof(proof!);
       expect(isValidProof).toBe(true);
+
+      // Verify that forged rootHash or tampered targetChecksum is rejected
+      const forgedRootProof = { ...proof!, rootHash: '0'.repeat(64) };
+      expect(treeManager.verifyInclusionProof(forgedRootProof)).toBe(false);
+
+      const tamperedChecksumProof = { ...proof!, targetChecksum: 'f'.repeat(64) };
+      expect(treeManager.verifyInclusionProof(tamperedChecksumProof)).toBe(false);
     });
 
     it('should detect cycles and throw descriptive error rather than infinite recursion', () => {

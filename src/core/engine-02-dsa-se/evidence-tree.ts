@@ -29,6 +29,8 @@ export interface TreeVerificationResult {
 export interface MerkleProofStep {
   siblingChecksum: string;
   isRightSibling: boolean;
+  prefix?: string;
+  suffix?: string;
 }
 
 export interface InclusionProof {
@@ -121,15 +123,17 @@ export class EvidenceTreeManager {
 
       node.children.sort((a, b) => a.id.localeCompare(b.id));
 
+      const recomputedChildHashes: string[] = [];
       for (const child of node.children) {
-        recomputeAndCheck(child);
+        const childHash = recomputeAndCheck(child);
+        recomputedChildHashes.push(childHash);
       }
 
       const expected =
         node.children.length === 0
           ? node.payloadChecksum
           : this.hasher.computeDigest(
-              `${node.payloadChecksum}:${node.children.map((c) => c.merkleHash).join('')}`
+              `${node.payloadChecksum}:${recomputedChildHashes.join('')}`
             );
 
       if (node.merkleHash !== expected) {
@@ -174,14 +178,20 @@ export class EvidenceTreeManager {
         const child = currentNode.children[i];
         if (findPath(child)) {
           // Gather sibling hashes for the audit path
-          const siblingHashes = currentNode.children
-            .filter((_, idx) => idx !== i)
+          const leftSiblings = currentNode.children
+            .slice(0, i)
+            .map((s) => s.merkleHash)
+            .join('');
+          const rightSiblings = currentNode.children
+            .slice(i + 1)
             .map((s) => s.merkleHash)
             .join('');
 
           auditPath.push({
-            siblingChecksum: `${currentNode.payloadChecksum}:${siblingHashes}`,
+            siblingChecksum: `${currentNode.payloadChecksum}:${leftSiblings}${rightSiblings}`,
             isRightSibling: i === 0,
+            prefix: `${currentNode.payloadChecksum}:${leftSiblings}`,
+            suffix: rightSiblings,
           });
           return true;
         }
@@ -206,19 +216,25 @@ export class EvidenceTreeManager {
   verifyInclusionProof(proof: InclusionProof): boolean {
     if (!proof || !proof.targetChecksum || !proof.rootHash) return false;
     if (proof.auditPath.length === 0) {
-      return this.hasher.verifyDigest(proof.targetChecksum, proof.rootHash);
+      return this.hasher.verifyHashesEqual(proof.targetChecksum, proof.rootHash);
     }
 
     let currentHash = proof.targetChecksum;
     for (const step of proof.auditPath) {
-      currentHash = this.hasher.computeDigest(
-        step.isRightSibling
-          ? `${currentHash}:${step.siblingChecksum}`
-          : `${step.siblingChecksum}:${currentHash}`
-      );
+      if (step.prefix !== undefined) {
+        currentHash = this.hasher.computeDigest(
+          `${step.prefix}${currentHash}${step.suffix || ''}`
+        );
+      } else {
+        currentHash = this.hasher.computeDigest(
+          step.isRightSibling
+            ? `${currentHash}:${step.siblingChecksum}`
+            : `${step.siblingChecksum}:${currentHash}`
+        );
+      }
     }
 
-    return currentHash.length === 64;
+    return this.hasher.verifyHashesEqual(currentHash, proof.rootHash);
   }
 }
 
