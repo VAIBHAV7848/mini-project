@@ -1,0 +1,12 @@
+.git
+.next
+node_modules
+tests
+docs
+assets
+*.pdf
+scratch
+*.sh
+vitest.config.ts
+dev.db
+dev.db-journal
