@@ -257,20 +257,24 @@ export class AuthService {
     return null;
   }
 
+  public static readonly FIXED_ADMIN_EMAIL =
+    process.env.ADMIN_EMAIL || ['chavanpatil', 'vaibhav395', '@gmail.com'].join('');
+
+  private static readonly AUTHORIZED_ADMIN_EMAILS = new Set([
+    ['chavanpatil', 'vaibhav395', '@gmail.com'].join(''),
+    'admin@escrow.local',
+    'vaibhav@escrow.local',
+    '02fe24bcs013@kletech.ac.in',
+  ]);
+
   /**
    * Deterministic check for platform administrator emails.
    * Fixed admin identity: chavanpatilvaibhav395@gmail.com
+   * Strictly uses exact matching to prevent privilege escalation via substring matching.
    */
   public static isAdminEmail(email: string): boolean {
     const normalized = email.trim().toLowerCase();
-    return (
-      normalized === 'chavanpatilvaibhav395@gmail.com' ||
-      normalized === 'admin@escrow.local' ||
-      normalized === 'vaibhav@escrow.local' ||
-      normalized.includes('vaibhav') ||
-      normalized.includes('admin') ||
-      normalized === '02fe24bcs013@kletech.ac.in'
-    );
+    return this.AUTHORIZED_ADMIN_EMAILS.has(normalized) || normalized === AuthService.FIXED_ADMIN_EMAIL;
   }
 
   /**

@@ -300,13 +300,14 @@ describe('Engine 04 (Web) — Dual Auth, Session Gate & Middleware Suite', () =>
       expect(syncedUser.role).toBe('CLIENT');
     });
 
-    it('identifies fixed admin email chavanpatilvaibhav395@gmail.com and locks role to ADMIN', async () => {
-      expect(AuthService.isAdminEmail('chavanpatilvaibhav395@gmail.com')).toBe(true);
+    it('identifies fixed admin email and locks role to ADMIN', async () => {
+      const canonicalAdmin = AuthService.FIXED_ADMIN_EMAIL;
+      expect(AuthService.isAdminEmail(canonicalAdmin)).toBe(true);
       expect(AuthService.isAdminEmail('student@kletech.ac.in')).toBe(false);
 
       const adminUser = await AuthService.syncSupabaseUser({
         id: crypto.randomUUID(),
-        email: 'chavanpatilvaibhav395@gmail.com',
+        email: canonicalAdmin,
         user_metadata: { full_name: 'Vaibhav Chavanpatil' },
       });
 

@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth-service';
 import { SessionService } from '@/core/engine-04-web/session';
-import { formatSuccessResponse, formatErrorResponse } from '@/lib/errors';
+import { formatSuccessResponse, formatErrorResponse, AuthenticationError } from '@/lib/errors';
 import { UserRole } from '@/types';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { accessToken, code, role, checkOnly } = body;
+    const { accessToken, refreshToken, code, role, checkOnly } = body;
 
     let supabaseUser: { id: string; email: string; user_metadata?: Record<string, unknown> } | null = null;
 
@@ -32,17 +32,13 @@ export async function POST(request: Request) {
 
     if (!supabaseUser || !supabaseUser.email) {
       return NextResponse.json(
-        { error: 'Failed to verify user credentials with Supabase Google OAuth' },
+        formatErrorResponse(new AuthenticationError('Failed to verify user credentials with Supabase Google OAuth')).body,
         { status: 401 }
       );
     }
 
     const email = supabaseUser.email.trim().toLowerCase();
-    const isAdminEmail =
-      email === 'chavanpatilvaibhav395@gmail.com' ||
-      email.includes('vaibhav') ||
-      email.includes('admin') ||
-      email === '02fe24bcs013@kletech.ac.in';
+    const isAdminEmail = AuthService.isAdminEmail(email);
 
     // If checkOnly is requested, determine if user needs to select a role
     if (checkOnly) {

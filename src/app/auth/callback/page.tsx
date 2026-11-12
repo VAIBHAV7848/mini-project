@@ -11,97 +11,117 @@ export default function AuthCallbackPage() {
   const [status, setStatus] = useState<'verifying' | 'select_role' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [userProfile, setUserProfile] = useState<{ email: string; name: string } | null>(null);
-  const [tokens, setTokens] = useState<{ accessToken: string | null; code: string | null; redirectUrl: string }>({
+  const [tokens, setTokens] = useState<{
+    accessToken: string | null;
+    refreshToken: string | null;
+    code: string | null;
+    redirectUrl: string;
+  }>({
     accessToken: null,
+    refreshToken: null,
     code: null,
     redirectUrl: '/dashboard',
   });
   const [submittingRole, setSubmittingRole] = useState<UserRole | null>(null);
 
-  useEffect(() => {
-    async function processOAuthCallback() {
-      try {
-        // Parse search params and hash fragment
-        const searchParams = new URLSearchParams(window.location.search);
-        const hash = window.location.hash.substring(1);
-        const hashParams = new URLSearchParams(hash);
+  const processOAuthCallback = React.useCallback(async () => {
+    try {
+      setStatus('verifying');
+      setErrorMessage('');
 
-        // Check for error parameters
-        const error = searchParams.get('error') || hashParams.get('error');
-        const errorDesc =
-          searchParams.get('error_description') ||
-          hashParams.get('error_description') ||
-          searchParams.get('message');
+      // Parse search params and hash fragment
+      const searchParams = new URLSearchParams(window.location.search);
+      const hash = window.location.hash.substring(1);
+      const hashParams = new URLSearchParams(hash);
 
-        if (error) {
-          setStatus('error');
-          setErrorMessage(errorDesc || error || 'Google Authentication was cancelled or failed.');
-          return;
-        }
+      // Check for error parameters
+      const error = searchParams.get('error') || hashParams.get('error');
+      const errorDesc =
+        searchParams.get('error_description') ||
+        hashParams.get('error_description') ||
+        searchParams.get('message');
 
-        const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
-        const code = searchParams.get('code') || hashParams.get('code');
-        const rawRedirect = searchParams.get('redirect') || hashParams.get('redirect') || '/dashboard';
-
-        const safeRedirect =
-          rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
-            ? rawRedirect
-            : '/dashboard';
-
-        if (!accessToken && !code) {
-          setStatus('error');
-          setErrorMessage('No authentication credentials returned from Google OAuth provider.');
-          return;
-        }
-
-        setTokens({ accessToken, code, redirectUrl: safeRedirect });
-
-        // Step 1: Pre-flight check - does user need role selection or is admin?
-        const checkResponse = await fetch('/api/auth/oauth-callback', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ accessToken, code, checkOnly: true }),
-        });
-
-        if (!checkResponse.ok) {
-          const errData = await checkResponse.json().catch(() => ({}));
-          throw new Error(errData.error || 'Failed to establish local session from Google credentials.');
-        }
-
-        const checkResult = await checkResponse.json();
-
-        if (checkResult.data?.needsRoleSelection) {
-          setUserProfile({
-            email: checkResult.data.email,
-            name: checkResult.data.name,
-          });
-          setStatus('select_role');
-          return;
-        }
-
-        // Direct session success (e.g. Admin or existing session)
-        const user = checkResult.data?.user || checkResult.user;
-        if (user?.role) {
-          try {
-            localStorage.setItem('activeRole', user.role);
-          } catch {
-            // Ignore storage restrictions
-          }
-        }
-
-        setStatus('success');
-        window.location.href = safeRedirect;
-      } catch (err: unknown) {
+      if (error) {
         setStatus('error');
-        const message = err instanceof Error ? err.message : 'Authentication processing failed.';
-        setErrorMessage(message);
+        setErrorMessage(errorDesc || error || 'Google Authentication was cancelled or failed.');
+        return;
       }
-    }
 
+      const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+      const code = searchParams.get('code') || hashParams.get('code');
+      const rawRedirect = searchParams.get('redirect') || hashParams.get('redirect') || '/dashboard';
+
+      // Open redirect defense
+      const safeRedirect =
+        rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+          ? rawRedirect
+          : '/dashboard';
+
+      // Clear sensitive hash fragment from browser address bar immediately
+      if (window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+
+      if (!accessToken && !code) {
+        setStatus('error');
+        setErrorMessage('No authentication credentials returned from Google OAuth provider.');
+        return;
+      }
+
+      setTokens({ accessToken, refreshToken, code, redirectUrl: safeRedirect });
+
+      // Step 1: Pre-flight check - does user need role selection or is admin?
+      const checkResponse = await fetch('/api/auth/oauth-callback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ accessToken, refreshToken, code, checkOnly: true }),
+      });
+
+      if (!checkResponse.ok) {
+        const errData = await checkResponse.json().catch(() => ({}));
+        const message =
+          (typeof errData.error === 'string' ? errData.error : errData.error?.message) ||
+          errData.message ||
+          'Failed to establish local session from Google credentials.';
+        throw new Error(message);
+      }
+
+      const checkResult = await checkResponse.json();
+
+      if (checkResult.data?.needsRoleSelection) {
+        setUserProfile({
+          email: checkResult.data.email,
+          name: checkResult.data.name,
+        });
+        setStatus('select_role');
+        return;
+      }
+
+      // Direct session success (e.g. Admin or existing session)
+      const user = checkResult.data?.user || checkResult.user;
+      if (user?.role) {
+        try {
+          localStorage.setItem('activeRole', user.role);
+        } catch {
+          // Ignore storage restrictions
+        }
+      }
+
+      setStatus('success');
+      window.location.href = safeRedirect;
+    } catch (err: unknown) {
+      setStatus('error');
+      const message = err instanceof Error ? err.message : 'Authentication processing failed.';
+      setErrorMessage(message);
+    }
+  }, []);
+
+  useEffect(() => {
     processOAuthCallback();
-  }, [router]);
+  }, [processOAuthCallback]);
 
   async function handleSelectRole(role: UserRole) {
     if (submittingRole) return;
@@ -115,6 +135,7 @@ export default function AuthCallbackPage() {
         },
         body: JSON.stringify({
           accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
           code: tokens.code,
           role,
         }),
@@ -122,7 +143,11 @@ export default function AuthCallbackPage() {
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || 'Failed to configure selected role.');
+        const message =
+          (typeof errData.error === 'string' ? errData.error : errData.error?.message) ||
+          errData.message ||
+          'Failed to configure selected role.';
+        throw new Error(message);
       }
 
       const result = await response.json();
@@ -286,15 +311,24 @@ export default function AuthCallbackPage() {
               <h2 className="text-lg font-mono font-bold text-rose-300 mb-2">
                 Authentication Error
               </h2>
-              <p className="text-xs font-mono text-rose-200/80 mb-6 bg-rose-950/40 p-3 rounded-lg border border-rose-900/40">
+              <p className="text-xs font-mono text-rose-200/80 mb-6 bg-rose-950/40 p-3 rounded-lg border border-rose-900/40 max-w-sm">
                 {errorMessage}
               </p>
-              <Link
-                href="/login"
-                className="py-2.5 px-6 rounded-xl font-mono text-xs font-bold bg-brand-base text-charcoal hover:bg-brand-light transition-all shadow-md"
-              >
-                Return to Login
-              </Link>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => processOAuthCallback()}
+                  className="py-2.5 px-6 rounded-xl font-mono text-xs font-bold bg-brand-base text-charcoal hover:bg-brand-light transition-all shadow-md cursor-pointer"
+                >
+                  Retry Verification
+                </button>
+                <Link
+                  href="/login"
+                  className="py-2.5 px-5 rounded-xl font-mono text-xs font-semibold bg-surface-elevated border border-line text-paper hover:bg-surface transition-all"
+                >
+                  Return to Login
+                </Link>
+              </div>
             </>
           )}
         </div>

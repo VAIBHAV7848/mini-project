@@ -9,6 +9,11 @@ export default defineConfig({
     testTimeout: 60000,
     hookTimeout: 60000,
     exclude: ['**/node_modules/**', '**/.kilo/**', '**/dist/**', '**/.next/**'],
+    env: {
+      DATABASE_URL: 'file:./dev.db',
+      NODE_ENV: 'test',
+    },
+    setupFiles: ['./tests/setup.ts'],
   },
   resolve: {
     alias: {
