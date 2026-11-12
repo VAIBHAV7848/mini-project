@@ -37,13 +37,6 @@ export default function RootLayout({
         <ThemeScript />
         <link rel="icon" href="/assets/gigaflow-mark.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
-        <link
-          rel="preload"
-          as="image"
-          href="/assets/hero-poster.jpg"
-          type="image/jpeg"
-          fetchPriority="high"
-        />
       </head>
       <body className="bg-charcoal text-paper antialiased font-sans selection:bg-brand-base selection:text-charcoal min-h-screen">
         <ThemeProvider>

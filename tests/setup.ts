@@ -19,3 +19,20 @@ if (!fs.existsSync(dbPath)) {
     // Non-fatal if schema is already prepared
   }
 }
+
+// Suppress React 19 test runner introspection warning (Chai/Loupe inspecting element.ref getter)
+const originalConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  if (
+    args.some(
+      (arg) =>
+        typeof arg === 'string' &&
+        arg.includes('Accessing element.ref was removed in React 19')
+    )
+  ) {
+    return;
+  }
+  Reflect.apply(originalConsoleError, console, args);
+};
+
+
