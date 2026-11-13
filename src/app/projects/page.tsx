@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { Dialog } from '@/components/ui/Dialog';
 import { useRole } from '@/components/layout/RoleContext';
+import { RagContractNegotiatorModal } from '@/components/contracts/RagContractNegotiatorModal';
 import {
   Layers,
   Loader2,
@@ -56,6 +57,8 @@ export default function ProjectsPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+  const [selectedProposalForRag, setSelectedProposalForRag] = useState<ProposalItem | null>(null);
+  const [isRagModalOpen, setIsRagModalOpen] = useState(false);
 
   // Form states
   const [postTitle, setPostTitle] = useState('');
@@ -666,20 +669,34 @@ export default function ProjectsPage() {
                             </div>
 
                             {prop.status === 'PENDING' && (
-                              <button
-                                type="button"
-                                disabled={acceptingProposalId === prop.id}
-                                onClick={() => handleAcceptProposal(prop)}
-                                className="btn btn-sm btn-primary shrink-0"
-                              >
-                                {acceptingProposalId === prop.id ? (
-                                  <>
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> Forming Contract...
-                                  </>
-                                ) : (
-                                  'Accept & Form Escrow'
-                                )}
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedProposalForRag(prop);
+                                    setIsRagModalOpen(true);
+                                  }}
+                                  className="btn btn-sm btn-ghost border border-brand-base/40 text-brand-light hover:bg-brand-base/15 flex items-center gap-1.5 shrink-0"
+                                  title="Draft contract milestones using RAG and negotiation chat"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5 text-brand-base" />
+                                  <span>RAG Architect</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={acceptingProposalId === prop.id}
+                                  onClick={() => handleAcceptProposal(prop)}
+                                  className="btn btn-sm btn-primary shrink-0"
+                                >
+                                  {acceptingProposalId === prop.id ? (
+                                    <>
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> Forming...
+                                    </>
+                                  ) : (
+                                    'Direct Accept'
+                                  )}
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -881,6 +898,37 @@ export default function ProjectsPage() {
           </div>
         </form>
       </Dialog>
+
+      {/* RAG Milestone Contract Architect Modal */}
+      {selectedProject && selectedProposalForRag && (
+        <RagContractNegotiatorModal
+          isOpen={isRagModalOpen}
+          onClose={() => {
+            setIsRagModalOpen(false);
+            setSelectedProposalForRag(null);
+          }}
+          project={{
+            id: selectedProject.id,
+            title: selectedProject.title,
+            budget: selectedProject.budget,
+            skillTags: parseTags(selectedProject.skillTags),
+            description: selectedProject.description,
+          }}
+          proposal={{
+            id: selectedProposalForRag.id,
+            freelancerId: selectedProposalForRag.freelancer.id,
+            freelancerName: selectedProposalForRag.freelancer.name,
+            bidAmount: selectedProposalForRag.bidAmount,
+            coverLetter: selectedProposalForRag.coverLetter,
+          }}
+          currentUserId={currentPersona.id}
+          onContractCreated={() => {
+            fetchProjects();
+            setIsDetailsOpen(false);
+            router.push('/dashboard');
+          }}
+        />
+      )}
     </AppShell>
   );
 }

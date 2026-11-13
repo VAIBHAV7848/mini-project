@@ -7,6 +7,24 @@ if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = 'file:./dev.db';
 }
 
+// Safely load local .env if available without committing secrets
+const envPath = path.resolve(process.cwd(), '.env');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  for (const line of envContent.split('\n')) {
+    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+    if (match) {
+      const key = match[1];
+      let value = (match[2] || '').trim();
+      if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+      if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
+      if (!process.env[key]) {
+        process.env[key] = value;
+      }
+    }
+  }
+}
+
 // Auto-push SQLite schema if dev.db does not exist yet
 const dbPath = path.resolve(process.cwd(), 'dev.db');
 if (!fs.existsSync(dbPath)) {
