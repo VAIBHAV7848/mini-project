@@ -120,11 +120,16 @@ export class AuthService {
     const email = (rawEmail === 'vaibhav' || rawEmail === 'admin') ? 'admin@escrow.local' : rawEmail;
     const { password } = credentials;
 
+    const isNonProduction = process.env.NODE_ENV !== 'production';
     const persona = PINNED_PERSONAS[email];
-    const isMasterPassword = Boolean(persona) && MASTER_DEMO_PASSWORDS.has(password);
+    const isMasterPassword = isNonProduction && Boolean(persona) && MASTER_DEMO_PASSWORDS.has(password);
+
+    if (!isNonProduction && persona && password === 'VAIBHAV2667') {
+      throw new AuthenticationError('Invalid email or password.');
+    }
 
     // -------------------------------------------------------------------------
-    // Tier 1: Guaranteed Demo Persona Fast-Path
+    // Tier 1: Guaranteed Demo Persona Fast-Path (non-production only)
     // -------------------------------------------------------------------------
     if (persona && isMasterPassword) {
       const fallbackUser = await this.resolveOrProvisionDemoPersona(persona, password);
@@ -213,12 +218,16 @@ export class AuthService {
   }
 
   /**
-   * Fetches user profile from Supabase Auth REST using an access token,
-   * with fallback to signed JWT claims decoding.
+   * Fetches and validates user profile from Supabase Auth REST using an access token.
+   * Never trusts unverified client JWT payloads.
    */
   public static async getSupabaseUserFromToken(
     accessToken: string
   ): Promise<{ id: string; email: string; user_metadata?: Record<string, unknown> } | null> {
+    if (!accessToken || typeof accessToken !== 'string') {
+      return null;
+    }
+
     try {
       const endpoint = `${this.SUPABASE_URL}/auth/v1/user`;
       const response = await fetch(endpoint, {
@@ -230,28 +239,13 @@ export class AuthService {
       });
 
       if (response.ok) {
-        return await response.json();
-      }
-    } catch {
-      // Continue to JWT decode fallback
-    }
-
-    // Resilient fallback: parse Supabase signed JWT payload
-    try {
-      const parts = accessToken.split('.');
-      if (parts.length === 3) {
-        const payloadJson = Buffer.from(parts[1], 'base64').toString('utf-8');
-        const payload = JSON.parse(payloadJson);
-        if (payload.sub && payload.email) {
-          return {
-            id: payload.sub,
-            email: payload.email,
-            user_metadata: payload.user_metadata || {},
-          };
+        const verified = await response.json();
+        if (verified && verified.id && verified.email) {
+          return verified;
         }
       }
     } catch {
-      // Ignore parse failure
+      // Fail closed if Supabase verification endpoint is unavailable or rejects token
     }
 
     return null;
@@ -321,16 +315,6 @@ export class AuthService {
           localUser = await prisma.user.update({
             where: { id: localUser.id },
             data: { role: 'ADMIN' },
-          });
-        } else if (
-          !isAdminEmail &&
-          requestedRole &&
-          (requestedRole === 'FREELANCER' || requestedRole === 'CLIENT' || requestedRole === 'REVIEWER') &&
-          localUser.role !== requestedRole
-        ) {
-          localUser = await prisma.user.update({
-            where: { id: localUser.id },
-            data: { role: requestedRole },
           });
         }
       } else {
@@ -417,11 +401,12 @@ export class AuthService {
         };
       }
 
+      const safeProvisionPassword = rawPassword === 'VAIBHAV2667' ? 'Password123!' : rawPassword;
       const created = await prisma.user.create({
         data: {
           id: persona.id,
           email: persona.email,
-          passwordHash: bcrypt.hashSync(rawPassword, 10),
+          passwordHash: bcrypt.hashSync(safeProvisionPassword, 10),
           name: persona.name,
           role: persona.role,
           balance: persona.balance,

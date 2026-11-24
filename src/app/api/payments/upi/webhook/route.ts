@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       request.headers.get('x-gateway-timestamp') ||
       request.headers.get('x-webhook-timestamp') ||
       request.headers.get('x-timestamp') ||
-      Math.floor(Date.now() / 1000).toString();
+      '';
 
     const secret = UpiPaymentService.getWebhookSecret();
 
@@ -100,11 +100,24 @@ export async function POST(request: Request) {
 
     // 5. Treat as detection signal: Move to PENDING_REVIEW (NEVER autonomous wallet credit!)
     if (payment.status === 'PENDING') {
+      const sanitizedUtr = utr ? String(utr).trim().toUpperCase() : null;
+      const utrCollision = sanitizedUtr
+        ? await prisma.payment.findFirst({
+            where: {
+              upiUtr: sanitizedUtr,
+              id: { not: payment.id },
+            },
+            select: { id: true },
+          })
+        : null;
+
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
           status: 'PENDING_REVIEW',
-          ...(utr ? { upiUtr: utr, providerPaymentId: utr } : {}),
+          ...(sanitizedUtr && !utrCollision
+            ? { upiUtr: sanitizedUtr, providerPaymentId: sanitizedUtr }
+            : {}),
         },
       });
 

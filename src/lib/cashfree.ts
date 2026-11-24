@@ -122,6 +122,9 @@ export class CashfreeGateway {
    */
   static async getOrderStatus(orderId: string): Promise<CashfreeOrderStatusResponse> {
     if (!this.APP_ID || !this.SECRET_KEY) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Cashfree credentials are not configured in production.');
+      }
       return {
         orderId,
         orderStatus: 'PAID',
@@ -210,9 +213,10 @@ export class CashfreeGateway {
       return false;
     }
 
-    // 2. Simulated verification fallback in test mode
+    // 2. Fail closed when Cashfree secret key is unconfigured
     if (!this.SECRET_KEY) {
-      return true;
+      logger.warn('Rejected Cashfree webhook: CASHFREE_SECRET_KEY is not configured');
+      return false;
     }
 
     try {

@@ -1,9 +1,34 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { z } from 'zod';
 import { SessionService } from '@/core/engine-04-web/session';
 import { RbacEnforcer } from '@/core/engine-04-web/rbac';
 import { formatSuccessResponse, formatErrorResponse } from '@/lib/errors';
 import { SettlementService } from '@/core/engine-03-dbms/payments/settlement-service';
+
+const payoutSettingsSchema = z.discriminatedUnion('method', [
+  z.object({
+    method: z.literal('UPI'),
+    upiId: z
+      .string()
+      .trim()
+      .regex(/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/, 'Invalid UPI VPA format (e.g., handle@okaxis).'),
+  }),
+  z.object({
+    method: z.enum(['BANK_ACCOUNT', 'BANK']),
+    bankAccount: z.object({
+      accountNumber: z
+        .string()
+        .trim()
+        .regex(/^\d{9,18}$/, 'Account number must be 9-18 digits.'),
+      ifsc: z
+        .string()
+        .trim()
+        .toUpperCase()
+        .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Invalid IFSC code (11 characters, e.g., HDFC0001234).'),
+      beneficiaryName: z.string().trim().min(2, 'Beneficiary name is required.').max(100),
+    }),
+  }),
+]);
 
 export async function POST(request: Request) {
   try {
@@ -17,17 +42,19 @@ export async function POST(request: Request) {
 
     RbacEnforcer.enforceRole(session, ['FREELANCER', 'ADMIN']);
 
-    const body = await request.json();
+    const rawBody = await request.json();
+    const validated = payoutSettingsSchema.parse(rawBody);
     const settlementService = new SettlementService();
 
     const vendorId = `CF_BENE_${session.userId.replace(/-/g, '').slice(0, 10)}`;
     const payoutMethod = await settlementService.registerPayoutMethod({
       userId: session.userId,
       vendorId,
-      accountType: body.method === 'UPI' ? 'UPI' : 'BANK_ACCOUNT',
-      accountIdentifier: body.method === 'UPI' ? body.upiId : body.bankAccount?.accountNumber,
-      ifsc: body.bankAccount?.ifsc,
-      bankName: body.bankAccount?.beneficiaryName,
+      accountType: validated.method === 'UPI' ? 'UPI' : 'BANK_ACCOUNT',
+      accountIdentifier:
+        validated.method === 'UPI' ? validated.upiId : validated.bankAccount.accountNumber,
+      ifsc: validated.method !== 'UPI' ? validated.bankAccount.ifsc : undefined,
+      bankName: validated.method !== 'UPI' ? validated.bankAccount.beneficiaryName : undefined,
       isVerified: true,
     });
 

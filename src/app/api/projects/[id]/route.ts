@@ -13,7 +13,7 @@ export async function GET(
       where: { id },
       include: {
         client: {
-          select: { id: true, name: true, email: true },
+          select: { id: true, name: true },
         },
         _count: {
           select: { proposals: true },

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import prisma from '@/lib/db';
 import { SessionService } from '@/core/engine-04-web/session';
 import { RbacEnforcer } from '@/core/engine-04-web/rbac';
 import { UpiPaymentService } from '@/core/engine-03-dbms/payments/upi-payment-service';
-import { formatSuccessResponse, formatErrorResponse } from '@/lib/errors';
+import { formatSuccessResponse, formatErrorResponse, AuthorizationError, NotFoundError } from '@/lib/errors';
 import { z } from 'zod';
 
 const createUpiOrderBodySchema = z.object({
@@ -27,6 +28,35 @@ export async function POST(request: Request) {
 
     const rawBody = await request.json();
     const validated = createUpiOrderBodySchema.parse(rawBody);
+
+    if (validated.contractId) {
+      const contract = await prisma.contract.findUnique({
+        where: { id: validated.contractId },
+        select: { id: true, clientId: true },
+      });
+      if (!contract) {
+        throw new NotFoundError('Contract', validated.contractId);
+      }
+      if (session.role === 'CLIENT' && contract.clientId !== session.userId) {
+        throw new AuthorizationError('You are not authorized to fund this contract.');
+      }
+    }
+
+    if (validated.milestoneId) {
+      const milestone = await prisma.milestone.findUnique({
+        where: { id: validated.milestoneId },
+        include: { contract: { select: { clientId: true } } },
+      });
+      if (!milestone) {
+        throw new NotFoundError('Milestone', validated.milestoneId);
+      }
+      if (validated.contractId && milestone.contractId !== validated.contractId) {
+        throw new AuthorizationError('Milestone does not belong to the specified contract.');
+      }
+      if (session.role === 'CLIENT' && milestone.contract.clientId !== session.userId) {
+        throw new AuthorizationError('You are not authorized to fund this milestone.');
+      }
+    }
 
     const order = await UpiPaymentService.createOrder({
       clientId: session.userId,

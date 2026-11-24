@@ -90,9 +90,11 @@ export async function POST(request: Request) {
       }
     }
 
-    // Role selection: non-admin can specify CLIENT, FREELANCER, or REVIEWER
+    // Role selection: only allow CLIENT or FREELANCER in production; REVIEWER allowed in non-production demos
+    const allowSelfReviewer = process.env.NODE_ENV !== 'production';
     const validRequestedRole: UserRole | undefined =
-      !isAdminEmail && (role === 'FREELANCER' || role === 'CLIENT' || role === 'REVIEWER')
+      !isAdminEmail &&
+      (role === 'FREELANCER' || role === 'CLIENT' || (allowSelfReviewer && role === 'REVIEWER'))
         ? role
         : undefined;
 

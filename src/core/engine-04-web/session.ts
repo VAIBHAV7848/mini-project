@@ -2,18 +2,22 @@ import crypto from 'node:crypto';
 import prisma from '@/lib/db';
 import { SessionContext, UserRole } from '@/types';
 
-function resolveSessionSecret(): string {
+function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET;
   if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('SESSION_SECRET environment variable must be configured in production.');
+    }
     return 'gigaflow_production_escrow_session_secret_key_32_chars_fallback';
   }
   if (secret.length < 32) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('SESSION_SECRET must be at least 32 characters in production.');
+    }
     return secret.padEnd(32, '0');
   }
   return secret;
 }
-
-const SESSION_SECRET = resolveSessionSecret();
 
 export interface TokenPayload {
   userId: string;
@@ -77,7 +81,7 @@ export class SessionService {
 
     const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
     const signature = crypto
-      .createHmac('sha256', SESSION_SECRET)
+      .createHmac('sha256', getSessionSecret())
       .update(encoded)
       .digest('base64url');
 
@@ -98,7 +102,7 @@ export class SessionService {
       if (!encoded || !signature) return null;
 
       const expectedSignature = crypto
-        .createHmac('sha256', SESSION_SECRET)
+        .createHmac('sha256', getSessionSecret())
         .update(encoded)
         .digest('base64url');
 
@@ -144,18 +148,7 @@ export class SessionService {
       if (session) return session;
     }
 
-    // 2. Check Cookie Header
-    const cookieHeader = headers.get('cookie');
-    if (cookieHeader) {
-      const regex = new RegExp(`(?:^|;\\s*)${SessionService.COOKIE_NAME}=([^;]+)`);
-      const match = cookieHeader.match(regex);
-      if (match && match[1]) {
-        const session = SessionService.verifyToken(decodeURIComponent(match[1].trim()));
-        if (session) return session;
-      }
-    }
-
-    // 3. Simulated direct test headers (Restricted strictly to non-production environments)
+    // 2. Simulated direct dev/test header (strictly non-production; checked before cookie so dev workspace switcher overrides cookie)
     if (process.env.NODE_ENV !== 'production') {
       const simulatedUserId = headers.get('x-user-id');
       if (simulatedUserId) {
@@ -170,6 +163,17 @@ export class SessionService {
             name: user.name,
           };
         }
+      }
+    }
+
+    // 3. Check Cookie Header
+    const cookieHeader = headers.get('cookie');
+    if (cookieHeader) {
+      const regex = new RegExp(`(?:^|;\\s*)${SessionService.COOKIE_NAME}=([^;]+)`);
+      const match = cookieHeader.match(regex);
+      if (match && match[1]) {
+        const session = SessionService.verifyToken(decodeURIComponent(match[1].trim()));
+        if (session) return session;
       }
     }
 

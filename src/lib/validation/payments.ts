@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { entityIdSchema } from '@/lib/validation';
 
 export const createOrderSchema = z.object({
-  milestoneId: z.string().uuid(),
-  contractId: z.string().uuid().optional(),
+  milestoneId: entityIdSchema,
+  contractId: entityIdSchema.optional(),
   returnUrl: z.string().url().optional(),
   customerPhone: z.string().optional(),
   customerEmail: z.string().email().optional(),

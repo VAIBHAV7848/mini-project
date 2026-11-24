@@ -99,6 +99,16 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    const session = await SessionService.getSessionFromHeaders(request.headers);
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: { code: 'UNAUTHENTICATED', message: 'Authentication required.' } },
+        { status: 401 }
+      );
+    }
+
+    RbacEnforcer.enforceRole(session, ['CLIENT', 'ADMIN']);
+
     const url = new URL(request.url);
     const orderId = url.searchParams.get('orderId');
     if (!orderId) {
@@ -116,6 +126,10 @@ export async function GET(request: Request) {
       );
     }
 
+    if (session.role === 'CLIENT' && payment.clientId !== session.userId) {
+      throw new AuthorizationError('You are not authorized to verify this payment.');
+    }
+
     const cfStatus = await CashfreeGateway.getOrderStatus(orderId);
     const isPaid = cfStatus.orderStatus === 'PAID' || cfStatus.paymentStatus === 'SUCCESS';
 
@@ -125,7 +139,7 @@ export async function GET(request: Request) {
         await PaymentService.fundMilestoneViaGateway({
           orderId,
           cfPaymentId: cfStatus.cfPaymentId,
-          actorId: 'GET_VERIFY_POLL',
+          actorId: session.userId,
         });
       } finally {
         releaseLock();

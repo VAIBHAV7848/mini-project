@@ -84,9 +84,13 @@ export async function POST(request: Request) {
     // 8. Idempotency Check: check for active unpaid Cashfree order
     const existingPayment = await PaymentService.findActivePendingPayment(milestone.id);
     if (existingPayment) {
-      try {
-        const cfStatus = await CashfreeGateway.getOrderStatus(existingPayment.orderId);
-        if (cfStatus.orderStatus === 'ACTIVE' && existingPayment.paymentSessionId) {
+      const hasCashfreeKeys = Boolean(
+        (process.env.CASHFREE_APP_ID || process.env.CASHFREE_CLIENT_ID) &&
+          (process.env.CASHFREE_SECRET_KEY || process.env.CASHFREE_CLIENT_SECRET)
+      );
+
+      if (!hasCashfreeKeys) {
+        if (existingPayment.paymentSessionId) {
           return NextResponse.json(
             formatSuccessResponse({
               paymentSessionId: existingPayment.paymentSessionId,
@@ -96,28 +100,43 @@ export async function POST(request: Request) {
               reused: true,
             })
           );
-        } else if (cfStatus.orderStatus === 'PAID') {
-          // If already paid at gateway, trigger atomic funding
-          await PaymentService.fundMilestoneViaGateway({
-            orderId: existingPayment.orderId,
-            cfPaymentId: cfStatus.cfPaymentId,
-            actorId: session.userId,
-          });
-          return NextResponse.json(
-            formatSuccessResponse({
-              paymentSessionId: existingPayment.paymentSessionId,
-              orderId: existingPayment.orderId,
-              amount: existingPayment.amount,
-              currency: existingPayment.currency,
-              status: 'FUNDED',
-            })
-          );
-        } else {
-          // Expired or failed; mark and allow creation of a fresh order
-          await PaymentService.updatePaymentStatus(existingPayment.orderId, cfStatus.orderStatus);
         }
-      } catch {
-        // If checking status fails, proceed with new order creation
+      } else {
+        try {
+          const cfStatus = await CashfreeGateway.getOrderStatus(existingPayment.orderId);
+          if (cfStatus.orderStatus === 'ACTIVE' && existingPayment.paymentSessionId) {
+            return NextResponse.json(
+              formatSuccessResponse({
+                paymentSessionId: existingPayment.paymentSessionId,
+                orderId: existingPayment.orderId,
+                amount: existingPayment.amount,
+                currency: existingPayment.currency,
+                reused: true,
+              })
+            );
+          } else if (cfStatus.orderStatus === 'PAID') {
+            // If already paid at gateway, trigger atomic funding
+            await PaymentService.fundMilestoneViaGateway({
+              orderId: existingPayment.orderId,
+              cfPaymentId: cfStatus.cfPaymentId,
+              actorId: session.userId,
+            });
+            return NextResponse.json(
+              formatSuccessResponse({
+                paymentSessionId: existingPayment.paymentSessionId,
+                orderId: existingPayment.orderId,
+                amount: existingPayment.amount,
+                currency: existingPayment.currency,
+                status: 'FUNDED',
+              })
+            );
+          } else {
+            // Expired or failed; mark and allow creation of a fresh order
+            await PaymentService.updatePaymentStatus(existingPayment.orderId, cfStatus.orderStatus);
+          }
+        } catch {
+          // If checking status fails, proceed with new order creation
+        }
       }
     }
 

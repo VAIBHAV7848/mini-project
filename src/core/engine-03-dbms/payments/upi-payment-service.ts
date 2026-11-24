@@ -55,7 +55,7 @@ export class UpiPaymentService {
   public static readonly ORDER_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
   public static getRecipientVpa(): string {
-    const vpa = process.env.UPI_RECIPIENT_VPA || 'chavanpatilvaibhav395@okaxis';
+    const vpa = process.env.UPI_RECIPIENT_VPA || 'merchant@okaxis';
     if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(vpa)) {
       throw new ValidationError(`Configured UPI_RECIPIENT_VPA '${vpa}' is malformed.`);
     }
@@ -63,15 +63,22 @@ export class UpiPaymentService {
   }
 
   public static getPayeeName(): string {
-    return process.env.UPI_PAYEE_NAME || 'VAIBHAV';
+    return process.env.UPI_PAYEE_NAME || 'GigaFlow Escrow';
   }
 
   public static getMerchantMobile(): string {
-    return process.env.UPI_MERCHANT_MOBILE || '7349417848';
+    return process.env.UPI_MERCHANT_MOBILE || '9999999999';
   }
 
   public static getWebhookSecret(): string {
-    return process.env.UPI_WEBHOOK_SECRET || process.env.PAYMENT_WEBHOOK_SECRET || 'development_upi_webhook_secret_key_32_chars';
+    const secret = process.env.UPI_WEBHOOK_SECRET || process.env.PAYMENT_WEBHOOK_SECRET;
+    if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new ValidationError('UPI_WEBHOOK_SECRET must be configured in production.');
+      }
+      return 'development_upi_webhook_secret_key_32_chars';
+    }
+    return secret;
   }
 
   /**

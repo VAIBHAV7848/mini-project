@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+/** Accepts RFC-4122 UUIDs as well as seeded/synthetic alphanumeric-hyphen entity IDs. */
+export const entityIdSchema = z
+  .string()
+  .trim()
+  .regex(/^[a-zA-Z0-9_-]{8,64}$/, 'Invalid identifier format');
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -20,7 +26,7 @@ export const createProjectSchema = z.object({
 });
 
 export const submitProposalSchema = z.object({
-  projectId: z.string().uuid(),
+  projectId: entityIdSchema,
   bidAmount: z.number().positive(),
   coverLetter: z.string().min(20),
 });
@@ -34,8 +40,8 @@ export const contractActionSchema = z.object({
     'RELEASE_ESCROW',
     'RAISE_DISPUTE',
   ]),
-  contractId: z.string().uuid().optional(),
-  milestoneId: z.string().uuid().optional(),
+  contractId: entityIdSchema.optional(),
+  milestoneId: entityIdSchema.optional(),
   amount: z.number().positive().optional(),
   fileName: z.string().min(1).optional(),
   fileUrl: z.string().url().optional(),
@@ -49,7 +55,7 @@ export const contractActionSchema = z.object({
 });
 
 export const fileDisputeSchema = z.object({
-  milestoneId: z.string().uuid(),
+  milestoneId: entityIdSchema,
   reason: z.string().min(15),
 });
 
@@ -75,7 +81,7 @@ export const createGigSchema = z.object({
 });
 
 export const placeOrderSchema = z.object({
-  gigId: z.string().uuid(),
+  gigId: entityIdSchema,
   tierName: z.string().min(1),
   amount: z.number().positive(),
 });

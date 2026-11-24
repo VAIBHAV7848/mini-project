@@ -1,18 +1,22 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-function resolveSessionSecret(): string {
+function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET;
   if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('SESSION_SECRET environment variable must be configured in production.');
+    }
     return 'gigaflow_production_escrow_session_secret_key_32_chars_fallback';
   }
   if (secret.length < 32) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('SESSION_SECRET must be at least 32 characters in production.');
+    }
     return secret.padEnd(32, '0');
   }
   return secret;
 }
-
-const SESSION_SECRET = resolveSessionSecret();
 
 /**
  * Routes requiring active authentication.
@@ -25,6 +29,7 @@ const PROTECTED_PREFIXES = [
   '/contracts',
   '/audit',
   '/settings',
+  '/admin',
 ] as const;
 
 /**
@@ -110,7 +115,7 @@ async function verifySessionToken(token: string): Promise<SessionPayload | null>
     if (!encodedPayload || !signature) return null;
 
     // Recalculate HMAC signature using Web Crypto API
-    const expectedSignature = await computeHmacSha256(SESSION_SECRET, encodedPayload);
+    const expectedSignature = await computeHmacSha256(getSessionSecret(), encodedPayload);
 
     // Constant-time comparison
     if (!constantTimeEqual(signature, expectedSignature)) {

@@ -276,8 +276,24 @@ export class PaymentService {
         },
       });
 
-      // 5. Update Payment record to SUCCESS
-      await this.updatePaymentStatus(params.orderId, 'SUCCESS', params.cfPaymentId);
+      // 5. Update Payment record to SUCCESS inside transaction for atomicity
+      await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: 'SUCCESS',
+          ...(params.cfPaymentId ? { providerPaymentId: params.cfPaymentId } : {}),
+        },
+      });
+
+      await tx.paymentEvent.create({
+        data: {
+          paymentId: payment.id,
+          eventType: 'GATEWAY_ESCROW_FUNDED',
+          providerEventId: params.cfPaymentId || null,
+          rawPayload: JSON.stringify({ orderId: params.orderId, milestoneId: milestone.id }),
+          status: 'SUCCESS',
+        },
+      });
 
       // 6. Append chained cryptographic audit log
       await globalAuditLogger.logAction(
