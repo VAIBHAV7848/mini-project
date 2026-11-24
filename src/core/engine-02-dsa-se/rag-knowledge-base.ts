@@ -8,7 +8,16 @@
 
 export interface KnowledgeDocument {
   id: string;
-  category: 'web' | 'mobile' | 'backend' | 'ai-ml' | 'devops' | 'design' | 'escrow-policy';
+  category:
+    | 'web'
+    | 'mobile'
+    | 'backend'
+    | 'ai-ml'
+    | 'devops'
+    | 'design'
+    | 'security'
+    | 'systems'
+    | 'escrow-policy';
   title: string;
   summary: string;
   tags: string[];
@@ -213,19 +222,110 @@ export const MILESTONE_KNOWLEDGE_CORPUS: KnowledgeDocument[] = [
       'DISPUTE_ARBITRATION: In the event of a dispute, an authorized department Reviewer assesses the cryptographic Merkle evidence tree and project specifications to issue a binding ruling.',
     ],
   },
+  {
+    id: 'kb-security-crypto',
+    category: 'security',
+    title: 'Cryptography, Merkle Evidence Trees & Security Verification',
+    summary: 'Engineering lifecycle for cryptographic trees, SHA-256 integrity chains, zero-trust proofs, and security auditing.',
+    tags: ['cryptography', 'merkle', 'sha256', 'hash', 'tamper', 'verification', 'security', 'audit', 'data-structures', 'zero-trust'],
+    suggestedMilestones: [
+      {
+        title: 'Phase 1: Cryptographic Primitives & Merkle Tree Construction',
+        description: 'Implement deterministic hashing, N-ary/binary Merkle node serialization, and root hash derivation.',
+        relativeBudgetPercent: 45,
+        estimatedDays: 6,
+        acceptanceChecklist: [
+          'Deterministic SHA-256 node and leaf hashing verified across vectors',
+          'Merkle root recalculates accurately on subtree updates',
+          'Zero mutable state leakage across tree traversals',
+        ],
+      },
+      {
+        title: 'Phase 2: Proof Verification, Tamper Detection & Security Benchmarks',
+        description: 'Implement inclusion/consistency proof verification, adversarial tamper tests, and audit reporting.',
+        relativeBudgetPercent: 55,
+        estimatedDays: 7,
+        acceptanceChecklist: [
+          'Single-byte payload tampering detected with 100% accuracy',
+          'Adversarial regression suite & timing benchmarks passing',
+          'Complete cryptographic proof API documented and verified',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'kb-os-concurrency',
+    category: 'systems',
+    title: 'Distributed Concurrency, Mutex Locking & OS Primitives',
+    summary: 'Low-level concurrency architecture covering keyed mutex serialization, deadlock detection, watchdogs, and state machines.',
+    tags: ['concurrency', 'mutex', 'deadlock', 'algorithms', 'os', 'distributed', 'lock', 'scheduler', 'threads', 'fsm'],
+    suggestedMilestones: [
+      {
+        title: 'Phase 1: Core Synchronization Primitives & Lock Coordinator',
+        description: 'Build keyed FIFO mutex queues, timeout acquisition guards, and wait-for graph representations.',
+        relativeBudgetPercent: 50,
+        estimatedDays: 6,
+        acceptanceChecklist: [
+          'FIFO fairness preserved under high lock contention',
+          'Non-reentrant deadlock cycles detected and aborted cleanly',
+        ],
+      },
+      {
+        title: 'Phase 2: Watchdog Recovery, Stress Testing & Telemetry',
+        description: 'Implement expiry sweeps, starvation prevention, concurrent stress suites, and latency observability.',
+        relativeBudgetPercent: 50,
+        estimatedDays: 7,
+        acceptanceChecklist: [
+          '100+ parallel async worker stress test passes with zero race conditions',
+          'Watchdog sweeps idempotently transition expired leases only',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'kb-devops-cloud',
+    category: 'devops',
+    title: 'Cloud Infrastructure, Containers & CI/CD Automation',
+    summary: 'Reproducible infrastructure pipelines, containerization, observability dashboards, and automated release gates.',
+    tags: ['devops', 'docker', 'kubernetes', 'ci', 'cd', 'terraform', 'deployment', 'cloud', 'monitoring', 'pipeline'],
+    suggestedMilestones: [
+      {
+        title: 'Phase 1: Containerization & Automated CI Verification Pipeline',
+        description: 'Multi-stage Docker builds, environment secrets hardening, and automated test/lint workflows.',
+        relativeBudgetPercent: 50,
+        estimatedDays: 5,
+        acceptanceChecklist: [
+          'Reproducible multi-stage container builds with non-root runtime user',
+          'Automated typecheck, lint, security scan, and test gates green in CI',
+        ],
+      },
+      {
+        title: 'Phase 2: Production Rollout, Health Probes & Observability',
+        description: 'Zero-downtime deployment manifests, structured logging, metrics alerts, and rollback playbook.',
+        relativeBudgetPercent: 50,
+        estimatedDays: 5,
+        acceptanceChecklist: [
+          'Health check probes and graceful shutdown verified under load',
+          'Rollback drill tested with documented runbook',
+        ],
+      },
+    ],
+  },
 ];
 
 /**
  * Text Tokenizer & Normalizer for Engine 02 Vector Search
  */
 export function tokenizeText(text: string): string[] {
-  // Normalize technology identifiers like next.js -> nextjs, react.js -> reactjs, node.js -> nodejs
+  // Normalize technology identifiers like next.js -> nextjs, react.js -> react, node.js -> nodejs
   const normalizedText = text
     .toLowerCase()
     .replace(/\bnext\.js\b/g, 'nextjs')
     .replace(/\breact\.js\b/g, 'react')
     .replace(/\bnode\.js\b/g, 'nodejs')
-    .replace(/\bvue\.js\b/g, 'vuejs');
+    .replace(/\bvue\.js\b/g, 'vuejs')
+    .replace(/\bsha-256\b/g, 'sha256')
+    .replace(/-/g, ' ');
 
   const STOP_WORDS = new Set([
     'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', 'as',
@@ -241,10 +341,15 @@ export function tokenizeText(text: string): string[] {
   ]);
 
   return normalizedText
-    .replace(/[^a-z0-9\s-]/g, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
     .map((w) => w.trim())
     .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
+}
+
+export interface SearchOptions {
+  excludeCategories?: KnowledgeDocument['category'][];
+  minSimilarity?: number;
 }
 
 /**
@@ -260,13 +365,21 @@ export class VectorSpaceRetriever {
     this.buildIndex();
   }
 
+  private extractDocumentText(doc: KnowledgeDocument): string {
+    const milestoneText = (doc.suggestedMilestones || [])
+      .map((m) => `${m.title} ${m.description}`)
+      .join(' ');
+    const weightedTags = `${doc.tags.join(' ')} ${doc.tags.join(' ')}`;
+    return `${doc.title} ${doc.summary} ${weightedTags} ${milestoneText}`;
+  }
+
   private buildIndex(): void {
     const totalDocs = this.documents.length;
     const docFrequency: Map<string, number> = new Map();
 
     // 1. Calculate Document Frequency (DF)
     for (const doc of this.documents) {
-      const docText = `${doc.title} ${doc.summary} ${doc.tags.join(' ')}`;
+      const docText = this.extractDocumentText(doc);
       const uniqueTokens = new Set(tokenizeText(docText));
       for (const token of uniqueTokens) {
         docFrequency.set(token, (docFrequency.get(token) || 0) + 1);
@@ -280,7 +393,7 @@ export class VectorSpaceRetriever {
 
     // 3. Precompute Document TF-IDF Vectors
     for (const doc of this.documents) {
-      const docText = `${doc.title} ${doc.summary} ${doc.tags.join(' ')}`;
+      const docText = this.extractDocumentText(doc);
       const tokens = tokenizeText(docText);
       const tfMap: Map<string, number> = new Map();
       for (const t of tokens) {
@@ -310,10 +423,13 @@ export class VectorSpaceRetriever {
   /**
    * Search knowledge base using query text (e.g. project tags + negotiation chat)
    */
-  search(query: string, topK: number = 2): RetrievalResult[] {
+  search(query: string, topK: number = 2, options: SearchOptions = {}): RetrievalResult[] {
+    const excluded = new Set(options.excludeCategories || []);
+    const candidateDocs = this.documents.filter((doc) => !excluded.has(doc.category));
     const queryTokens = tokenizeText(query);
+
     if (queryTokens.length === 0) {
-      return this.documents.slice(0, topK).map((doc) => ({
+      return candidateDocs.slice(0, topK).map((doc) => ({
         document: doc,
         similarityScore: 0.1,
         matchedTokens: [],
@@ -340,9 +456,9 @@ export class VectorSpaceRetriever {
       qVector.set(t, w / qNorm);
     }
 
-    // Compute Cosine Similarity with all documents
+    // Compute Cosine Similarity with all eligible documents
     const results: RetrievalResult[] = [];
-    for (const doc of this.documents) {
+    for (const doc of candidateDocs) {
       const docVec = this.docVectors.get(doc.id);
       if (!docVec) continue;
 
@@ -366,6 +482,16 @@ export class VectorSpaceRetriever {
 
     // Sort descending by similarity
     results.sort((a, b) => b.similarityScore - a.similarityScore);
+
+    const minSim = options.minSimilarity ?? 0;
+    if (minSim > 0 && results.length > 0) {
+      const aboveThreshold = results.filter((r) => r.similarityScore >= minSim);
+      if (aboveThreshold.length > 0) {
+        return aboveThreshold.slice(0, topK);
+      }
+      return results.slice(0, 1);
+    }
+
     return results.slice(0, topK);
   }
 }

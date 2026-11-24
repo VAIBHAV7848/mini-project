@@ -6,9 +6,10 @@
  * and retrieved engineering knowledge templates.
  */
 
+import crypto from 'node:crypto';
 import { callGroqChat } from '@/lib/groq';
 import {
-  globalVectorRetriever,
+  VectorSpaceRetriever,
   RetrievalResult,
   MILESTONE_KNOWLEDGE_CORPUS,
   KnowledgeDocument,
@@ -30,6 +31,7 @@ export interface RagContractInput {
     coverLetter: string;
   };
   chatTranscript?: string;
+  historicalTemplates?: KnowledgeDocument[];
 }
 
 export interface GeneratedMilestoneItem {
@@ -43,12 +45,14 @@ export interface GeneratedMilestoneItem {
 export interface RagContractGenerationResult {
   milestones: GeneratedMilestoneItem[];
   totalAmount: number;
+  transcriptHash: string;
   retrievedContext: {
     matchedDocuments: Array<{
       id: string;
       title: string;
       category: string;
       similarityScore: number;
+      matchedTokens: string[];
     }>;
     appliedClauses: string[];
   };
@@ -58,61 +62,106 @@ export interface RagContractGenerationResult {
 }
 
 export class RagContractGenerator {
+  private static redactPii(text: string): string {
+    return text
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[REDACTED_EMAIL]')
+      .replace(/(?:\+?\d[\s-]?){9,13}\d/g, '[REDACTED_PHONE]');
+  }
+
+  private static parseMilestonesJson(content: string): { summaryExplanation?: string; milestones: unknown[] } {
+    let cleanedJson = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    if (cleanedJson.startsWith('```json')) {
+      cleanedJson = cleanedJson.replace(/^```json/, '').replace(/```$/, '').trim();
+    } else if (cleanedJson.startsWith('```')) {
+      cleanedJson = cleanedJson.replace(/^```/, '').replace(/```$/, '').trim();
+    }
+
+    const firstBrace = cleanedJson.indexOf('{');
+    const lastBrace = cleanedJson.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      cleanedJson = cleanedJson.slice(firstBrace, lastBrace + 1);
+    }
+
+    return JSON.parse(cleanedJson);
+  }
+
   /**
    * Execute the end-to-end RAG pipeline
    */
   static async generateMilestones(
     input: RagContractInput
   ): Promise<RagContractGenerationResult> {
-    const { project, proposal, chatTranscript = '' } = input;
+    const { project, proposal, chatTranscript = '', historicalTemplates = [] } = input;
+    const transcriptHash = crypto
+      .createHash('sha256')
+      .update(chatTranscript.trim() || `${project.id}:${proposal.id}:default`)
+      .digest('hex');
 
     // 1. RETRIEVAL STEP (R)
-    // Query vector store using combined requirements and chat agreement
-    const searchQuery = `${project.title} ${project.description} ${project.skillTags.join(' ')} ${chatTranscript}`;
-    const retrievedResults = globalVectorRetriever.search(searchQuery, 2);
+    // Combine static templates with any historical completed workspace patterns, excluding policy doc from template slots
+    const retriever =
+      historicalTemplates.length > 0
+        ? new VectorSpaceRetriever([...MILESTONE_KNOWLEDGE_CORPUS, ...historicalTemplates])
+        : new VectorSpaceRetriever(MILESTONE_KNOWLEDGE_CORPUS);
 
-    // Also pull standard escrow policy
+    const searchQuery = `${project.title} ${project.description} ${project.skillTags.join(' ')} ${chatTranscript}`;
+    const retrievedResults = retriever.search(searchQuery, 2, {
+      excludeCategories: ['escrow-policy'],
+      minSimilarity: 0.14,
+    });
+
+    // Always pull mandatory escrow policy separately so template slots stay clean
     const policyDoc = MILESTONE_KNOWLEDGE_CORPUS.find((d) => d.id === 'kb-escrow-clauses');
     const appliedClauses = policyDoc?.legalClauses || [];
 
-    // 2. AUGMENTATION STEP (A)
+    // 2. AUGMENTATION STEP (A) with PII redaction for outbound transcript
     const promptContext = this.buildAugmentedPrompt({
       project,
       proposal,
-      chatTranscript,
+      chatTranscript: this.redactPii(chatTranscript),
       retrievedResults,
       appliedClauses,
     });
 
-    // 3. GENERATION STEP (G) via Groq LLM
+    // 3. GENERATION STEP (G) via Groq LLM with 1 JSON repair retry
     try {
-      const response = await callGroqChat(
-        [
-          {
-            role: 'system',
-            content:
-              'You are an expert Software Engineering Contract Architect for KLE Technological University Escrow Engine. Your job is to analyze client-freelancer negotiation chat and project specs, reference the retrieved standard milestone templates, and generate a strictly valid JSON object containing realistic, balanced escrow milestones. Return ONLY valid JSON matching the requested structure without markdown fences or conversational text.',
-          },
-          {
-            role: 'user',
-            content: promptContext,
-          },
-        ],
+      const messages = [
         {
-          temperature: 0.1,
-          maxTokens: 800,
-        }
-      );
+          role: 'system' as const,
+          content:
+            'You are an expert Software Engineering Contract Architect for GigaFlow Escrow Engine. Analyze the client-freelancer voice/chat negotiation log and project spec, ground milestones in the retrieved engineering templates, honor specific monetary splits and timelines agreed in the dialogue, and return ONLY valid JSON matching the exact schema without markdown fences or reasoning prose.',
+        },
+        {
+          role: 'user' as const,
+          content: promptContext,
+        },
+      ];
 
-      // Clean response content (strip markdown backticks if returned)
-      let cleanedJson = response.content.trim();
-      if (cleanedJson.startsWith('```json')) {
-        cleanedJson = cleanedJson.replace(/^```json/, '').replace(/```$/, '').trim();
-      } else if (cleanedJson.startsWith('```')) {
-        cleanedJson = cleanedJson.replace(/^```/, '').replace(/```$/, '').trim();
+      let response = await callGroqChat(messages, {
+        temperature: 0.1,
+        maxTokens: 1500,
+      });
+
+      let parsed: { summaryExplanation?: string; milestones: unknown[] };
+      try {
+        parsed = this.parseMilestonesJson(response.content);
+      } catch {
+        // Single lightweight repair retry if model returned malformed formatting
+        response = await callGroqChat(
+          [
+            ...messages,
+            { role: 'assistant', content: response.content },
+            {
+              role: 'user',
+              content:
+                'Your previous output was not valid JSON. Return ONLY a raw JSON object matching {"summaryExplanation": string, "milestones": [{"title", "description", "amount", "dueDate", "acceptanceChecklist"}]}. No markdown or explanation.',
+            },
+          ],
+          { temperature: 0, maxTokens: 1500 }
+        );
+        parsed = this.parseMilestonesJson(response.content);
       }
 
-      const parsed = JSON.parse(cleanedJson);
       const normalizedMilestones = this.normalizeAndValidateMilestones(
         parsed.milestones,
         proposal.bidAmount
@@ -121,12 +170,14 @@ export class RagContractGenerator {
       return {
         milestones: normalizedMilestones,
         totalAmount: proposal.bidAmount,
+        transcriptHash,
         retrievedContext: {
           matchedDocuments: retrievedResults.map((r) => ({
             id: r.document.id,
             title: r.document.title,
             category: r.document.category,
             similarityScore: r.similarityScore,
+            matchedTokens: r.matchedTokens,
           })),
           appliedClauses,
         },
@@ -134,13 +185,13 @@ export class RagContractGenerator {
         generationMode: 'GROQ_RAG',
         summaryExplanation:
           parsed.summaryExplanation ||
-          `Generated ${normalizedMilestones.length} milestone(s) synthesized from negotiation chat and retrieved ${retrievedResults[0]?.document.title || 'engineering'} standards.`,
+          `Generated ${normalizedMilestones.length} milestone(s) synthesized from negotiation transcript and retrieved ${retrievedResults[0]?.document.title || 'engineering'} standards.`,
       };
     } catch (llmError) {
       console.warn('[RagContractGenerator] Groq LLM generation failed, falling back to deterministic template synthesis:', llmError);
 
-      // 4. DETERMINISTIC FALLBACK (Academic viva resilience)
-      return this.generateDeterministicFallback(input, retrievedResults, appliedClauses);
+      // 4. DETERMINISTIC FALLBACK (Academic viva & rate-limit resilience)
+      return this.generateDeterministicFallback(input, retrievedResults, appliedClauses, transcriptHash);
     }
   }
 
@@ -230,10 +281,13 @@ INSTRUCTIONS:
       const amount = Math.max(1, Number(m.amount) || Math.round(targetTotal / rawMilestones.length));
       accumulated += amount;
 
-      // Ensure valid ISO date in the future
+      // Ensure valid ISO-8601 UTC datetime string strictly in the future
       let dueDate = m.dueDate;
-      if (!dueDate || isNaN(Date.parse(dueDate)) || new Date(dueDate).getTime() <= now) {
+      const parsedDueMs = typeof dueDate === 'string' || dueDate instanceof Date ? Date.parse(String(dueDate)) : NaN;
+      if (isNaN(parsedDueMs) || parsedDueMs <= now) {
         dueDate = new Date(now + (idx + 1) * 7 * 24 * 3600 * 1000).toISOString();
+      } else {
+        dueDate = new Date(parsedDueMs).toISOString();
       }
 
       const acceptanceChecklist = Array.isArray(m.acceptanceChecklist)
@@ -265,9 +319,16 @@ INSTRUCTIONS:
   private static generateDeterministicFallback(
     input: RagContractInput,
     retrievedResults: RetrievalResult[],
-    appliedClauses: string[]
+    appliedClauses: string[],
+    transcriptHash?: string
   ): RagContractGenerationResult {
     const targetTotal = input.proposal.bidAmount;
+    const computedHash =
+      transcriptHash ||
+      crypto
+        .createHash('sha256')
+        .update(input.chatTranscript?.trim() || `${input.project.id}:${input.proposal.id}:default`)
+        .digest('hex');
     const topDoc: KnowledgeDocument =
       retrievedResults[0]?.document || MILESTONE_KNOWLEDGE_CORPUS[0];
     const templateMilestones = topDoc.suggestedMilestones || [
@@ -291,7 +352,7 @@ INSTRUCTIONS:
     let accumulatedDays = 0;
     let accumulatedAmount = 0;
 
-    const milestones: GeneratedMilestoneItem[] = templateMilestones.map((tm, idx) => {
+    const milestones: GeneratedMilestoneItem[] = templateMilestones.map((tm) => {
       accumulatedDays += tm.estimatedDays || 7;
       const fraction = tm.relativeBudgetPercent / 100;
       const amt = Math.round(targetTotal * fraction * 100) / 100;
@@ -315,12 +376,14 @@ INSTRUCTIONS:
     return {
       milestones,
       totalAmount: targetTotal,
+      transcriptHash: computedHash,
       retrievedContext: {
         matchedDocuments: retrievedResults.map((r) => ({
           id: r.document.id,
           title: r.document.title,
           category: r.document.category,
           similarityScore: r.similarityScore,
+          matchedTokens: r.matchedTokens,
         })),
         appliedClauses,
       },

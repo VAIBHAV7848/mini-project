@@ -664,7 +664,7 @@ export default function ProjectsPage() {
                               </span>
                               <span className="font-mono2 text-xs font-bold text-brand-light flex items-center gap-1">
                                 <Sparkles className="w-3 h-3 text-brand-base" />
-                                {(prop.aiMatchScore * 100).toFixed(0)}% Fit
+                                {(prop.aiMatchScore > 1 ? prop.aiMatchScore : prop.aiMatchScore * 100).toFixed(0)}% Fit
                               </span>
                             </div>
 
@@ -677,10 +677,10 @@ export default function ProjectsPage() {
                                     setIsRagModalOpen(true);
                                   }}
                                   className="btn btn-sm btn-ghost border border-brand-base/40 text-brand-light hover:bg-brand-base/15 flex items-center gap-1.5 shrink-0"
-                                  title="Draft contract milestones using RAG and negotiation chat"
+                                  title="Open live Voice & Chat Negotiation Studio with Groq Whisper + RAG milestone architect"
                                 >
                                   <Sparkles className="w-3.5 h-3.5 text-brand-base" />
-                                  <span>RAG Architect</span>
+                                  <span>Voice &amp; RAG Architect</span>
                                 </button>
                                 <button
                                   type="button"

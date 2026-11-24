@@ -10,8 +10,10 @@ import {
   AuthorizationError,
 } from '@/lib/errors';
 
+import { entityIdSchema } from '@/lib/validation';
+
 const generateRagSchema = z.object({
-  proposalId: z.string().uuid(),
+  proposalId: entityIdSchema,
   chatTranscript: z.string().optional().default(''),
 });
 
@@ -63,6 +65,42 @@ export async function POST(request: Request) {
         .filter(Boolean);
     }
 
+    // Retrieve successful historical contracts as dynamic RAG examples (non-PII project/milestone structure only)
+    const pastContracts = await prisma.contract.findMany({
+      where: { status: { in: ['RELEASED', 'COMPLETED'] } },
+      take: 6,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        project: { select: { title: true, description: true, skillTags: true } },
+        milestones: { orderBy: { sequenceOrder: 'asc' }, select: { title: true, description: true, amount: true } },
+      },
+    });
+
+    const historicalTemplates = pastContracts
+      .filter((c) => c.totalAmount > 0 && c.milestones.length >= 2)
+      .map((c) => {
+        let pastTags: string[] = [];
+        try {
+          pastTags = JSON.parse(c.project.skillTags || '[]');
+        } catch {
+          pastTags = [];
+        }
+        return {
+          id: `hist-${c.id.slice(0, 8)}`,
+          category: 'systems' as const,
+          title: `Precedent: ${c.project.title}`,
+          summary: c.project.description,
+          tags: pastTags,
+          suggestedMilestones: c.milestones.map((m, idx) => ({
+            title: m.title,
+            description: m.description,
+            relativeBudgetPercent: Math.max(1, Math.round((m.amount / c.totalAmount) * 100)),
+            estimatedDays: (idx + 1) * 6,
+            acceptanceChecklist: ['Verified deliverable matching historical completed escrow milestone'],
+          })),
+        };
+      });
+
     // Execute RAG Generation Pipeline
     const ragResult = await RagContractGenerator.generateMilestones({
       project: {
@@ -80,6 +118,7 @@ export async function POST(request: Request) {
         coverLetter: proposal.coverLetter,
       },
       chatTranscript: validated.chatTranscript,
+      historicalTemplates,
     });
 
     return NextResponse.json(
