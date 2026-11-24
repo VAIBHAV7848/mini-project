@@ -14,11 +14,15 @@ import {
   ValidationError,
   AuthorizationError,
 } from '@/lib/errors';
-import { contractActionSchema } from '@/lib/validation';
+import { contractActionSchema, entityIdSchema } from '@/lib/validation';
 import { ContractAction, EscrowStatus } from '@/types';
 
 const formContractSchema = z.object({
-  proposalId: z.string().uuid(),
+  proposalId: entityIdSchema,
+  transcriptHash: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/i, 'Invalid transcript hash')
+    .optional(),
   milestones: z
     .array(
       z.object({
@@ -26,6 +30,7 @@ const formContractSchema = z.object({
         description: z.string().min(5),
         amount: z.number().positive(),
         dueDate: z.string().datetime(),
+        acceptanceChecklist: z.array(z.string().min(1)).optional(),
       })
     )
     .min(1),
@@ -152,7 +157,7 @@ export async function POST(request: Request) {
           case 'START_WORK': {
             if (!milestoneId) throw new ValidationError('milestoneId is required to start work.');
             RbacEnforcer.enforceRole(session, ['FREELANCER', 'ADMIN']);
-            const updated = await globalContractManager.startMilestoneWork(milestoneId, session.userId);
+            const updated = await globalContractManager.startMilestoneWork(milestoneId, session.userId, session.role);
             return NextResponse.json(formatSuccessResponse(updated));
           }
 
@@ -165,6 +170,7 @@ export async function POST(request: Request) {
             const updated = await globalContractManager.submitMilestoneDeliverable({
               milestoneId,
               freelancerId: session.userId,
+              actorRole: session.role,
               fileName: validated.fileName || 'deliverable-archive.zip',
               fileUrl: validated.fileUrl || 'https://storage.local/deliverable.zip',
               sha256Checksum: validated.sha256Checksum,
@@ -179,6 +185,7 @@ export async function POST(request: Request) {
             const updated = await globalContractManager.approveMilestone({
               milestoneId,
               clientId: session.userId,
+              actorRole: session.role,
             });
             return NextResponse.json(formatSuccessResponse(updated));
           }
@@ -235,11 +242,14 @@ export async function POST(request: Request) {
     const contract = await globalContractManager.createContractFromProposal({
       proposalId: validated.proposalId,
       actorId: session.userId,
+      actorRole: session.role,
+      transcriptHash: validated.transcriptHash,
       milestones: validated.milestones.map((m) => ({
         title: m.title,
         description: m.description,
         amount: m.amount,
         dueDate: new Date(m.dueDate),
+        acceptanceChecklist: m.acceptanceChecklist,
       })),
     });
 

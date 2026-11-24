@@ -90,52 +90,95 @@ export async function POST(
       );
     }
 
-    const lockKey = `fund_wallet_${milestone.id}`;
+    const lockKey = `contract:${contractId}`;
     const releaseLock = await globalKeyedMutex.acquire(lockKey);
 
     try {
       return await prisma.$transaction(async (tx) => {
-        // Fetch current user wallet balance inside transaction
-        const client = await tx.user.findUnique({
-          where: { id: contract.clientId },
+        const freshContract = await tx.contract.findUnique({
+          where: { id: contractId },
+        });
+        const freshMilestone = await tx.milestone.findUnique({
+          where: { id: milestone.id },
         });
 
-        if (!client) {
-          throw new NotFoundError('User', contract.clientId);
+        if (!freshContract || !freshMilestone) {
+          throw new NotFoundError('Milestone', milestone.id);
         }
 
-        const requiredPaise = milestone.amountPaise > 0 ? milestone.amountPaise : Math.round(milestone.amount * 100);
-        const requiredInr = requiredPaise / 100;
-
-        if (client.balancePaise < requiredPaise && client.balance < requiredInr) {
-          throw new ValidationError(
-            `Insufficient wallet balance. Required: ₹${requiredInr.toFixed(2)}, Available: ₹${client.balance.toFixed(2)}.`
+        if (freshMilestone.status === 'FUNDED') {
+          return NextResponse.json(
+            formatSuccessResponse({
+              alreadyFunded: true,
+              milestoneId: freshMilestone.id,
+              contractId: freshContract.id,
+              message: 'Milestone is already funded.',
+            })
           );
         }
 
-        // 1. Debit client wallet balance (both float & integer paise)
+        if (freshMilestone.status !== 'AWAITING_DEPOSIT' && freshMilestone.status !== 'PENDING') {
+          throw new InvalidStateTransitionError(
+            freshMilestone.status,
+            'FUND_MILESTONE',
+            `Milestone is in state '${freshMilestone.status}'. Only PENDING or AWAITING_DEPOSIT milestones can be funded.`
+          );
+        }
+
+        // Fetch current user wallet balance inside transaction
+        const client = await tx.user.findUnique({
+          where: { id: freshContract.clientId },
+        });
+
+        if (!client) {
+          throw new NotFoundError('User', freshContract.clientId);
+        }
+
+        const requiredPaise =
+          freshMilestone.amountPaise > 0
+            ? freshMilestone.amountPaise
+            : Math.round(freshMilestone.amount * 100);
+        const requiredInr = requiredPaise / 100;
+        const availableClientPaise =
+          client.balancePaise > 0 ? client.balancePaise : Math.round(client.balance * 100);
+
+        if (availableClientPaise < requiredPaise) {
+          throw new ValidationError(
+            `Insufficient wallet balance. Required: ₹${requiredInr.toFixed(2)}, Available: ₹${(availableClientPaise / 100).toFixed(2)}.`
+          );
+        }
+
+        const nextClientPaise = availableClientPaise - requiredPaise;
+        const currentEscrowPaise =
+          freshContract.escrowBalancePaise > 0
+            ? freshContract.escrowBalancePaise
+            : Math.round(freshContract.escrowBalance * 100);
+        const nextEscrowPaise = currentEscrowPaise + requiredPaise;
+
+        // 1. Debit client wallet balance (atomic float & integer paise)
         const updatedClient = await tx.user.update({
           where: { id: client.id },
           data: {
-            balancePaise: { decrement: requiredPaise },
-            balance: { decrement: requiredInr },
+            balancePaise: nextClientPaise,
+            balance: nextClientPaise / 100,
           },
         });
 
         // 2. Increment contract escrow vault
-        const newContractStatus = contract.status === 'AWAITING_DEPOSIT' ? 'FUNDED' : contract.status;
+        const newContractStatus =
+          freshContract.status === 'AWAITING_DEPOSIT' ? 'FUNDED' : freshContract.status;
         const updatedContract = await tx.contract.update({
-          where: { id: contract.id },
+          where: { id: freshContract.id },
           data: {
-            escrowBalancePaise: { increment: requiredPaise },
-            escrowBalance: { increment: requiredInr },
+            escrowBalancePaise: nextEscrowPaise,
+            escrowBalance: nextEscrowPaise / 100,
             status: newContractStatus,
           },
         });
 
         // 3. Update milestone to FUNDED
         const updatedMilestone = await tx.milestone.update({
-          where: { id: milestone.id },
+          where: { id: freshMilestone.id },
           data: {
             status: 'FUNDED',
           },
@@ -144,8 +187,8 @@ export async function POST(
         // 4. Record EscrowTransaction (LOCK)
         const escrowTx = await tx.escrowTransaction.create({
           data: {
-            contractId: contract.id,
-            milestoneId: milestone.id,
+            contractId: freshContract.id,
+            milestoneId: freshMilestone.id,
             fromUserId: client.id,
             toUserId: null, // Locked in escrow
             amount: requiredInr,
@@ -160,9 +203,9 @@ export async function POST(
           {
             actorId: session.userId,
             entityName: 'Milestone',
-            entityId: milestone.id,
+            entityId: freshMilestone.id,
             action: 'MILESTONE_FUNDED_FROM_WALLET',
-            previousState: milestone.status,
+            previousState: freshMilestone.status,
             newState: 'FUNDED',
           },
           tx

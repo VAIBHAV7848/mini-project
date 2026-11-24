@@ -35,9 +35,29 @@ export function resolveDatabaseUrl(): string | undefined {
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
+  sqliteConfigured?: Promise<void>;
 };
 
 const resolvedUrl = resolveDatabaseUrl();
+
+function configureSqlitePragmas(client: PrismaClient, url?: string): Promise<void> {
+  if (!url || !url.startsWith('file:')) {
+    return Promise.resolve();
+  }
+  if (!globalForPrisma.sqliteConfigured) {
+    globalForPrisma.sqliteConfigured = (async () => {
+      try {
+        await client.$queryRawUnsafe('PRAGMA journal_mode = WAL;');
+        await client.$queryRawUnsafe('PRAGMA synchronous = NORMAL;');
+        await client.$queryRawUnsafe('PRAGMA busy_timeout = 5000;');
+        await client.$queryRawUnsafe('PRAGMA temp_store = MEMORY;');
+      } catch {
+        // Ignore initialization errors when DB file is not yet pushed
+      }
+    })();
+  }
+  return globalForPrisma.sqliteConfigured;
+}
 
 export const prisma =
   globalForPrisma.prisma ??
@@ -53,5 +73,6 @@ export const prisma =
   });
 
 globalForPrisma.prisma = prisma;
+void configureSqlitePragmas(prisma, resolvedUrl);
 
 export default prisma;

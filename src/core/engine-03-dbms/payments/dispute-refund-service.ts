@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import prisma from '@/lib/db';
+import { globalKeyedMutex } from '@/core/engine-01-os/mutex';
 import { AuditLogger, globalAuditLogger } from '@/core/engine-03-dbms/audit-logger';
 import { CashfreeGateway, globalCashfreeGateway } from './cashfree-gateway';
 import {
@@ -38,9 +39,9 @@ export class DisputeRefundService {
    * and creates pending escrow records.
    */
   async initiateDisputeRefund(input: InitiateDisputeRefundInput): Promise<DisputeRefundResult> {
-    return await prisma.$transaction(async (tx) => {
-      // 1. Verify arbitrator authorization & role
-      const reviewer = await tx.user.findUnique({
+    return await globalKeyedMutex.runExclusive(`dispute:${input.disputeId}`, async () => {
+      // 1. Verify arbitrator authorization & role before external gateway calls
+      const reviewer = await prisma.user.findUnique({
         where: { id: input.reviewerId },
       });
 
@@ -51,7 +52,7 @@ export class DisputeRefundService {
       }
 
       // 2. Retrieve dispute and associated milestone & contract
-      const dispute = await tx.dispute.findUnique({
+      const dispute = await prisma.dispute.findUnique({
         where: { id: input.disputeId },
         include: {
           milestone: {
@@ -81,7 +82,10 @@ export class DisputeRefundService {
       }
 
       // 3. Integer paise conversion & precision validation
-      const totalMilestonePaise = Math.round(dispute.milestone.amount * 100);
+      const totalMilestonePaise =
+        dispute.milestone.amountPaise > 0
+          ? dispute.milestone.amountPaise
+          : Math.round(dispute.milestone.amount * 100);
       if (totalMilestonePaise <= 0) {
         throw new ValidationError('Milestone amount must be greater than zero.');
       }
@@ -121,33 +125,9 @@ export class DisputeRefundService {
         freelancerTransferPaise = 0;
       }
 
-      // 4. Milestone / Escrow state transition: DISPUTED -> REFUND_PENDING
-      const nextMilestoneState =
-        rulingType === 'PARTIAL_SPLIT' ? 'PARTIALLY_REFUNDED_PENDING' : 'REFUND_PENDING';
-
-      await tx.milestone.update({
-        where: { id: dispute.milestoneId },
-        data: { status: nextMilestoneState },
-      });
-
-      // Update dispute with binding ruling details
-      const rulingTitle =
-        rulingType === 'PARTIAL_SPLIT' ? 'SPLIT_SETTLEMENT' : 'REFUND_TO_CLIENT';
-
-      await tx.dispute.update({
-        where: { id: dispute.id },
-        data: {
-          status: 'RESOLVED',
-          ruling: rulingTitle,
-          reviewerId: input.reviewerId,
-          rulingNotes: input.rulingNotes,
-          resolvedAt: new Date(),
-        },
-      });
-
-      // 5. Gateway Call 1: Cashfree PG Refund for client
+      // 4. External Gateway Calls (executed strictly outside DB transaction lock)
       const refundId = `rfnd_${dispute.id}_${Date.now()}`;
-      const orderId = dispute.milestone.contractId; // Linked order ID
+      const orderId = dispute.milestone.contractId;
 
       const refundResult = await this.gateway.createRefund({
         orderId,
@@ -162,7 +142,6 @@ export class DisputeRefundService {
         );
       }
 
-      // 6. Gateway Call 2 (if split): Cashfree Payouts Transfer for freelancer
       let transferResult: any = null;
       if (freelancerTransferPaise > 0) {
         const transferId = `trf_${dispute.id}_${Date.now()}`;
@@ -180,93 +159,144 @@ export class DisputeRefundService {
         }
       }
 
-      // 7. Save Refund record with PENDING status and providerRefundId
-      const refundRecord: RefundRecord = {
-        id: `ref_rec_${Date.now()}`,
-        disputeId: dispute.id,
-        milestoneId: dispute.milestoneId,
-        contractId: dispute.milestone.contractId,
-        clientId: dispute.milestone.contract.clientId,
-        orderId,
-        providerRefundId: refundResult.providerRefundId || null,
-        idempotencyKey: refundId,
-        amountPaise: clientRefundPaise,
-        status: 'PENDING',
-        reason: input.rulingNotes,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      this.refundRecords.set(refundId, refundRecord);
+      const nextMilestoneState =
+        rulingType === 'PARTIAL_SPLIT' ? 'PARTIALLY_REFUNDED_PENDING' : 'REFUND_PENDING';
+      const rulingTitle =
+        rulingType === 'PARTIAL_SPLIT' ? 'SPLIT_SETTLEMENT' : 'REFUND_TO_CLIENT';
 
-      // Record EscrowTransaction in DB (status PENDING until webhook confirms)
-      await tx.escrowTransaction.create({
-        data: {
-          contractId: dispute.milestone.contractId,
-          milestoneId: dispute.milestoneId,
-          fromUserId: null,
-          toUserId: dispute.milestone.contract.clientId,
-          amount: clientRefundPaise / 100,
-          type: 'REFUND',
-          status: 'PENDING',
-        },
-      });
+      // 5. Persist state & ledger entries atomically
+      return await prisma.$transaction(
+        async (tx) => {
+          const freshDispute = await tx.dispute.findUnique({ where: { id: dispute.id } });
+          if (freshDispute?.status === 'RESOLVED') {
+            throw new InvalidStateTransitionError(
+              'RESOLVED',
+              'RESOLVE_REFUND',
+              'Dispute is already resolved with a binding ruling.'
+            );
+          }
 
-      if (freelancerTransferPaise > 0) {
-        await tx.escrowTransaction.create({
-          data: {
-            contractId: dispute.milestone.contractId,
+          await tx.milestone.update({
+            where: { id: dispute.milestoneId },
+            data: { status: nextMilestoneState },
+          });
+
+          await tx.dispute.update({
+            where: { id: dispute.id },
+            data: {
+              status: 'RESOLVED',
+              ruling: rulingTitle,
+              reviewerId: input.reviewerId,
+              rulingNotes: input.rulingNotes,
+              resolvedAt: new Date(),
+            },
+          });
+
+          const refundRecord: RefundRecord = {
+            id: `ref_rec_${Date.now()}`,
+            disputeId: dispute.id,
             milestoneId: dispute.milestoneId,
-            fromUserId: null,
-            toUserId: dispute.milestone.contract.freelancerId,
-            amount: freelancerTransferPaise / 100,
-            type: 'RELEASE',
+            contractId: dispute.milestone.contractId,
+            clientId: dispute.milestone.contract.clientId,
+            orderId,
+            providerRefundId: refundResult.providerRefundId || null,
+            idempotencyKey: refundId,
+            amountPaise: clientRefundPaise,
             status: 'PENDING',
-          },
-        });
-      }
+            reason: input.rulingNotes,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          this.refundRecords.set(refundId, refundRecord);
 
-      // 8. Chained Audit Logging
-      await this.auditLogger.logAction(
-        {
-          actorId: input.reviewerId,
-          entityName: 'Dispute',
-          entityId: dispute.id,
-          action: `DISPUTE_${rulingTitle}_INITIATED`,
-          previousState: 'DISPUTED',
-          newState: nextMilestoneState,
+          const linkedPayment = await tx.payment.findFirst({
+            where: { contractId: dispute.milestone.contractId, status: 'SUCCESS' },
+            select: { id: true },
+          });
+
+          if (linkedPayment) {
+            await tx.refund.create({
+              data: {
+                paymentId: linkedPayment.id,
+                contractId: dispute.milestone.contractId,
+                milestoneId: dispute.milestoneId,
+                amountPaise: clientRefundPaise,
+                providerRefundId: refundResult.providerRefundId || refundId,
+                reason: input.rulingNotes,
+                status: 'PENDING',
+              },
+            });
+          }
+
+          await tx.escrowTransaction.create({
+            data: {
+              contractId: dispute.milestone.contractId,
+              milestoneId: dispute.milestoneId,
+              fromUserId: null,
+              toUserId: dispute.milestone.contract.clientId,
+              amount: clientRefundPaise / 100,
+              amountPaise: clientRefundPaise,
+              type: 'REFUND',
+              status: 'PENDING',
+            },
+          });
+
+          if (freelancerTransferPaise > 0) {
+            await tx.escrowTransaction.create({
+              data: {
+                contractId: dispute.milestone.contractId,
+                milestoneId: dispute.milestoneId,
+                fromUserId: null,
+                toUserId: dispute.milestone.contract.freelancerId,
+                amount: freelancerTransferPaise / 100,
+                amountPaise: freelancerTransferPaise,
+                type: 'RELEASE',
+                status: 'PENDING',
+              },
+            });
+          }
+
+          await this.auditLogger.logAction(
+            {
+              actorId: input.reviewerId,
+              entityName: 'Dispute',
+              entityId: dispute.id,
+              action: `DISPUTE_${rulingTitle}_INITIATED`,
+              previousState: 'DISPUTED',
+              newState: nextMilestoneState,
+            },
+            tx
+          );
+
+          return {
+            success: true,
+            disputeId: dispute.id,
+            milestoneId: dispute.milestoneId,
+            contractId: dispute.milestone.contractId,
+            type: rulingType,
+            clientRefund: {
+              refundId,
+              providerRefundId: refundResult.providerRefundId,
+              amountPaise: clientRefundPaise,
+              status: 'PENDING',
+            },
+            freelancerTransfer: transferResult
+              ? {
+                  transferId: transferResult.transferId || `trf_${dispute.id}`,
+                  gatewayTransferId: transferResult.gatewayTransferId,
+                  amountPaise: freelancerTransferPaise,
+                  status: transferResult.status as SettlementTransferStatus,
+                }
+              : undefined,
+            totalMilestonePaise,
+            message:
+              rulingType === 'FULL_REFUND'
+                ? `Full client refund of ₹${(clientRefundPaise / 100).toFixed(2)} initiated with Cashfree.`
+                : `Split refund initiated: ₹${(clientRefundPaise / 100).toFixed(2)} to client, ₹${(freelancerTransferPaise / 100).toFixed(2)} to freelancer.`,
+          };
         },
-        tx
+        { maxWait: 15000, timeout: 30000 }
       );
-
-      return {
-        success: true,
-        disputeId: dispute.id,
-        milestoneId: dispute.milestoneId,
-        contractId: dispute.milestone.contractId,
-        type: rulingType,
-        clientRefund: {
-          refundId,
-          providerRefundId: refundResult.providerRefundId,
-          amountPaise: clientRefundPaise,
-          status: 'PENDING',
-        },
-        freelancerTransfer: transferResult
-          ? {
-              transferId: transferResult.transferId || `trf_${dispute.id}`,
-              gatewayTransferId: transferResult.gatewayTransferId,
-              amountPaise: freelancerTransferPaise,
-              status: transferResult.status as SettlementTransferStatus,
-            }
-          : undefined,
-        totalMilestonePaise,
-        message:
-          rulingType === 'FULL_REFUND'
-            ? `Full client refund of ₹${(clientRefundPaise / 100).toFixed(2)} initiated with Cashfree.`
-            : `Split refund initiated: ₹${(clientRefundPaise / 100).toFixed(2)} to client, ₹${(freelancerTransferPaise / 100).toFixed(2)} to freelancer.`,
-      };
-    }, {
-      maxWait: 15000,
-      timeout: 30000,
     });
   }
 
@@ -331,27 +361,33 @@ export class DisputeRefundService {
       // 3. Handle REFUND_SUCCESS
       if (refundData.refund_status === 'SUCCESS') {
         const refundAmount = refundData.refund_amount;
+        const refundPaise = Math.round(refundAmount * 100);
 
         // Transition pending escrow transaction to COMPLETED
         if (pendingTx) {
           await tx.escrowTransaction.update({
             where: { id: pendingTx.id },
-            data: { status: 'COMPLETED' },
+            data: { status: 'COMPLETED', amountPaise: refundPaise },
           });
         }
 
-        // Decrement contract escrow balance and update status
+        // Decrement contract escrow balance and update status (syncing float & integer paise)
         const contract = await tx.contract.findUnique({
           where: { id: refundData.order_id },
         });
 
         if (contract) {
-          const newEscrowBalance = Math.max(0, contract.escrowBalance - refundAmount);
+          const curEscrowPaise =
+            contract.escrowBalancePaise > 0
+              ? contract.escrowBalancePaise
+              : Math.round(contract.escrowBalance * 100);
+          const nextEscrowPaise = Math.max(0, curEscrowPaise - refundPaise);
           await tx.contract.update({
             where: { id: contract.id },
             data: {
-              escrowBalance: newEscrowBalance,
-              status: newEscrowBalance === 0 ? 'REFUNDED' : contract.status,
+              escrowBalance: nextEscrowPaise / 100,
+              escrowBalancePaise: nextEscrowPaise,
+              status: nextEscrowPaise === 0 ? 'REFUNDED' : contract.status,
             },
           });
         }
@@ -364,11 +400,23 @@ export class DisputeRefundService {
           });
         }
 
-        // Credit client balance in double-entry ledger
+        // Credit client balance in double-entry ledger (float + integer paise)
         if (pendingTx?.toUserId) {
+          const clientUser = await tx.user.findUnique({
+            where: { id: pendingTx.toUserId },
+            select: { balance: true, balancePaise: true },
+          });
+          const curClientPaise = clientUser
+            ? clientUser.balancePaise > 0
+              ? clientUser.balancePaise
+              : Math.round(clientUser.balance * 100)
+            : 0;
           await tx.user.update({
             where: { id: pendingTx.toUserId },
-            data: { balance: { increment: refundAmount } },
+            data: {
+              balance: { increment: refundAmount },
+              balancePaise: curClientPaise + refundPaise,
+            },
           });
         }
 

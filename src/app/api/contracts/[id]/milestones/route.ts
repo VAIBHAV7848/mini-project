@@ -110,7 +110,7 @@ export async function POST(
         case 'START_WORK': {
           if (!milestoneId) throw new ValidationError('milestoneId is required to start work.');
           RbacEnforcer.enforceRole(session, ['FREELANCER', 'ADMIN']);
-          const updated = await globalContractManager.startMilestoneWork(milestoneId, session.userId);
+          const updated = await globalContractManager.startMilestoneWork(milestoneId, session.userId, session.role);
           return NextResponse.json(formatSuccessResponse(updated));
         }
 
@@ -123,6 +123,7 @@ export async function POST(
           const updated = await globalContractManager.submitMilestoneDeliverable({
             milestoneId,
             freelancerId: session.userId,
+            actorRole: session.role,
             fileName: validated.fileName || 'deliverable-archive.zip',
             fileUrl: validated.fileUrl || 'https://storage.local/deliverable.zip',
             sha256Checksum: validated.sha256Checksum,
@@ -137,18 +138,27 @@ export async function POST(
           const updated = await globalContractManager.approveMilestone({
             milestoneId,
             clientId: session.userId,
+            actorRole: session.role,
           });
           return NextResponse.json(formatSuccessResponse(updated));
         }
 
         case 'RELEASE_ESCROW': {
           if (!milestoneId) throw new ValidationError('milestoneId is required.');
-          RbacEnforcer.enforceRole(session, ['CLIENT', 'ADMIN']);
-          if (session.role === 'CLIENT' && session.userId !== contract.clientId) {
-            throw new AuthorizationError('Only the contracted client can authorize escrow release.');
-          }
+          RbacEnforcer.enforceRole(session, ['CLIENT', 'FREELANCER', 'ADMIN']);
           const milestone = await prisma.milestone.findUnique({ where: { id: milestoneId } });
           if (!milestone) throw new NotFoundError('Milestone', milestoneId);
+
+          if (session.role === 'CLIENT' && session.userId !== contract.clientId) {
+            throw new AuthorizationError('Only the contracted client can authorize escrow release.');
+          } else if (session.role === 'FREELANCER') {
+            if (session.userId !== contract.freelancerId) {
+              throw new AuthorizationError('Only the contracted freelancer can claim timed-out escrow release.');
+            }
+            if (milestone.status !== 'REVIEW_TIMEOUT') {
+              throw new AuthorizationError('Freelancer can only self-claim escrow after REVIEW_TIMEOUT.');
+            }
+          }
 
           const receipt = await globalLedgerCoordinator.releaseMilestoneEscrow({
             contractId,

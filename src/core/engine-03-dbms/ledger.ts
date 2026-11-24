@@ -102,11 +102,20 @@ export class LedgerCoordinator {
         );
       }
 
-      // 3. Debit client balance
+      const amountPaise = Math.round(input.amount * 100);
+      const clientCurrentPaise =
+        client.balancePaise > 0 ? client.balancePaise : Math.round(client.balance * 100);
+      const contractCurrentPaise =
+        contract.escrowBalancePaise > 0
+          ? contract.escrowBalancePaise
+          : Math.round(contract.escrowBalance * 100);
+
+      // 3. Debit client balance (float + integer paise)
       await tx.user.update({
         where: { id: input.clientId },
         data: {
           balance: { decrement: input.amount },
+          balancePaise: Math.max(0, clientCurrentPaise - amountPaise),
         },
       });
 
@@ -115,6 +124,7 @@ export class LedgerCoordinator {
         where: { id: input.contractId },
         data: {
           escrowBalance: { increment: input.amount },
+          escrowBalancePaise: contractCurrentPaise + amountPaise,
           status: 'FUNDED',
         },
       });
@@ -138,6 +148,7 @@ export class LedgerCoordinator {
           fromUserId: input.clientId,
           toUserId: null,
           amount: input.amount,
+          amountPaise,
           type: 'DEPOSIT',
           status: 'COMPLETED',
         },
@@ -226,19 +237,37 @@ export class LedgerCoordinator {
         );
       }
 
-      // 3. Debit contract escrow balance
+      const amountPaise = Math.round(input.amount * 100);
+      const contractCurrentEscrowPaise =
+        contract.escrowBalancePaise > 0
+          ? contract.escrowBalancePaise
+          : Math.round(contract.escrowBalance * 100);
+
+      const freelancerRecord = await tx.user.findUnique({
+        where: { id: input.freelancerId },
+        select: { balance: true, balancePaise: true },
+      });
+      const freelancerCurrentPaise = freelancerRecord
+        ? freelancerRecord.balancePaise > 0
+          ? freelancerRecord.balancePaise
+          : Math.round(freelancerRecord.balance * 100)
+        : 0;
+
+      // 3. Debit contract escrow balance (float + integer paise)
       const updatedContract = await tx.contract.update({
         where: { id: input.contractId },
         data: {
           escrowBalance: { decrement: input.amount },
+          escrowBalancePaise: Math.max(0, contractCurrentEscrowPaise - amountPaise),
         },
       });
 
-      // 4. Credit freelancer balance
+      // 4. Credit freelancer balance (float + integer paise)
       await tx.user.update({
         where: { id: input.freelancerId },
         data: {
           balance: { increment: input.amount },
+          balancePaise: freelancerCurrentPaise + amountPaise,
         },
       });
 
@@ -286,6 +315,7 @@ export class LedgerCoordinator {
           fromUserId: null,
           toUserId: input.freelancerId,
           amount: input.amount,
+          amountPaise,
           type: 'RELEASE',
           status: 'COMPLETED',
         },
@@ -340,19 +370,37 @@ export class LedgerCoordinator {
         throw new InsufficientFundsError(contract.escrowBalance, input.amount);
       }
 
-      // 2. Debit contract escrow balance
+      const amountPaise = Math.round(input.amount * 100);
+      const currentEscrowPaise =
+        contract.escrowBalancePaise > 0
+          ? contract.escrowBalancePaise
+          : Math.round(contract.escrowBalance * 100);
+
+      const clientRecord = await tx.user.findUnique({
+        where: { id: input.clientId },
+        select: { balance: true, balancePaise: true },
+      });
+      const currentClientPaise = clientRecord
+        ? clientRecord.balancePaise > 0
+          ? clientRecord.balancePaise
+          : Math.round(clientRecord.balance * 100)
+        : 0;
+
+      // 2. Debit contract escrow balance (float + integer paise)
       const updatedContract = await tx.contract.update({
         where: { id: input.contractId },
         data: {
           escrowBalance: { decrement: input.amount },
+          escrowBalancePaise: Math.max(0, currentEscrowPaise - amountPaise),
         },
       });
 
-      // 3. Credit client balance
+      // 3. Credit client balance (float + integer paise)
       await tx.user.update({
         where: { id: input.clientId },
         data: {
           balance: { increment: input.amount },
+          balancePaise: currentClientPaise + amountPaise,
         },
       });
 
@@ -408,6 +456,7 @@ export class LedgerCoordinator {
           fromUserId: null,
           toUserId: input.clientId,
           amount: input.amount,
+          amountPaise: Math.round(input.amount * 100),
           type: 'REFUND',
           status: 'COMPLETED',
         },

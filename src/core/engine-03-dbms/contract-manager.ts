@@ -1,6 +1,7 @@
 import prisma from '@/lib/db';
 import { AuditLogger, globalAuditLogger } from '@/core/engine-03-dbms/audit-logger';
 import { LedgerCoordinator, globalLedgerCoordinator } from '@/core/engine-03-dbms/ledger';
+import { globalKeyedMutex } from '@/core/engine-01-os/mutex';
 import { globalEvidenceTreeManager, EvidenceNodeType } from '@/core/engine-02-dsa-se/evidence-tree';
 import {
   NotFoundError,
@@ -14,17 +15,21 @@ export interface MilestoneSplitInput {
   description: string;
   amount: number;
   dueDate: Date;
+  acceptanceChecklist?: string[];
 }
 
 export interface CreateContractInput {
   proposalId: string;
   milestones: MilestoneSplitInput[];
   actorId: string;
+  actorRole?: string;
+  transcriptHash?: string;
 }
 
 export interface SubmitDeliverableInput {
   milestoneId: string;
   freelancerId: string;
+  actorRole?: string;
   fileName: string;
   fileUrl: string;
   sha256Checksum: string;
@@ -34,6 +39,7 @@ export interface SubmitDeliverableInput {
 export interface ApproveMilestoneInput {
   milestoneId: string;
   clientId: string;
+  actorRole?: string;
 }
 
 export interface RaiseDisputeInput {
@@ -75,8 +81,28 @@ export class ContractManager {
         throw new NotFoundError('Proposal', input.proposalId);
       }
 
-      if (proposal.project.clientId !== input.actorId) {
+      if (input.actorRole !== 'ADMIN' && proposal.project.clientId !== input.actorId) {
         throw new AuthorizationError('Only the project owner can accept a proposal and form a contract.');
+      }
+
+      if (proposal.status === 'ACCEPTED') {
+        throw new InvalidStateTransitionError(
+          proposal.status,
+          'CREATE_CONTRACT',
+          'This proposal has already been accepted into an active contract.'
+        );
+      }
+
+      const existingProjectContract = await tx.contract.findFirst({
+        where: { projectId: proposal.projectId },
+        select: { id: true },
+      });
+      if (existingProjectContract) {
+        throw new InvalidStateTransitionError(
+          proposal.project.status,
+          'CREATE_CONTRACT',
+          'A contract already exists for this project.'
+        );
       }
 
       const totalSplit = input.milestones.reduce((acc, m) => acc + m.amount, 0);
@@ -86,6 +112,8 @@ export class ContractManager {
         );
       }
 
+      const totalAmountPaise = Math.round(proposal.bidAmount * 100);
+
       // Create contract
       const contract = await tx.contract.create({
         data: {
@@ -93,20 +121,28 @@ export class ContractManager {
           clientId: proposal.project.clientId,
           freelancerId: proposal.freelancerId,
           totalAmount: proposal.bidAmount,
+          totalAmountPaise,
           escrowBalance: 0.0,
+          escrowBalancePaise: 0,
           status: 'AWAITING_DEPOSIT',
         },
       });
 
-      // Create sequential milestones
+      // Create sequential milestones with persisted acceptance criteria and integer paise
       for (let i = 0; i < input.milestones.length; i++) {
         const m = input.milestones[i];
+        const checklistSuffix =
+          m.acceptanceChecklist && m.acceptanceChecklist.length > 0 && !m.description.includes('Acceptance Criteria:')
+            ? `\n\nAcceptance Criteria:\n${m.acceptanceChecklist.map((item) => `- ${item}`).join('\n')}`
+            : '';
+
         await tx.milestone.create({
           data: {
             contractId: contract.id,
             title: m.title,
-            description: m.description,
+            description: `${m.description}${checklistSuffix}`,
             amount: m.amount,
+            amountPaise: Math.round(m.amount * 100),
             sequenceOrder: i + 1,
             status: 'PENDING',
             dueDate: m.dueDate,
@@ -134,14 +170,14 @@ export class ContractManager {
         data: { status: 'IN_PROGRESS' },
       });
 
-      // Append audit log
+      // Append audit log including optional SHA-256 negotiation transcript hash
       await this.auditLogger.logAction(
         {
           actorId: input.actorId,
           entityName: 'Contract',
           entityId: contract.id,
           action: 'CONTRACT_FORMED',
-          previousState: null,
+          previousState: input.transcriptHash ? `TRANSCRIPT_SHA256:${input.transcriptHash}` : null,
           newState: 'AWAITING_DEPOSIT',
         },
         tx
@@ -190,62 +226,67 @@ export class ContractManager {
   }
 
   /**
-   * Freelancer starts work on a funded milestone.
+   * Freelancer (or Admin) starts work on a funded milestone.
    */
-  async startMilestoneWork(milestoneId: string, freelancerId: string) {
-    const milestone = await prisma.milestone.findUnique({
-      where: { id: milestoneId },
-      include: { contract: true },
-    });
+  async startMilestoneWork(milestoneId: string, freelancerId: string, actorRole?: string) {
+    return await prisma.$transaction(async (tx) => {
+      const milestone = await tx.milestone.findUnique({
+        where: { id: milestoneId },
+        include: { contract: true },
+      });
 
-    if (!milestone) {
-      throw new NotFoundError('Milestone', milestoneId);
-    }
+      if (!milestone) {
+        throw new NotFoundError('Milestone', milestoneId);
+      }
 
-    if (milestone.contract.freelancerId !== freelancerId) {
-      throw new AuthorizationError('Only the assigned freelancer can start work on this milestone.');
-    }
+      if (actorRole !== 'ADMIN' && milestone.contract.freelancerId !== freelancerId) {
+        throw new AuthorizationError('Only the assigned freelancer can start work on this milestone.');
+      }
 
-    if (milestone.status !== 'FUNDED') {
-      throw new InvalidStateTransitionError(
-        milestone.status,
-        'START_WORK',
-        `Milestone must be in FUNDED state to begin work.`
+      if (milestone.status !== 'FUNDED') {
+        throw new InvalidStateTransitionError(
+          milestone.status,
+          'START_WORK',
+          `Milestone must be in FUNDED state to begin work.`
+        );
+      }
+
+      // Milestone sequencing guard (FR-12): Preceding milestones must be RELEASED or REFUNDED
+      const priorIncomplete = await tx.milestone.findFirst({
+        where: {
+          contractId: milestone.contractId,
+          sequenceOrder: { lt: milestone.sequenceOrder },
+          status: { notIn: ['RELEASED', 'REFUNDED'] },
+        },
+      });
+
+      if (priorIncomplete) {
+        throw new InvalidStateTransitionError(
+          milestone.status,
+          'START_WORK',
+          `Preceding milestone #${priorIncomplete.sequenceOrder} is '${priorIncomplete.status}'. All prior milestones must be RELEASED or REFUNDED before starting milestone #${milestone.sequenceOrder}.`
+        );
+      }
+
+      const updated = await tx.milestone.update({
+        where: { id: milestoneId },
+        data: { status: 'IN_PROGRESS' },
+      });
+
+      await this.auditLogger.logAction(
+        {
+          actorId: freelancerId,
+          entityName: 'Milestone',
+          entityId: milestoneId,
+          action: 'START_WORK',
+          previousState: 'FUNDED',
+          newState: 'IN_PROGRESS',
+        },
+        tx
       );
-    }
 
-    // Milestone sequencing guard (FR-12): Preceding milestones must be RELEASED or REFUNDED
-    const priorIncomplete = await prisma.milestone.findFirst({
-      where: {
-        contractId: milestone.contractId,
-        sequenceOrder: { lt: milestone.sequenceOrder },
-        status: { notIn: ['RELEASED', 'REFUNDED'] },
-      },
+      return updated;
     });
-
-    if (priorIncomplete) {
-      throw new InvalidStateTransitionError(
-        milestone.status,
-        'START_WORK',
-        `Preceding milestone #${priorIncomplete.sequenceOrder} is '${priorIncomplete.status}'. All prior milestones must be RELEASED or REFUNDED before starting milestone #${milestone.sequenceOrder}.`
-      );
-    }
-
-    const updated = await prisma.milestone.update({
-      where: { id: milestoneId },
-      data: { status: 'IN_PROGRESS' },
-    });
-
-    await this.auditLogger.logAction({
-      actorId: freelancerId,
-      entityName: 'Milestone',
-      entityId: milestoneId,
-      action: 'START_WORK',
-      previousState: 'FUNDED',
-      newState: 'IN_PROGRESS',
-    });
-
-    return updated;
   }
 
   /**
@@ -263,7 +304,7 @@ export class ContractManager {
         throw new NotFoundError('Milestone', input.milestoneId);
       }
 
-      if (milestone.contract.freelancerId !== input.freelancerId) {
+      if (input.actorRole !== 'ADMIN' && milestone.contract.freelancerId !== input.freelancerId) {
         throw new AuthorizationError('Only the assigned freelancer can submit deliverables for this milestone.');
       }
 
@@ -326,73 +367,78 @@ export class ContractManager {
   }
 
   /**
-   * Client reviews and approves a submitted deliverable.
+   * Client (or Admin) reviews and approves a submitted deliverable atomically.
    */
   async approveMilestone(input: ApproveMilestoneInput) {
-    const milestone = await prisma.milestone.findUnique({
-      where: { id: input.milestoneId },
-      include: { contract: true },
-    });
+    return await prisma.$transaction(async (tx) => {
+      const milestone = await tx.milestone.findUnique({
+        where: { id: input.milestoneId },
+        include: { contract: true },
+      });
 
-    if (!milestone) {
-      throw new NotFoundError('Milestone', input.milestoneId);
-    }
+      if (!milestone) {
+        throw new NotFoundError('Milestone', input.milestoneId);
+      }
 
-    if (milestone.contract.clientId !== input.clientId) {
-      throw new AuthorizationError('Only the client can approve this milestone.');
-    }
+      if (input.actorRole !== 'ADMIN' && milestone.contract.clientId !== input.clientId) {
+        throw new AuthorizationError('Only the client can approve this milestone.');
+      }
 
-    if (milestone.status !== 'SUBMITTED' && milestone.status !== 'UNDER_REVIEW') {
-      throw new InvalidStateTransitionError(
-        milestone.status,
-        'APPROVE_MILESTONE',
-        `Cannot approve milestone with status '${milestone.status}'.`
+      if (milestone.status !== 'SUBMITTED' && milestone.status !== 'UNDER_REVIEW') {
+        throw new InvalidStateTransitionError(
+          milestone.status,
+          'APPROVE_MILESTONE',
+          `Cannot approve milestone with status '${milestone.status}'.`
+        );
+      }
+
+      const updated = await tx.milestone.update({
+        where: { id: input.milestoneId },
+        data: { status: 'APPROVED' },
+      });
+
+      // Provision SettlementTransfer for administrative manual payout
+      const grossPaise = milestone.amountPaise > 0 ? milestone.amountPaise : Math.round(milestone.amount * 100);
+      const platformFeePaise = Math.round(grossPaise * 0.05);
+      const netDisbursedPaise = grossPaise - platformFeePaise;
+      const idempotencyKey = `SETTLE_${milestone.id}`;
+
+      await tx.settlementTransfer.upsert({
+        where: { idempotencyKey },
+        create: {
+          id: `set_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          contractId: milestone.contractId,
+          milestoneId: milestone.id,
+          freelancerId: milestone.contract.freelancerId,
+          beneficiaryId: `BEN_${milestone.contract.freelancerId}`,
+          idempotencyKey,
+          grossAmountPaise: grossPaise,
+          platformFeePaise,
+          netDisbursedPaise,
+          payoutMode: 'MANUAL_UPI',
+          status: 'PENDING',
+        },
+        update: {
+          grossAmountPaise: grossPaise,
+          platformFeePaise,
+          netDisbursedPaise,
+        },
+      });
+
+      await this.auditLogger.logAction(
+        {
+          actorId: input.clientId,
+          entityName: 'Milestone',
+          entityId: input.milestoneId,
+          action: 'APPROVE_MILESTONE',
+          previousState: milestone.status,
+          newState: 'APPROVED',
+        },
+        tx
       );
-    }
 
-    const updated = await prisma.milestone.update({
-      where: { id: input.milestoneId },
-      data: { status: 'APPROVED' },
+      return updated;
     });
-
-    // Provision SettlementTransfer for administrative manual payout
-    const grossPaise = milestone.amountPaise > 0 ? milestone.amountPaise : Math.round(milestone.amount * 100);
-    const platformFeePaise = Math.round(grossPaise * 0.05);
-    const netDisbursedPaise = grossPaise - platformFeePaise;
-    const idempotencyKey = `SETTLE_${milestone.id}`;
-
-    await prisma.settlementTransfer.upsert({
-      where: { idempotencyKey },
-      create: {
-        id: `set_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        contractId: milestone.contractId,
-        milestoneId: milestone.id,
-        freelancerId: milestone.contract.freelancerId,
-        beneficiaryId: `BEN_${milestone.contract.freelancerId}`,
-        idempotencyKey,
-        grossAmountPaise: grossPaise,
-        platformFeePaise,
-        netDisbursedPaise,
-        payoutMode: 'MANUAL_UPI',
-        status: 'PENDING',
-      },
-      update: {
-        grossAmountPaise: grossPaise,
-        platformFeePaise,
-        netDisbursedPaise,
-      },
-    });
-
-    await this.auditLogger.logAction({
-      actorId: input.clientId,
-      entityName: 'Milestone',
-      entityId: input.milestoneId,
-      action: 'APPROVE_MILESTONE',
-      previousState: milestone.status,
-      newState: 'APPROVED',
-    });
-
-    return updated;
   }
 
   /**
@@ -472,75 +518,82 @@ export class ContractManager {
    * Independent reviewer executes a binding dispute ruling, directing escrow release or refund.
    */
   async resolveDispute(input: ResolveDisputeInput) {
-    const dispute = await prisma.dispute.findUnique({
-      where: { id: input.disputeId },
-      include: {
-        milestone: {
-          include: { contract: true },
+    return await globalKeyedMutex.runExclusive(`dispute:${input.disputeId}`, async () => {
+      const dispute = await prisma.dispute.findUnique({
+        where: { id: input.disputeId },
+        include: {
+          milestone: {
+            include: { contract: true },
+          },
         },
-      },
-    });
-
-    if (!dispute) {
-      throw new NotFoundError('Dispute', input.disputeId);
-    }
-
-    if (dispute.status === 'RESOLVED') {
-      throw new InvalidStateTransitionError(
-        dispute.status,
-        input.ruling,
-        'Dispute is already resolved with a binding ruling.'
-      );
-    }
-
-    const reviewer = await prisma.user.findUnique({
-      where: { id: input.reviewerId },
-    });
-
-    if (!reviewer || (reviewer.role !== 'REVIEWER' && reviewer.role !== 'ADMIN')) {
-      throw new AuthorizationError('Only an authorized reviewer or administrator can issue dispute rulings.');
-    }
-
-    // Mark dispute resolved
-    await prisma.dispute.update({
-      where: { id: input.disputeId },
-      data: {
-        status: 'RESOLVED',
-        reviewerId: input.reviewerId,
-        ruling: input.ruling,
-        rulingNotes: input.rulingNotes,
-        resolvedAt: new Date(),
-      },
-    });
-
-    await this.auditLogger.logAction({
-      actorId: input.reviewerId,
-      entityName: 'Dispute',
-      entityId: dispute.id,
-      action: input.ruling,
-      previousState: dispute.status,
-      newState: 'RESOLVED',
-    });
-
-    // Execute financial transfer
-    if (input.ruling === 'RELEASE_TO_FREELANCER') {
-      return await this.ledger.releaseMilestoneEscrow({
-        contractId: dispute.milestone.contractId,
-        milestoneId: dispute.milestoneId,
-        freelancerId: dispute.milestone.contract.freelancerId,
-        amount: dispute.milestone.amount,
-        actorId: input.reviewerId,
       });
-    } else {
-      return await this.ledger.refundMilestoneEscrow({
-        contractId: dispute.milestone.contractId,
-        milestoneId: dispute.milestoneId,
-        clientId: dispute.milestone.contract.clientId,
-        amount: dispute.milestone.amount,
-        actorId: input.reviewerId,
-        reason: input.rulingNotes,
+
+      if (!dispute) {
+        throw new NotFoundError('Dispute', input.disputeId);
+      }
+
+      if (dispute.status === 'RESOLVED') {
+        throw new InvalidStateTransitionError(
+          dispute.status,
+          input.ruling,
+          'Dispute is already resolved with a binding ruling.'
+        );
+      }
+
+      const reviewer = await prisma.user.findUnique({
+        where: { id: input.reviewerId },
       });
-    }
+
+      if (!reviewer || (reviewer.role !== 'REVIEWER' && reviewer.role !== 'ADMIN')) {
+        throw new AuthorizationError('Only an authorized reviewer or administrator can issue dispute rulings.');
+      }
+
+      // Execute financial ledger transfer first so a failed transfer never leaves dispute stuck RESOLVED
+      const receipt =
+        input.ruling === 'RELEASE_TO_FREELANCER'
+          ? await this.ledger.releaseMilestoneEscrow({
+              contractId: dispute.milestone.contractId,
+              milestoneId: dispute.milestoneId,
+              freelancerId: dispute.milestone.contract.freelancerId,
+              amount: dispute.milestone.amount,
+              actorId: input.reviewerId,
+            })
+          : await this.ledger.refundMilestoneEscrow({
+              contractId: dispute.milestone.contractId,
+              milestoneId: dispute.milestoneId,
+              clientId: dispute.milestone.contract.clientId,
+              amount: dispute.milestone.amount,
+              actorId: input.reviewerId,
+              reason: input.rulingNotes,
+            });
+
+      await prisma.$transaction(async (tx) => {
+        await tx.dispute.update({
+          where: { id: input.disputeId },
+          data: {
+            status: 'RESOLVED',
+            reviewerId: input.reviewerId,
+            ruling: input.ruling,
+            rulingNotes: input.rulingNotes,
+            resolvedAt: new Date(),
+          },
+        });
+
+        await this.auditLogger.logAction(
+          {
+            actorId: input.reviewerId,
+            entityName: 'Dispute',
+            entityId: dispute.id,
+            action: input.ruling,
+            previousState: dispute.status,
+            newState: 'RESOLVED',
+          },
+          tx
+        );
+      });
+
+      return receipt;
+    });
   }
 
   /**

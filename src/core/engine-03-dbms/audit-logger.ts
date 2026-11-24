@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import prisma from '@/lib/db';
+import { globalKeyedMutex } from '@/core/engine-01-os/mutex';
 
 export interface AuditEntryInput {
   actorId: string;
@@ -31,46 +32,70 @@ export class AuditLogger {
   }
 
   async logAction(entry: AuditEntryInput, tx?: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]) {
-    const client = tx || prisma;
-    // Get the latest audit log to chain hashes
-    const lastRecord = await client.auditLog.findFirst({
-      orderBy: [{ timestamp: 'desc' }, { id: 'desc' }],
-    });
+    const writeEntry = async (client: typeof prisma | Parameters<Parameters<typeof prisma.$transaction>[0]>[0]) => {
+      // Get the latest audit log to chain hashes
+      const lastRecord = await client.auditLog.findFirst({
+        orderBy: [{ timestamp: 'desc' }, { id: 'desc' }],
+        select: { verificationHash: true, timestamp: true },
+      });
 
-    const prevHash = lastRecord ? lastRecord.verificationHash : 'GENESIS';
-    const now = new Date();
-    const timestamp =
-      lastRecord && lastRecord.timestamp.getTime() >= now.getTime()
-        ? new Date(lastRecord.timestamp.getTime() + 1)
-        : now;
+      const prevHash = lastRecord ? lastRecord.verificationHash : 'GENESIS';
+      const now = new Date();
+      const timestamp =
+        lastRecord && lastRecord.timestamp.getTime() >= now.getTime()
+          ? new Date(lastRecord.timestamp.getTime() + 1)
+          : now;
 
-    const verificationHash = this.computeChainedHash(
-      entry.actorId,
-      entry.entityName,
-      entry.entityId,
-      entry.action,
-      entry.newState,
-      timestamp,
-      prevHash
-    );
-
-    return await client.auditLog.create({
-      data: {
-        actorId: entry.actorId,
-        entityName: entry.entityName,
-        entityId: entry.entityId,
-        action: entry.action,
-        previousState: entry.previousState ?? null,
-        newState: entry.newState,
-        prevHash,
-        verificationHash,
+      const verificationHash = this.computeChainedHash(
+        entry.actorId,
+        entry.entityName,
+        entry.entityId,
+        entry.action,
+        entry.newState,
         timestamp,
-      },
+        prevHash
+      );
+
+      return await client.auditLog.create({
+        data: {
+          actorId: entry.actorId,
+          entityName: entry.entityName,
+          entityId: entry.entityId,
+          action: entry.action,
+          previousState: entry.previousState ?? null,
+          newState: entry.newState,
+          prevHash,
+          verificationHash,
+          timestamp,
+        },
+      });
+    };
+
+    if (tx) {
+      return await writeEntry(tx);
+    }
+
+    return await globalKeyedMutex.runExclusive('audit_chain', async () => {
+      return await writeEntry(prisma);
     });
   }
 
   async verifyAuditChain(): Promise<AuditVerificationResult> {
-    const allRecords = await prisma.auditLog.findMany();
+    const auditSelect = {
+      id: true,
+      actorId: true,
+      entityName: true,
+      entityId: true,
+      action: true,
+      newState: true,
+      prevHash: true,
+      verificationHash: true,
+      timestamp: true,
+    } as const;
+
+    const allRecords = await prisma.auditLog.findMany({
+      select: auditSelect,
+    });
     if (allRecords.length === 0) {
       return {
         isValid: true,
@@ -98,6 +123,7 @@ export class AuditLogger {
       orderedRecords.length === allRecords.length
         ? orderedRecords
         : await prisma.auditLog.findMany({
+            select: auditSelect,
             orderBy: [{ timestamp: 'asc' }, { id: 'asc' }],
           });
 

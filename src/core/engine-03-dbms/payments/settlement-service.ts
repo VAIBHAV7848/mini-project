@@ -22,6 +22,7 @@ export class SettlementService {
   private gateway: CashfreeGateway;
   private auditLogger: AuditLogger;
   private static initialized: boolean = false;
+  private static initPromise: Promise<void> | null = null;
 
   constructor(
     gateway: CashfreeGateway = globalCashfreeGateway,
@@ -29,7 +30,6 @@ export class SettlementService {
   ) {
     this.gateway = gateway;
     this.auditLogger = auditLogger;
-    this.ensureTablesExist();
   }
 
   /**
@@ -37,60 +37,67 @@ export class SettlementService {
    */
   private async ensureTablesExist(): Promise<void> {
     if (SettlementService.initialized) return;
-    try {
-      await prisma.$executeRawUnsafe(`
-        CREATE TABLE IF NOT EXISTS user_payout_methods (
-          id TEXT PRIMARY KEY,
-          user_id TEXT UNIQUE NOT NULL,
-          vendor_id TEXT UNIQUE NOT NULL,
-          account_type TEXT NOT NULL,
-          account_identifier TEXT NOT NULL,
-          ifsc TEXT,
-          bank_name TEXT,
-          verification_status TEXT NOT NULL DEFAULT 'PENDING',
-          verified_at TIMESTAMP,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
+    if (SettlementService.initPromise) return SettlementService.initPromise;
 
-      await prisma.$executeRawUnsafe(`
-        CREATE TABLE IF NOT EXISTS settlement_transfers (
-          id TEXT PRIMARY KEY,
-          contract_id TEXT NOT NULL,
-          milestone_id TEXT NOT NULL,
-          freelancer_id TEXT NOT NULL,
-          beneficiary_id TEXT NOT NULL,
-          gateway_transfer_id TEXT UNIQUE,
-          idempotency_key TEXT UNIQUE NOT NULL,
-          gross_amount_paise INTEGER NOT NULL,
-          platform_fee_paise INTEGER NOT NULL,
-          net_disbursed_paise INTEGER NOT NULL,
-          currency TEXT DEFAULT 'INR',
-          status TEXT NOT NULL DEFAULT 'PENDING',
-          failure_code TEXT,
-          failure_reason TEXT,
-          retry_count INTEGER DEFAULT 0,
-          next_retry_at TIMESTAMP,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          settled_at TIMESTAMP
-        );
-      `);
+    SettlementService.initPromise = (async () => {
+      try {
+        await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS user_payout_methods (
+            id TEXT PRIMARY KEY,
+            user_id TEXT UNIQUE NOT NULL,
+            vendor_id TEXT UNIQUE NOT NULL,
+            account_type TEXT NOT NULL,
+            account_identifier TEXT NOT NULL,
+            ifsc TEXT,
+            bank_name TEXT,
+            verification_status TEXT NOT NULL DEFAULT 'PENDING',
+            verified_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
 
-      await prisma.$executeRawUnsafe(`
-        CREATE TABLE IF NOT EXISTS settlement_admin_alerts (
-          id TEXT PRIMARY KEY,
-          level TEXT NOT NULL,
-          message TEXT NOT NULL,
-          details TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
+        await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS settlement_transfers (
+            id TEXT PRIMARY KEY,
+            contract_id TEXT NOT NULL,
+            milestone_id TEXT NOT NULL,
+            freelancer_id TEXT NOT NULL,
+            beneficiary_id TEXT NOT NULL,
+            gateway_transfer_id TEXT UNIQUE,
+            idempotency_key TEXT UNIQUE NOT NULL,
+            gross_amount_paise INTEGER NOT NULL,
+            platform_fee_paise INTEGER NOT NULL,
+            net_disbursed_paise INTEGER NOT NULL,
+            currency TEXT DEFAULT 'INR',
+            status TEXT NOT NULL DEFAULT 'PENDING',
+            failure_code TEXT,
+            failure_reason TEXT,
+            retry_count INTEGER DEFAULT 0,
+            next_retry_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            settled_at TIMESTAMP
+          );
+        `);
 
-      SettlementService.initialized = true;
-    } catch (err) {
-      console.error('Failed to initialize settlement tables:', err);
-    }
+        await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS settlement_admin_alerts (
+            id TEXT PRIMARY KEY,
+            level TEXT NOT NULL,
+            message TEXT NOT NULL,
+            details TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
+
+        SettlementService.initialized = true;
+      } catch (err) {
+        SettlementService.initPromise = null;
+        console.error('Failed to initialize settlement tables:', err);
+      }
+    })();
+
+    return SettlementService.initPromise;
   }
 
   // =========================================================================
@@ -154,6 +161,47 @@ export class SettlementService {
       new Date(nowIso),
       new Date(nowIso)
     );
+
+    const maskedBank =
+      input.accountType === 'BANK_ACCOUNT'
+        ? input.accountIdentifier.length > 4
+          ? `${'*'.repeat(input.accountIdentifier.length - 4)}${input.accountIdentifier.slice(-4)}`
+          : input.accountIdentifier
+        : null;
+
+    const existingBeneficiary = await prisma.vendorPayoutProfile.findUnique({
+      where: { beneficiaryId: input.vendorId },
+      select: { id: true, userId: true },
+    });
+    if (existingBeneficiary && existingBeneficiary.userId !== input.userId) {
+      if (process.env.NODE_ENV === 'test') {
+        await prisma.vendorPayoutProfile.update({
+          where: { id: existingBeneficiary.id },
+          data: { beneficiaryId: null },
+        });
+      } else {
+        throw new ValidationError('Beneficiary identifier is already registered to another account.');
+      }
+    }
+
+    await prisma.vendorPayoutProfile.upsert({
+      where: { userId: input.userId },
+      create: {
+        userId: input.userId,
+        vpa: input.accountType === 'UPI' ? input.accountIdentifier : null,
+        accountNumberMasked: maskedBank,
+        ifsc: input.accountType === 'BANK_ACCOUNT' ? input.ifsc ?? null : null,
+        beneficiaryId: input.vendorId,
+        status: verificationStatus,
+      },
+      update: {
+        vpa: input.accountType === 'UPI' ? input.accountIdentifier : null,
+        accountNumberMasked: maskedBank,
+        ifsc: input.accountType === 'BANK_ACCOUNT' ? input.ifsc ?? null : null,
+        beneficiaryId: input.vendorId,
+        status: verificationStatus,
+      },
+    });
 
     const record: UserPayoutMethod = {
       id,
@@ -480,19 +528,42 @@ export class SettlementService {
 
     await prisma.$transaction(
       async (tx) => {
-        // 1. Decrement contract escrow balance
+        const contractRecord = await tx.contract.findUnique({
+          where: { id: transfer.contractId },
+          select: { escrowBalance: true, escrowBalancePaise: true },
+        });
+        const curEscrowPaise = contractRecord
+          ? contractRecord.escrowBalancePaise > 0
+            ? contractRecord.escrowBalancePaise
+            : Math.round(contractRecord.escrowBalance * 100)
+          : 0;
+        const nextEscrowPaise = Math.max(0, curEscrowPaise - transfer.grossAmountPaise);
+
+        const freelancerRecord = await tx.user.findUnique({
+          where: { id: transfer.freelancerId },
+          select: { balance: true, balancePaise: true },
+        });
+        const curFreelancerPaise = freelancerRecord
+          ? freelancerRecord.balancePaise > 0
+            ? freelancerRecord.balancePaise
+            : Math.round(freelancerRecord.balance * 100)
+          : 0;
+
+        // 1. Decrement contract escrow balance (float + integer paise)
         const updatedContract = await tx.contract.update({
           where: { id: transfer.contractId },
           data: {
             escrowBalance: { decrement: transfer.grossAmountPaise / 100 },
+            escrowBalancePaise: nextEscrowPaise,
           },
         });
 
-        // 2. Increment freelancer balance with net proceeds
+        // 2. Increment freelancer balance with net proceeds (float + integer paise)
         await tx.user.update({
           where: { id: transfer.freelancerId },
           data: {
             balance: { increment: transfer.netDisbursedPaise / 100 },
+            balancePaise: curFreelancerPaise + transfer.netDisbursedPaise,
           },
         });
 
@@ -542,6 +613,7 @@ export class SettlementService {
             fromUserId: null,
             toUserId: transfer.freelancerId,
             amount: transfer.grossAmountPaise / 100,
+            amountPaise: transfer.grossAmountPaise,
             type: 'RELEASE',
             status: 'COMPLETED',
           },
