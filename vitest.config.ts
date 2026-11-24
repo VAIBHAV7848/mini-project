@@ -10,7 +10,7 @@ export default defineConfig({
     hookTimeout: 60000,
     exclude: ['**/node_modules/**', '**/.kilo/**', '**/dist/**', '**/.next/**'],
     env: {
-      DATABASE_URL: 'file:./dev.db',
+      DATABASE_URL: 'file:./test.db',
       NODE_ENV: 'test',
     },
     setupFiles: ['./tests/setup.ts'],

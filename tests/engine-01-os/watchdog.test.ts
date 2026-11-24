@@ -12,6 +12,14 @@ describe('Engine 01 (OS) — Automated Watchdog Scheduler & Review Timeout (FR-0
   let contract: any;
 
   beforeEach(async () => {
+    await prisma.milestone.updateMany({
+      where: {
+        status: 'SUBMITTED',
+        reviewDeadline: { lt: new Date() },
+      },
+      data: { status: 'REVIEW_TIMEOUT' },
+    });
+
     clientUser = await prisma.user.create({
       data: {
         email: `watchdog-client-${Date.now()}@test.local`,

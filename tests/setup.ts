@@ -2,9 +2,9 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { execSync } from 'node:child_process';
 
-// Guarantee DATABASE_URL is defined for all tests
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = 'file:./dev.db';
+// Isolate all Vitest suites from localhost dev.db using dedicated test.db
+if (!process.env.DATABASE_URL || process.env.DATABASE_URL === 'file:./dev.db') {
+  process.env.DATABASE_URL = 'file:./test.db';
 }
 
 // Safely load local .env if available without committing secrets
@@ -18,22 +18,22 @@ if (fs.existsSync(envPath)) {
       let value = (match[2] || '').trim();
       if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
       if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
-      if (!process.env[key]) {
+      if (key !== 'DATABASE_URL' && !process.env[key]) {
         process.env[key] = value;
       }
     }
   }
 }
 
-// Auto-push SQLite schema if dev.db does not exist yet
-const dbPath = path.resolve(process.cwd(), 'dev.db');
+// Auto-push SQLite schema if prisma/test.db does not exist yet
+const dbPath = path.resolve(process.cwd(), 'prisma/test.db');
 if (!fs.existsSync(dbPath)) {
   try {
     execSync('npx prisma db push --skip-generate', {
       stdio: 'pipe',
-      env: { ...process.env, DATABASE_URL: 'file:./dev.db' },
+      env: { ...process.env, DATABASE_URL: 'file:./test.db' },
     });
-  } catch (err) {
+  } catch {
     // Non-fatal if schema is already prepared
   }
 }

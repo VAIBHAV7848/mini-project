@@ -16,6 +16,7 @@ describe('Engine 03 (DBMS) & Engine 01 (OS) — Provider-Supported Settlement Se
     settlementService = new SettlementService();
     try {
       await prisma.$executeRawUnsafe('DELETE FROM user_payout_methods');
+      await prisma.$executeRawUnsafe('DELETE FROM vendor_payout_profiles');
       await prisma.$executeRawUnsafe('DELETE FROM settlement_transfers');
     } catch (e) {
       // ignore if tables not yet created

@@ -1,10 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   VectorSpaceRetriever,
   tokenizeText,
   MILESTONE_KNOWLEDGE_CORPUS,
 } from '@/core/engine-02-dsa-se/rag-knowledge-base';
 import { RagContractGenerator } from '@/core/engine-02-dsa-se/rag-contract-generator';
+
+vi.mock('@/lib/groq', () => ({
+  callGroqChat: vi.fn().mockRejectedValue(new Error('Mocked offline Groq for deterministic test execution')),
+}));
 
 describe('Engine 02 (DSA & SE) — RAG Knowledge Base & Vector Space Retriever', () => {
   it('correctly tokenizes and filters common stop words', () => {
