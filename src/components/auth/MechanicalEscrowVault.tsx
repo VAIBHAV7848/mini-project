@@ -66,115 +66,110 @@ export function MechanicalEscrowVault({
   className = '',
 }: MechanicalEscrowVaultProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const tumblerRef = useRef<HTMLDivElement | null>(null);
+  const ring1Ref = useRef<SVGGElement | null>(null);
+  const ring2Ref = useRef<SVGGElement | null>(null);
+  const ring3Ref = useRef<SVGGElement | null>(null);
+  const hashReadoutRef = useRef<HTMLSpanElement | null>(null);
+  const anglesRef = useRef({ ring1: 0, ring2: 45, ring3: -30 });
 
-  // Parallax tilt angles
-  const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const initialHash =
+    hashPreview || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
 
-  // Mechanical ring rotation states (in degrees)
-  const [ringAngles, setRingAngles] = useState({
-    ring1: 0, // Outer Hash Tumbler
-    ring2: 45, // Mid Interlocking Detent Ring
-    ring3: -30, // Inner Code Ring
-  });
-
-  // Animated procedural hash ticker
-  const [liveHash, setLiveHash] = useState<string>(
-    hashPreview || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
-  );
-
-  // Handle pointer parallax tilt
+  // Handle pointer parallax tilt via direct DOM transform (0 React re-renders)
   useEffect(() => {
     if (!interactive) return;
     const container = containerRef.current;
-    if (!container) return;
+    const tumbler = tumblerRef.current;
+    if (!container || !tumbler) return;
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let tiltRaf: number | null = null;
+    let nextTilt = { x: 0, y: 0 };
 
     const handlePointerMove = (e: PointerEvent) => {
       const rect = container.getBoundingClientRect();
       const x = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
       const y = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
-      setTilt({
+      nextTilt = {
         x: Math.max(-6, Math.min(6, x * 6)),
         y: Math.max(-6, Math.min(6, -y * 6)),
+      };
+      if (tiltRaf !== null) return;
+      tiltRaf = requestAnimationFrame(() => {
+        tiltRaf = null;
+        if (tumblerRef.current) {
+          tumblerRef.current.style.transform = `rotateY(${nextTilt.x}deg) rotateX(${nextTilt.y}deg)`;
+        }
       });
     };
 
     const handlePointerLeave = () => {
-      setTilt({ x: 0, y: 0 });
+      if (tumblerRef.current) {
+        tumblerRef.current.style.transform = 'rotateY(0deg) rotateX(0deg)';
+      }
     };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
     container.addEventListener('pointerleave', handlePointerLeave);
 
     return () => {
+      if (tiltRaf !== null) cancelAnimationFrame(tiltRaf);
       window.removeEventListener('pointermove', handlePointerMove);
       container.removeEventListener('pointerleave', handlePointerLeave);
     };
   }, [interactive]);
 
-  // Dynamic mechanical physics loop
+  // Dynamic mechanical physics loop via direct SVG attribute mutations (0 React re-renders/sec)
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     let animId: number;
     let seed = 1337;
+    let lastFrame = 0;
 
-    const updatePhysics = () => {
-      setRingAngles((prev) => {
-        if (state === 'verifying') {
-          // High-speed rotational alignment with detent deceleration
-          return {
-            ring1: (prev.ring1 + 3.4) % 360,
-            ring2: (prev.ring2 - 4.8) % 360,
-            ring3: (prev.ring3 + 6.2) % 360,
-          };
-        }
+    const updatePhysics = (now: number) => {
+      animId = requestAnimationFrame(updatePhysics);
+      if (document.hidden || now - lastFrame < 24) return; // Cap at ~40fps smoothly without starving CPU
+      lastFrame = now;
 
-        if (state === 'unlocked') {
-          // Snap directly to 0-degree aligned lock detents
-          const lerp = (cur: number, target: number) => cur + (target - cur) * 0.12;
-          return {
-            ring1: lerp(prev.ring1, 0),
-            ring2: lerp(prev.ring2, 0),
-            ring3: lerp(prev.ring3, 0),
-          };
-        }
-
-        if (state === 'typing') {
-          // Responsive micro-indexing steps
-          return {
-            ring1: (prev.ring1 + 0.35) % 360,
-            ring2: (prev.ring2 - 0.5) % 360,
-            ring3: (prev.ring3 + 0.8) % 360,
-          };
-        }
-
-        if (state === 'error') {
-          // Chaotic oscillation jitter during lock jam
-          const jitter = (Math.random() - 0.5) * 4;
-          return {
-            ring1: prev.ring1 + jitter,
-            ring2: prev.ring2 - jitter,
-            ring3: prev.ring3 + jitter * 1.5,
-          };
-        }
-
-        // 'idle' subtle clockwork drift
-        return {
-          ring1: (prev.ring1 + 0.04) % 360,
-          ring2: (prev.ring2 - 0.06) % 360,
-          ring3: (prev.ring3 + 0.08) % 360,
-        };
-      });
-
-      // Stream cryptographic SHA-256 fragments during verification & typing
-      if (state === 'verifying' || state === 'typing') {
-        seed++;
-        if (seed % 4 === 0) {
-          setLiveHash(hashPreview || generatePseudorandomHash(seed));
-        }
+      const cur = anglesRef.current;
+      if (state === 'verifying') {
+        cur.ring1 = (cur.ring1 + 3.4) % 360;
+        cur.ring2 = (cur.ring2 - 4.8) % 360;
+        cur.ring3 = (cur.ring3 + 6.2) % 360;
+      } else if (state === 'unlocked') {
+        cur.ring1 += (0 - cur.ring1) * 0.12;
+        cur.ring2 += (0 - cur.ring2) * 0.12;
+        cur.ring3 += (0 - cur.ring3) * 0.12;
+      } else if (state === 'typing') {
+        cur.ring1 = (cur.ring1 + 0.35) % 360;
+        cur.ring2 = (cur.ring2 - 0.5) % 360;
+        cur.ring3 = (cur.ring3 + 0.8) % 360;
+      } else if (state === 'error') {
+        const jitter = (Math.random() - 0.5) * 4;
+        cur.ring1 += jitter;
+        cur.ring2 -= jitter;
+        cur.ring3 += jitter * 1.5;
+      } else {
+        cur.ring1 = (cur.ring1 + 0.04) % 360;
+        cur.ring2 = (cur.ring2 - 0.06) % 360;
+        cur.ring3 = (cur.ring3 + 0.08) % 360;
       }
 
-      animId = requestAnimationFrame(updatePhysics);
+      ring1Ref.current?.setAttribute('transform', `rotate(${cur.ring1.toFixed(2)} 220 220)`);
+      ring2Ref.current?.setAttribute('transform', `rotate(${cur.ring2.toFixed(2)} 220 220)`);
+      ring3Ref.current?.setAttribute('transform', `rotate(${cur.ring3.toFixed(2)} 220 220)`);
+
+      if ((state === 'verifying' || state === 'typing') && hashReadoutRef.current) {
+        seed++;
+        if (seed % 4 === 0) {
+          const next = hashPreview || generatePseudorandomHash(seed);
+          hashReadoutRef.current.textContent = `${next.substring(0, 10)}...${next.substring(58)}`;
+        }
+      } else if (hashReadoutRef.current && hashPreview) {
+        hashReadoutRef.current.textContent = `${hashPreview.substring(0, 10)}...${hashPreview.substring(58)}`;
+      }
     };
 
     animId = requestAnimationFrame(updatePhysics);
@@ -259,8 +254,9 @@ export function MechanicalEscrowVault({
 
       {/* Main 3D Tumbler Assembly Container */}
       <div
+        ref={tumblerRef}
         style={{
-          transform: `rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)`,
+          transform: 'rotateY(0deg) rotateX(0deg)',
           transformStyle: 'preserve-3d',
           transition: 'transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)',
         }}
@@ -465,7 +461,8 @@ export function MechanicalEscrowVault({
 
           {/* LAYER 3: ROTOR RING 1 (Outer Hash Ring) */}
           <g
-            transform={`rotate(${ringAngles.ring1} 220 220)`}
+            ref={ring1Ref}
+            transform="rotate(0 220 220)"
             style={{ transformOrigin: '220px 220px' }}
           >
             <circle
@@ -520,7 +517,8 @@ export function MechanicalEscrowVault({
 
           {/* LAYER 4: ROTOR RING 2 (Mid Interlocking Detent Escapement) */}
           <g
-            transform={`rotate(${ringAngles.ring2} 220 220)`}
+            ref={ring2Ref}
+            transform="rotate(45 220 220)"
             style={{ transformOrigin: '220px 220px' }}
           >
             <circle
@@ -572,7 +570,8 @@ export function MechanicalEscrowVault({
 
           {/* LAYER 5: ROTOR RING 3 (Inner Code Dial) */}
           <g
-            transform={`rotate(${ringAngles.ring3} 220 220)`}
+            ref={ring3Ref}
+            transform="rotate(-30 220 220)"
             style={{ transformOrigin: '220px 220px' }}
           >
             <circle
@@ -752,8 +751,8 @@ export function MechanicalEscrowVault({
             </span>
           </div>
 
-          <span className="text-[#ff9d47] font-mono text-[9px] shrink-0 ml-2">
-            {liveHash.substring(0, 10)}...{liveHash.substring(58)}
+          <span ref={hashReadoutRef} className="text-[#ff9d47] font-mono text-[9px] shrink-0 ml-2">
+            {initialHash.substring(0, 10)}...{initialHash.substring(58)}
           </span>
         </div>
       </div>

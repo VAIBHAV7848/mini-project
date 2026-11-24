@@ -27,8 +27,13 @@ export function ReactAiAvatarOrb({
 
     let animId: number;
     let angle = 0;
+    let lastDraw = 0;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const render = () => {
+    const render = (now: number) => {
+      animId = requestAnimationFrame(render);
+      if (document.hidden || (now - lastDraw < 33 && !prefersReducedMotion)) return;
+      lastDraw = now;
       ctx.clearRect(0, 0, size, size);
       const cx = size / 2;
       const cy = size / 2;
@@ -86,14 +91,19 @@ export function ReactAiAvatarOrb({
       ctx.restore();
 
       // Speed depends on state
-      const speed =
-        state === 'thinking' ? 0.12 : state === 'working' ? 0.08 : state === 'listening' ? 0.05 : 0.02;
+      const speed = prefersReducedMotion
+        ? 0
+        : state === 'thinking'
+        ? 0.12
+        : state === 'working'
+        ? 0.08
+        : state === 'listening'
+        ? 0.05
+        : 0.02;
       angle += speed;
-
-      animId = requestAnimationFrame(render);
     };
 
-    render();
+    animId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animId);
   }, [state, size]);
 

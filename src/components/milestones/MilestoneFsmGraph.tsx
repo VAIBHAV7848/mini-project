@@ -79,6 +79,60 @@ const LINEAR_STEPS: StateStep[] = [
   },
 ];
 
+const FsmReviewCountdown = React.memo(function FsmReviewCountdown({
+  reviewDeadline,
+}: {
+  reviewDeadline: string;
+}) {
+  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number; isExpired: boolean }>({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isExpired: false,
+  });
+
+  useEffect(() => {
+    const deadline = new Date(reviewDeadline).getTime();
+    if (isNaN(deadline)) return;
+
+    const updateCountdown = () => {
+      const diff = deadline - Date.now();
+      if (diff <= 0) {
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0, isExpired: true });
+      } else {
+        setTimeLeft({
+          hours: Math.floor(diff / (1000 * 60 * 60)),
+          minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((diff % (1000 * 60)) / 1000),
+          isExpired: false,
+        });
+      }
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [reviewDeadline]);
+
+  return (
+    <div className="text-right shrink-0">
+      {timeLeft.isExpired ? (
+        <div className="px-3 py-1.5 rounded-lg bg-warning-tint border border-warning/40 text-warning-light text-xs font-bold font-mono2">
+          TIMEOUT EXPIRED · AUTO-RELEASE UNLOCKED
+        </div>
+      ) : (
+        <div className="font-mono2 text-xs">
+          <span className="text-paper-faint text-[10px] block uppercase">Time Remaining</span>
+          <span className="text-brand-light font-bold text-sm tabular-nums">
+            {String(timeLeft.hours).padStart(2, '0')}h : {String(timeLeft.minutes).padStart(2, '0')}m :{' '}
+            {String(timeLeft.seconds).padStart(2, '0')}s
+          </span>
+        </div>
+      )}
+    </div>
+  );
+});
+
 export function MilestoneFsmGraph({
   currentState,
   milestoneTitle,
@@ -98,38 +152,6 @@ export function MilestoneFsmGraph({
     const found = LINEAR_STEPS.findIndex((s) => s.id === normalizedState);
     return found !== -1 ? found : 0;
   }, [normalizedState]);
-
-  // Review Countdown Timer
-  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number; isExpired: boolean }>({
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-    isExpired: false,
-  });
-
-  useEffect(() => {
-    if (!reviewDeadline) return;
-
-    const deadline = new Date(reviewDeadline).getTime();
-    if (isNaN(deadline)) return;
-
-    const updateCountdown = () => {
-      const now = Date.now();
-      const diff = deadline - now;
-      if (diff <= 0) {
-        setTimeLeft({ hours: 0, minutes: 0, seconds: 0, isExpired: true });
-      } else {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        setTimeLeft({ hours, minutes, seconds, isExpired: false });
-      }
-    };
-
-    updateCountdown();
-    const timer = setInterval(updateCountdown, 1000);
-    return () => clearInterval(timer);
-  }, [reviewDeadline]);
 
   return (
     <div className="card p-0 border border-line bg-surface overflow-hidden">
@@ -256,21 +278,7 @@ export function MilestoneFsmGraph({
               </div>
             </div>
 
-            <div className="text-right shrink-0">
-              {timeLeft.isExpired ? (
-                <div className="px-3 py-1.5 rounded-lg bg-warning-tint border border-warning/40 text-warning-light text-xs font-bold font-mono2">
-                  TIMEOUT EXPIRED · AUTO-RELEASE UNLOCKED
-                </div>
-              ) : (
-                <div className="font-mono2 text-xs">
-                  <span className="text-paper-faint text-[10px] block uppercase">Time Remaining</span>
-                  <span className="text-brand-light font-bold text-sm">
-                    {String(timeLeft.hours).padStart(2, '0')}h : {String(timeLeft.minutes).padStart(2, '0')}m :{' '}
-                    {String(timeLeft.seconds).padStart(2, '0')}s
-                  </span>
-                </div>
-              )}
-            </div>
+            <FsmReviewCountdown reviewDeadline={reviewDeadline} />
           </div>
         )}
 

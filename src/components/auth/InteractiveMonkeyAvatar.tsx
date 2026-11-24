@@ -311,15 +311,29 @@ export function InteractiveMonkeyAvatar({
     }
   }, [emailValue, isEmailFocused, isPasswordFocused, effectiveInputRef, lookAtPoint, resetFace]);
 
-  // 5. Mouse Hover Tracking when Idle
+  // 5. Mouse Hover Tracking when Idle (rAF-throttled for smooth 60fps performance)
   useEffect(() => {
+    let rafId: number | null = null;
+    let pendingPoint: { x: number; y: number } | null = null;
+
     const handleMouseMove = (e: MouseEvent) => {
       // Only track mouse when not focused on password or actively typing email
       if (isPasswordFocused || isEmailFocused) return;
-      lookAtPoint(e.clientX, e.clientY, false);
+      pendingPoint = { x: e.clientX, y: e.clientY };
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        if (pendingPoint && !isPasswordFocused && !isEmailFocused) {
+          lookAtPoint(pendingPoint.x, pendingPoint.y, false);
+        }
+      });
     };
 
     const handleMouseLeave = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       if (!isPasswordFocused && !isEmailFocused) {
         resetFace();
       }
@@ -329,6 +343,7 @@ export function InteractiveMonkeyAvatar({
     document.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
     };

@@ -24,7 +24,28 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('activeRole') as Role;
-    if (saved && PERSONAS[saved]) setRoleState(saved);
+    if (saved && PERSONAS[saved]) {
+      setRoleState(saved);
+      return;
+    }
+
+    if (typeof fetch !== 'function') return;
+    let active = true;
+    fetch('/api/auth/session')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const sessionRole = data?.data?.role as Role | undefined;
+        if (active && sessionRole && PERSONAS[sessionRole]) {
+          setRoleState(sessionRole);
+          localStorage.setItem('activeRole', sessionRole);
+        }
+      })
+      .catch(() => {
+        // Ignore in isolated component test environments
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const setRole = (newRole: Role) => {

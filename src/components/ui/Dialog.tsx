@@ -10,9 +10,18 @@ interface DialogProps {
   description?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  maxWidthClass?: string;
 }
 
-export function Dialog({ isOpen, onClose, title, description, children, footer }: DialogProps) {
+export function Dialog({
+  isOpen,
+  onClose,
+  title,
+  description,
+  children,
+  footer,
+  maxWidthClass = 'max-w-lg',
+}: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -93,7 +102,7 @@ export function Dialog({ isOpen, onClose, title, description, children, footer }
         aria-labelledby="dialog-title"
         aria-describedby={description ? "dialog-description" : undefined}
         tabIndex={-1}
-        className="relative w-full max-w-lg bg-[var(--color-surface)] border border-[var(--color-border-default)] rounded-lg shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
+        className={`relative w-full ${maxWidthClass} bg-[var(--color-surface)] border border-[var(--color-border-default)] rounded-lg shadow-2xl flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200`}
       >
         <div className="flex items-center justify-between p-5 border-b border-[var(--color-border-subtle)]">
           <div>

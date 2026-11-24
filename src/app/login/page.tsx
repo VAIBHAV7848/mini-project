@@ -37,6 +37,34 @@ import {
   setMuted,
 } from '@/lib/vault-audio';
 
+const LoginTelemetryPill = React.memo(function LoginTelemetryPill() {
+  const [syncLatency, setSyncLatency] = useState(16);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      setSyncLatency(Math.floor(14 + Math.random() * 6));
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-elevated border border-line text-[11px] font-mono text-paper-muted">
+      <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+        Session Secure
+      </span>
+      <span className="text-line-strong">•</span>
+      <span className="flex items-center gap-1 text-brand-base font-medium">
+        <Server className="w-3 h-3 text-brand-base" />
+        SQLite Ledger
+      </span>
+      <span className="text-line-strong">•</span>
+      <span className="text-paper-muted tabular-nums">{syncLatency}ms</span>
+    </div>
+  );
+});
+
 const SHOW_DEMO_CREDENTIALS = process.env.NODE_ENV !== 'production';
 
 interface PersonaProfile {
@@ -62,7 +90,7 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     role: 'CLIENT',
     title: 'Enterprise Client',
     badgeLabel: 'Funded Client',
-    balanceFormatted: '₹10,00,000.00',
+    balanceFormatted: '₹10,000.00',
     devScore: 50,
     description: 'Project initiator with verified escrow funding privileges & milestone release authority.',
     icon: Briefcase,
@@ -75,7 +103,7 @@ const PERSONA_PROFILES: PersonaProfile[] = [
     role: 'FREELANCER',
     title: 'Lead Full-Stack Dev',
     badgeLabel: 'Top Rated 92%',
-    balanceFormatted: '₹2,50,000.00',
+    balanceFormatted: '₹2,500.00',
     devScore: 92,
     description: 'Cryptographic engineer with SHA-256 deliverable submission & milestone execution.',
     icon: Code2,
@@ -136,17 +164,29 @@ export default function LoginPage() {
   const [authSuccess, setAuthSuccess] = useState(false);
   const [authTargetName, setAuthTargetName] = useState<string>('');
 
-  // Mobile view switcher
+  // Mobile view switcher & optional pre-selected role from query parameter (?role=client|freelancer|arbitrator)
   const [activeTab, setActiveTab] = useState<'credentials' | 'personas'>('credentials');
-
-  // Live telemetry ping state
-  const [syncLatency, setSyncLatency] = useState(16);
+  const [highlightedRole, setHighlightedRole] = useState<Role | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSyncLatency(Math.floor(14 + Math.random() * 6));
-    }, 4000);
-    return () => clearInterval(interval);
+    const params = new URLSearchParams(window.location.search);
+    const rawRole = params.get('role')?.toLowerCase();
+    const roleMap: Record<string, Role> = {
+      client: 'CLIENT',
+      freelancer: 'FREELANCER',
+      arbitrator: 'REVIEWER',
+      reviewer: 'REVIEWER',
+      admin: 'ADMIN',
+    };
+    const mappedRole = rawRole ? roleMap[rawRole] : undefined;
+    if (mappedRole) {
+      setHighlightedRole(mappedRole);
+      const matched = PERSONA_PROFILES.find((p) => p.role === mappedRole);
+      if (matched) {
+        setEmail(matched.email);
+      }
+      setActiveTab('personas');
+    }
   }, []);
 
   // Compute live entropy and synthetic hash for the vault
@@ -335,19 +375,7 @@ export default function LoginPage() {
 
         {/* Realtime Telemetry, Audio Controls & ThemeToggle */}
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-elevated border border-line text-[11px] font-mono text-paper-muted">
-            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              Session Secure
-            </span>
-            <span className="text-line-strong">•</span>
-            <span className="flex items-center gap-1 text-brand-base font-medium">
-              <Server className="w-3 h-3 text-brand-base" />
-              SQLite Ledger
-            </span>
-            <span className="text-line-strong">•</span>
-            <span className="text-paper-muted">{syncLatency}ms</span>
-          </div>
+          <LoginTelemetryPill />
 
           {/* Procedural Audio Mute Toggle */}
           <button
@@ -775,8 +803,10 @@ export default function LoginPage() {
                       }
                     }}
                     onClick={() => !authenticatingPersonaId && handlePersonaClick(persona)}
-                    className={`group relative rounded-xl bg-surface border border-line p-4 transition-all duration-200 cursor-pointer hover:border-brand-base/60 hover:bg-surface-elevated shadow-sm hover:shadow-md focus:outline-none focus:ring-1 focus:ring-brand-base ${
-                      isLoggingIn ? 'border-brand-base ring-1 ring-brand-base' : ''
+                    className={`group relative rounded-xl bg-surface border p-4 transition-all duration-200 cursor-pointer hover:border-brand-base/60 hover:bg-surface-elevated shadow-sm hover:shadow-md focus:outline-none focus:ring-1 focus:ring-brand-base ${
+                      isLoggingIn || highlightedRole === persona.role
+                        ? 'border-brand-base ring-1 ring-brand-base'
+                        : 'border-line'
                     }`}
                   >
                     {/* Header */}

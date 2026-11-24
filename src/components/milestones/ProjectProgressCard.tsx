@@ -19,6 +19,69 @@ import {
 
 export interface MilestoneProgressItem extends MilestoneProgressInput {}
 
+const ProgressReviewCountdown = React.memo(function ProgressReviewCountdown({
+  reviewDeadline,
+}: {
+  reviewDeadline: string | Date;
+}) {
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isExpired: boolean;
+  }>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isExpired: false,
+  });
+
+  useEffect(() => {
+    const deadline = new Date(reviewDeadline).getTime();
+    if (isNaN(deadline)) return;
+
+    const updateCountdown = () => {
+      const diff = deadline - Date.now();
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
+      } else {
+        setTimeLeft({
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((diff % (1000 * 60)) / 1000),
+          isExpired: false,
+        });
+      }
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [reviewDeadline]);
+
+  return (
+    <div className="flex items-center gap-2 pt-1 font-mono2 text-xs">
+      <Clock className="w-3.5 h-3.5 text-brand-base motion-safe:animate-pulse" aria-hidden="true" />
+      <span className="text-paper-faint">Review Window:</span>
+      {timeLeft.isExpired ? (
+        <span className="text-amber-600 dark:text-amber-400 font-bold">
+          EXPIRED · AUTO-RELEASE READY
+        </span>
+      ) : (
+        <span className="text-brand-dark dark:text-brand-light font-bold tabular-nums">
+          {timeLeft.days > 0 ? `${timeLeft.days}d ` : ''}
+          {String(timeLeft.hours).padStart(2, '0')}h :{' '}
+          {String(timeLeft.minutes).padStart(2, '0')}m :{' '}
+          {String(timeLeft.seconds).padStart(2, '0')}s
+        </span>
+      )}
+    </div>
+  );
+});
+
 export interface ProjectProgressCardProps {
   contractId: string;
   projectTitle: string;
@@ -52,45 +115,6 @@ export function ProjectProgressCard({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
-
-  // Countdown Timer for Engine 01 Review Window
-  const [timeLeft, setTimeLeft] = useState<{
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-    isExpired: boolean;
-  }>({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-    isExpired: false,
-  });
-
-  useEffect(() => {
-    if (!currentMilestone?.reviewDeadline) return;
-    const deadline = new Date(currentMilestone.reviewDeadline).getTime();
-    if (isNaN(deadline)) return;
-
-    const updateCountdown = () => {
-      const now = Date.now();
-      const diff = deadline - now;
-      if (diff <= 0) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
-      } else {
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        setTimeLeft({ days, hours, minutes, seconds, isExpired: false });
-      }
-    };
-
-    updateCountdown();
-    const timer = setInterval(updateCountdown, 1000);
-    return () => clearInterval(timer);
-  }, [currentMilestone?.reviewDeadline]);
 
   return (
     <section
@@ -299,22 +323,7 @@ export function ProjectProgressCard({
               {/* Review Window Countdown */}
               {(currentMilestone.status === 'SUBMITTED' || currentMilestone.status === 'UNDER_REVIEW') &&
                 currentMilestone.reviewDeadline && (
-                  <div className="flex items-center gap-2 pt-1 font-mono2 text-xs">
-                    <Clock className="w-3.5 h-3.5 text-brand-base motion-safe:animate-pulse" aria-hidden="true" />
-                    <span className="text-paper-faint">Review Window:</span>
-                    {timeLeft.isExpired ? (
-                      <span className="text-amber-600 dark:text-amber-400 font-bold">
-                        EXPIRED · AUTO-RELEASE READY
-                      </span>
-                    ) : (
-                      <span className="text-brand-dark dark:text-brand-light font-bold">
-                        {timeLeft.days > 0 ? `${timeLeft.days}d ` : ''}
-                        {String(timeLeft.hours).padStart(2, '0')}h :{' '}
-                        {String(timeLeft.minutes).padStart(2, '0')}m :{' '}
-                        {String(timeLeft.seconds).padStart(2, '0')}s
-                      </span>
-                    )}
-                  </div>
+                  <ProgressReviewCountdown reviewDeadline={currentMilestone.reviewDeadline} />
                 )}
             </div>
 

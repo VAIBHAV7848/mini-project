@@ -12,10 +12,63 @@ import {
 } from 'lucide-react';
 import { TeamShowcaseHeader } from '@/components/showcase/TeamShowcaseHeader';
 
+const PROTOCOL_HASHES = [
+  '0x9f7a..3c2e',
+  '0x4d12..8b91',
+  '0xe28f..65a4',
+  '0x7c30..19f8'
+] as const;
+
+const LandingTelemetryReadout = React.memo(function LandingTelemetryReadout() {
+  const [latency, setLatency] = useState('0.8');
+  const [hashTick, setHashTick] = useState<string>(PROTOCOL_HASHES[0]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      setLatency((0.7 + Math.random() * 0.2).toFixed(1));
+      setHashTick(PROTOCOL_HASHES[Math.floor(Math.random() * PROTOCOL_HASHES.length)]);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-2.5 bg-black/60 px-3 py-1.5 rounded-xl border border-white/[0.07] shadow-inner">
+      {/* Protocol FSM Status */}
+      <div className="flex items-center gap-1.5 text-neutral-400">
+        <span className="text-neutral-500 text-[10px]">FSM</span>
+        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>LOCKED</span>
+        </div>
+      </div>
+
+      <span className="text-neutral-700">|</span>
+
+      {/* SHA-256 Proof Telemetry */}
+      <div className="flex items-center gap-1.5 text-neutral-400">
+        <span className="text-neutral-500 text-[10px]">SHA-256</span>
+        <span className="text-neutral-200 text-[10px] font-semibold tracking-tight tabular-nums">
+          {hashTick}
+        </span>
+      </div>
+
+      <span className="text-neutral-700">|</span>
+
+      {/* Micro-Latency Jitter */}
+      <div className="hidden sm:flex items-center gap-1.5 text-neutral-400">
+        <Activity className="w-3 h-3 text-orange-400" />
+        <span className="text-neutral-300 text-[10px] font-bold tabular-nums">
+          {latency}ms
+        </span>
+      </div>
+    </div>
+  );
+});
+
 export default function LandingPage() {
   const router = useRouter();
-  const [latency, setLatency] = useState('0.8');
-  const [hashTick, setHashTick] = useState('0x9f7a..3c2e');
 
   // Physical keyboard "↵ RETURN" key listener for authentic terminal experience
   useEffect(() => {
@@ -30,24 +83,6 @@ export default function LandingPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [router]);
-
-  // Subtle live protocol telemetry pulse
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const jitter = (0.7 + Math.random() * 0.2).toFixed(1);
-      setLatency(jitter);
-
-      const hashes = [
-        '0x9f7a..3c2e',
-        '0x4d12..8b91',
-        '0xe28f..65a4',
-        '0x7c30..19f8'
-      ];
-      setHashTick(hashes[Math.floor(Math.random() * hashes.length)]);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="h-dvh max-h-dvh w-full flex flex-col justify-between overflow-hidden bg-[#07080a] text-white relative select-none font-sans">
@@ -64,7 +99,7 @@ export default function LandingPage() {
           loop
           playsInline
           preload="metadata"
-          className="w-full h-full object-cover scale-[1.02] filter brightness-[0.58] contrast-[1.16] saturate-[0.84]"
+          className="w-full h-full object-cover scale-[1.02] filter brightness-[0.58] contrast-[1.16] saturate-[0.84] will-change-transform"
           aria-hidden="true"
         />
         {/* Neutral-density optical scrim — deep carbon, zero mud */}
@@ -83,7 +118,7 @@ export default function LandingPage() {
       <main className="relative z-20 flex-1 min-h-0 w-full max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center justify-center text-center py-2 sm:py-3">
 
         {/* Institutional Specification Coordinate Eyebrow */}
-        <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.09] text-[10px] sm:text-[11px] font-mono tracking-widest text-neutral-400 uppercase mb-3 sm:mb-5 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.4)]">
+        <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#101216]/90 border border-white/[0.09] text-[10px] sm:text-[11px] font-mono tracking-widest text-neutral-400 uppercase mb-3 sm:mb-5 shadow-[0_2px_10px_rgba(0,0,0,0.4)]">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
           <span className="text-white font-semibold">0xESCROW</span>
           <span className="text-neutral-600">/</span>
@@ -106,12 +141,12 @@ export default function LandingPage() {
           A high-assurance engineering workspace for freelance talent. Protect milestone disbursements with atomic concurrency locks, cryptographic SHA-256 evidence trees, relational double-entry ledgers, and impartial dispute arbitration.
         </p>
 
-        {/* 4. THE INDUSTRIAL MINIMAL DOCK (Museum-Grade Machined Hardware Centerpiece) */}
+        {/* 4. THE INDUSTRIAL MINIMAL DOCK (Opaque dark chassis avoids GPU backdrop-blur over video) */}
         <div className="mt-7 sm:mt-9 w-full max-w-5xl px-2 sm:px-4">
           <div
             role="toolbar"
             aria-label="Workspace Access & Protocol Telemetry Dock"
-            className="group relative rounded-2xl bg-[#0C0D11]/95 backdrop-blur-2xl border border-white/[0.13] shadow-[0_32px_80px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.18),inset_0_-1px_0_0_rgba(0,0,0,0.8)] p-2 sm:p-2.5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 lg:gap-0 divide-y lg:divide-y-0 lg:divide-x divide-white/[0.08]"
+            className="group relative rounded-2xl bg-[#0C0D11]/95 border border-white/[0.13] shadow-[0_32px_80px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.18),inset_0_-1px_0_0_rgba(0,0,0,0.8)] p-2 sm:p-2.5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 lg:gap-0 divide-y lg:divide-y-0 lg:divide-x divide-white/[0.08]"
           >
             {/* Machined Fastener Rivets & Engraved Hardware Serial (Industrial detailing) */}
             <div className="absolute top-1.5 left-2.5 hidden xl:block text-[8px] font-mono text-neutral-600 select-none tracking-tighter">
@@ -203,36 +238,7 @@ export default function LandingPage() {
 
             {/* ZONE 3: Live Protocol Telemetry Readout (VFD/OLED Display) */}
             <div className="flex items-center justify-between lg:justify-end gap-3 pt-2 lg:pt-0 lg:pl-5 font-mono text-[11px]">
-              <div className="flex items-center gap-2.5 bg-black/60 px-3 py-1.5 rounded-xl border border-white/[0.07] shadow-inner">
-                {/* Protocol FSM Status */}
-                <div className="flex items-center gap-1.5 text-neutral-400">
-                  <span className="text-neutral-500 text-[10px]">FSM</span>
-                  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>LOCKED</span>
-                  </div>
-                </div>
-
-                <span className="text-neutral-700">|</span>
-
-                {/* SHA-256 Proof Telemetry */}
-                <div className="flex items-center gap-1.5 text-neutral-400">
-                  <span className="text-neutral-500 text-[10px]">SHA-256</span>
-                  <span className="text-neutral-200 text-[10px] font-semibold tracking-tight">
-                    {hashTick}
-                  </span>
-                </div>
-
-                <span className="text-neutral-700">|</span>
-
-                {/* Micro-Latency Jitter */}
-                <div className="hidden sm:flex items-center gap-1.5 text-neutral-400">
-                  <Activity className="w-3 h-3 text-orange-400" />
-                  <span className="text-neutral-300 text-[10px] font-bold tabular-nums">
-                    {latency}ms
-                  </span>
-                </div>
-              </div>
+              <LandingTelemetryReadout />
             </div>
 
           </div>
@@ -241,7 +247,7 @@ export default function LandingPage() {
       </main>
 
       {/* 5. Minimal Institutional Engineering Footer */}
-      <footer className="relative z-30 h-11 flex-none border-t border-white/[0.08] px-6 sm:px-8 text-[11px] font-mono text-neutral-400 flex items-center justify-between bg-[#07080a]/85 backdrop-blur-md">
+      <footer className="relative z-30 h-11 flex-none border-t border-white/[0.08] px-6 sm:px-8 text-[11px] font-mono text-neutral-400 flex items-center justify-between bg-[#07080a]/95">
         <div className="w-full max-w-[1600px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5">

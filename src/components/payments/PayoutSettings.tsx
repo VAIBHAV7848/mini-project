@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Smartphone,
   Building2,
@@ -10,8 +10,10 @@ import {
   Save,
   Loader2,
 } from 'lucide-react';
+import { useRole } from '@/components/layout/RoleContext';
 
 export function PayoutSettings() {
+  const { currentPersona } = useRole();
   const [method, setMethod] = useState<'UPI' | 'BANK'>('UPI');
   const [upiId, setUpiId] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -20,6 +22,35 @@ export function PayoutSettings() {
   const [beneficiaryName, setBeneficiaryName] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const loadExisting = async () => {
+      try {
+        const res = await fetch('/api/payments/payout-settings', {
+          headers: { 'x-user-id': currentPersona.id },
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        const existing = json?.data;
+        if (!active || !existing) return;
+        if (existing.accountType === 'UPI') {
+          setMethod('UPI');
+          setUpiId(existing.accountIdentifier || '');
+        } else if (existing.accountType === 'BANK_ACCOUNT') {
+          setMethod('BANK');
+          setIfsc(existing.ifsc || '');
+          setBeneficiaryName(existing.bankName || '');
+        }
+      } catch {
+        // Ignore silent fetch error on mount
+      }
+    };
+    void loadExisting();
+    return () => {
+      active = false;
+    };
+  }, [currentPersona.id]);
 
   const validate = () => {
     if (method === 'UPI') {
@@ -59,9 +90,12 @@ export function PayoutSettings() {
     try {
       const res = await fetch('/api/payments/payout-settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': currentPersona.id,
+        },
         body: JSON.stringify({
-          method,
+          method: method === 'BANK' ? 'BANK_ACCOUNT' : 'UPI',
           upiId: method === 'UPI' ? upiId.trim() : undefined,
           bankAccount:
             method === 'BANK'
@@ -74,18 +108,19 @@ export function PayoutSettings() {
         }),
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to persist payout settings.');
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data?.error?.message || 'Failed to persist payout settings.');
       }
 
       setMessage({
         type: 'success',
-        text: 'Payout beneficiary details registered and verified with Cashfree.',
+        text: 'Payout beneficiary details registered and verified with Escrow Settlement Ledger.',
       });
-    } catch {
+    } catch (err: unknown) {
       setMessage({
-        type: 'success',
-        text: 'Payout beneficiary details registered and verified for Escrow release.',
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Unable to save payout settings.',
       });
     } finally {
       setSaving(false);
